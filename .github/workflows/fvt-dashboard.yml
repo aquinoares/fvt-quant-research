@@ -125,13 +125,13 @@ jobs:
           print("Dashboard feed generated. Live performance returns are intentionally omitted.")
           PY
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v6
-
-      - name: Upload static dashboard
-        uses: actions/upload-pages-artifact@v4
+      - name: Upload static dashboard as a private workflow artifact
+        uses: actions/upload-artifact@v7
         with:
+          name: fvt-dashboard-preview-${{ github.run_id }}
           path: site
+          retention-days: 7
+          if-no-files-found: error
 
   deploy:
     name: Publish dashboard
@@ -141,6 +141,8 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
