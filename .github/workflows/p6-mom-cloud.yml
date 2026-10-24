@@ -7,7 +7,7 @@ on:
     paths:
       - ".github/workflows/p6-mom-cloud.yml"
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "15,45 * * * *"
   workflow_dispatch:
 
 permissions:
