@@ -122,7 +122,15 @@ jobs:
                   shadow["events"].append(stop)
           data["source_label"] = "Gerado automaticamente a partir do branch de estado privado; sem exposição de CSV bruto."
           Path("site/data.json").write_text(json.dumps(data,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-          print("Dashboard feed generated. Live performance returns are intentionally omitted.")
+          index_path = Path("site/index.html")
+          html = index_path.read_text(encoding="utf-8")
+          marker = "<!-- FVT_RUNTIME_DATA -->"
+          if marker not in html:
+              raise SystemExit("Dashboard runtime-data marker is missing.")
+          payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<" + chr(92) + "/")
+          embedded = "<script>window.FVT_DASHBOARD_DATA = " + payload + ";</script>"
+          index_path.write_text(html.replace(marker, embedded, 1), encoding="utf-8")
+          print("Dashboard feed generated and embedded. Live performance returns are intentionally omitted.")
           PY
 
       - name: Upload static dashboard as a private workflow artifact
