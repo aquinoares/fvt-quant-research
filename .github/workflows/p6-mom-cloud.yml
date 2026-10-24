@@ -46,10 +46,11 @@ jobs:
           ledger_path = Path("memory/hypotheses_ledger.jsonl").resolve()
           ref = json.loads(ref_path.read_text(encoding="utf-8"))
           ref["ledger"] = str(ledger_path)
-          ref_path.write_text(json.dumps(ref, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+          ref_path.write_text(json.dumps(ref, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
           if Path(ref["ledger"]).resolve() != ledger_path:
               raise SystemExit("Approval ledger path normalization failed.")
           print("Approval reference points to the committed P6-MOM ledger on this runner.")
+          PY
 
       - name: Restore persistent P6-MOM session
         shell: bash
