@@ -50,9 +50,16 @@ jobs:
           set -Eeuo pipefail
           python - <<'PY'
           import hashlib, json
+          import subprocess
           from pathlib import Path
 
           root = Path(".")
+          expected_step_blob = "1bb2ca4e820735639ed387b43a2f7223e668943c"
+          actual_step_blob = subprocess.check_output(
+              ["git", "rev-parse", "HEAD:scripts/p6_mom_step.py"], text=True
+          ).strip()
+          if actual_step_blob != expected_step_blob:
+              raise SystemExit("P6-MOM orchestrator blob differs from the registered deployment.")
           manifest_rel = "research/out/p6_mom_freeze_20261024T011825Z/manifest.json"
           expected_manifest_sha = "661EAA0326B7B4C201E7A897FF58CD45382FB10DDACFECF4F0A6F89DB0B76592"
           manifest_path = root / manifest_rel
