@@ -121,7 +121,7 @@ jobs:
           SESSION_REL="data/shadow/p6_mom_mom_tf240_lb96_20261025T000000Z"
           RUNTIME="$RUNNER_TEMP/fvt-p6-runtime"
 
-          git fetch origin refs/heads/p6-mom-runtime:refs/remotes/origin/p6-mom-runtime
+          git fetch --depth=1 origin refs/heads/p6-mom-runtime:refs/remotes/origin/p6-mom-runtime
           git worktree add --detach "$RUNTIME" refs/remotes/origin/p6-mom-runtime
 
           mkdir -p "$GITHUB_WORKSPACE/data/shadow"
@@ -284,8 +284,18 @@ jobs:
             git -C "$RUNTIME" add -f -A -- "$SESSION_REL"
 
             if ! git -C "$RUNTIME" diff --cached --quiet; then
-              git -C "$RUNTIME" commit -m "P6-MOM cloud checkpoint $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-              git -C "$RUNTIME" push origin HEAD:refs/heads/p6-mom-runtime
+              # Keep only the latest snapshot reachable from this branch.
+              # A normal commit per run would retain every growing state.json version.
+              tree="$(git -C "$RUNTIME" write-tree)"
+              old_commit="$(git -C "$RUNTIME" rev-parse HEAD)"
+              snapshot_commit="$(
+                GIT_AUTHOR_NAME="github-actions[bot]" \
+                GIT_AUTHOR_EMAIL="41898282+github-actions[bot]@users.noreply.github.com" \
+                GIT_COMMITTER_NAME="github-actions[bot]" \
+                GIT_COMMITTER_EMAIL="41898282+github-actions[bot]@users.noreply.github.com" \
+                git -C "$RUNTIME" commit-tree "$tree" -m "P6-MOM snapshot $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+              )"
+              git -C "$RUNTIME" push --force-with-lease="refs/heads/p6-mom-runtime:$old_commit" origin "$snapshot_commit:refs/heads/p6-mom-runtime"
             else
               echo "No persistent session changes to save."
             fi
