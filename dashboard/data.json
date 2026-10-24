@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "dashboard_version": "0.1.0",
+  "updated_at_utc": null,
+  "source_label": "Aguardando sincronização com a sessão cloud",
+  "strategy": {
+    "protocol": "P6-MOM",
+    "variant": "MOM_TF240_LB96",
+    "symbol": "BTCUSDT",
+    "signal_timeframe_minutes": 240,
+    "lookback": 96,
+    "threshold": 0.005,
+    "risk_limit": -0.1,
+    "window_start_utc": "2026-10-25T00:00:00Z",
+    "window_end_utc": "2027-01-23T00:00:00Z",
+    "costs": { "fee_bps_per_side": 10, "slippage_bps_per_side": 5, "stress_round_trip_bps": 60 },
+    "winner_id": "722a0dd140",
+    "manifest_sha256": "661EAA0326B7B4C201E7A897FF58CD45382FB10DDACFECF4F0A6F89DB0B76592"
+  },
+  "historical": {
+    "source": "research/out/p6_mom_freeze_20261024T011825Z/manifest.json",
+    "train": {
+      "net_total_return": 0.21946998037371812,
+      "profit_factor_net": 8.62652508369245,
+      "max_drawdown_net": -0.0602014947162004,
+      "trades": 4,
+      "net_win_rate": 0.25,
+      "exposure_fraction": 0.47209061868238705
+    },
+    "validation": {
+      "net_total_return": 0.06472294924882593,
+      "profit_factor_net": 9.076211769425145,
+      "max_drawdown_net": -0.05439485886939677,
+      "trades": 3,
+      "net_win_rate": 0.6666666666666666,
+      "exposure_fraction": 0.4182536498040063
+    },
+    "minimum_complete_trades": 10,
+    "test_block_untouched": true
+  },
+  "shadow": {
+    "status": "awaiting",
+    "status_label": "AGUARDANDO",
+    "status_detail": "A primeira coleta ainda não foi confirmada.",
+    "max_drawdown_net": null,
+    "breached": false,
+    "last_timestamp": null,
+    "segments_count": 0,
+    "candles_observed": 0,
+    "continuity": "Ainda não verificada",
+    "events": []
+  }
+}
