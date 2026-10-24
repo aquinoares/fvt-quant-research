@@ -26,14 +26,14 @@ jobs:
     steps:
       - name: Checkout frozen code
         id: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: true
 
       - name: Set up Python
         id: python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -268,7 +268,7 @@ jobs:
 
       - name: Upload operational log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: p6-mom-operational-log-${{ github.run_id }}
           path: ${{ runner.temp }}/p6-mom.log
