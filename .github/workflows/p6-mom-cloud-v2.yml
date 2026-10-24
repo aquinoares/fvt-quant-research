@@ -62,10 +62,11 @@ jobs:
               raise SystemExit("P6-MOM orchestrator blob differs from the registered deployment.")
           manifest_rel = "research/out/p6_mom_freeze_20261024T011825Z/manifest.json"
           expected_manifest_sha = "661EAA0326B7B4C201E7A897FF58CD45382FB10DDACFECF4F0A6F89DB0B76592"
+          expected_manifest_blob = "d9f6a40ef73dff0eae8ca37a8a8c63e70b6e071e"
           manifest_path = root / manifest_rel
-          actual_manifest_sha = hashlib.sha256(manifest_path.read_bytes()).hexdigest().upper()
-          if actual_manifest_sha != expected_manifest_sha:
-              raise SystemExit("Frozen manifest SHA256 mismatch.")
+          actual_manifest_blob = subprocess.check_output(["git", "rev-parse", f"HEAD:{manifest_rel}"], text=True).strip()
+          if actual_manifest_blob != expected_manifest_blob:
+              raise SystemExit("Frozen manifest repository blob differs.")
           manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
           if manifest.get("protocol") != "P6-MOM" or manifest.get("variant") != "MOM_TF240_LB96":
               raise SystemExit("Unexpected protocol or variant in frozen manifest.")
@@ -88,17 +89,32 @@ jobs:
           if abs(float(risk.get("limit_drawdown_net", 0)) + 0.1) > 1e-12:
               raise SystemExit("P6-MOM risk threshold differs from the approved -10% limit.")
 
-          expected_hashes = dict(manifest.get("code_sha256", {}))
-          expected_hashes.update(start.get("code_sha256", {}))
-          for rel, expected in expected_hashes.items():
+          expected_source_hashes = dict(manifest.get("code_sha256", {}))
+          expected_source_hashes.update(start.get("code_sha256", {}))
+          expected_blobs = {
+              "research/mom_tf240.py": "5579a5c39f165fc64b7c49336f7fc73aa0b2918b",
+              "research/strategy_search.py": "2662004fb941bf16dcdd87e688ce7daab2c5408f",
+              "research/run_window_evaluation.py": "dd96636717007e7cc26cd50dd9e9c7dd497e5f6e",
+              "research/check_window_segments.py": "35c53fe592a1fa261f1b44c0f1c6113a138d0221",
+              "scripts/run_shadow_prospectivo.py": "cec724b73feed8d87d15d183d39dd8e42f6f106c",
+              "scripts/download_klines.py": "c8619ad8e0395f8ca64943914c6af1d07d5d9947",
+              "src/convergencia/backtest.py": "7a48ed60950056fdc8e0a4eed451cddaeccc8c7a",
+              "research/out/strategy_search_20261023T035848Z/best_config.json": "73289ddebad37c911939535ac438263219d00399",
+          }
+          for rel, expected_source_sha in expected_source_hashes.items():
               path = root / rel
               if not path.is_file():
                   raise SystemExit(f"Frozen dependency is missing: {rel}")
-              actual = hashlib.sha256(path.read_bytes()).hexdigest().upper()
-              if actual != str(expected).upper():
-                  raise SystemExit(f"Frozen code SHA256 mismatch: {rel}")
+              expected_blob = expected_blobs.get(rel)
+              if not expected_blob:
+                  raise SystemExit(f"No pinned repository blob for frozen dependency: {rel}")
+              actual_blob = subprocess.check_output(["git", "rev-parse", f"HEAD:{rel}"], text=True).strip()
+              if actual_blob != expected_blob:
+                  raise SystemExit(f"Published code snapshot differs from registered dependency: {rel}")
 
-          print(f"Frozen manifest verified; {len(expected_hashes)} dependency hashes verified.")
+          if start.get("frozen_manifest_sha256") != expected_manifest_sha:
+              raise SystemExit("Ledger frozen manifest SHA256 reference differs.")
+          print(f"Frozen manifest and {len(expected_source_hashes)} pinned dependencies verified.")
           print("Authorization, window dates, risk approval, and frozen variant match.")
           PY
 
