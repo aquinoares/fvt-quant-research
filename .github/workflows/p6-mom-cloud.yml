@@ -1,6 +1,11 @@
 name: P6-MOM Cloud Shadow
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/p6-mom-cloud.yml"
   schedule:
     - cron: "*/30 * * * *"
   workflow_dispatch:
@@ -20,12 +25,14 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout frozen code
+        id: checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: true
 
       - name: Set up Python
+        id: python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -33,9 +40,11 @@ jobs:
           cache-dependency-path: requirements.txt
 
       - name: Install runtime dependencies
+        id: deps
         run: python -m pip install --disable-pip-version-check -r requirements.txt
 
       - name: Normalize approval reference path for Linux runner
+        id: normalize
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -53,6 +62,7 @@ jobs:
           PY
 
       - name: Restore persistent P6-MOM session
+        id: restore
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -122,6 +132,48 @@ jobs:
             fi
           fi
 
+          # Do not start late with a synthetic historical backfill.
+          if [ ! -f "$SESSION/state.json" ]; then
+            seconds_after_start="$(python - <<'PY'
+          from datetime import datetime, timezone
+          start = datetime(2026, 10, 25, 0, 0, tzinfo=timezone.utc)
+          print(int((datetime.now(timezone.utc) - start).total_seconds()))
+          PY
+          )" || {
+              echo "Unable to evaluate initial window timing; stopping safely."
+              echo "exit_code=4" >> "$GITHUB_OUTPUT"
+              echo "terminal=true" >> "$GITHUB_OUTPUT"
+              printf 'Unable to evaluate initial window timing.\\n' > "$LOG"
+              exit 0
+            }
+
+            if [ "$seconds_after_start" -gt 2700 ]; then
+              mkdir -p "$SESSION/reports"
+              python - "$SESSION" "$seconds_after_start" <<'PY'
+          import json, sys
+          from datetime import datetime, timezone
+          from pathlib import Path
+          session, age = Path(sys.argv[1]), int(sys.argv[2])
+          session.mkdir(parents=True, exist_ok=True)
+          event = {
+              "event": "PROTOCOL_STOP_INITIAL_SCHEDULER_GAP",
+              "at_utc": datetime.now(timezone.utc).isoformat(),
+              "detail": f"First cloud collection would begin {age} seconds after window start; no retrospective backfill was attempted."
+          }
+          with (session / "events.jsonl").open("a", encoding="utf-8") as fh:
+              fh.write(json.dumps(event, ensure_ascii=False) + "\\n")
+          (session / "reports" / "scheduler_stop.json").write_text(
+              json.dumps(event, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8"
+          )
+          PY
+              echo "exit_code=4" >> "$GITHUB_OUTPUT"
+              echo "terminal=true" >> "$GITHUB_OUTPUT"
+              echo "Stopped: initial cloud collection was more than 45 minutes late."
+              printf 'Stopped: initial cloud collection was more than 45 minutes late.\\n' > "$LOG"
+              exit 0
+            fi
+          fi
+
           set +e
           python scripts/p6_mom_step.py 2>&1 | tee "$LOG"
           rc=${PIPESTATUS[0]}
@@ -157,6 +209,7 @@ jobs:
           exit 0
 
       - name: Persist session checkpoint to private runtime branch
+        id: persist
         if: always()
         shell: bash
         run: |
@@ -189,7 +242,18 @@ jobs:
           fi
 
       - name: Stop schedule on breach, protocol stop, or fatal error
-        if: ${{ always() && (steps.collect.outputs.exit_code == '2' || steps.collect.outputs.exit_code == '3' || steps.collect.outputs.exit_code == '4' || steps.collect.outputs.terminal == 'true') }}
+        if: ${{ always() && (
+          steps.collect.outputs.exit_code == '2' ||
+          steps.collect.outputs.exit_code == '3' ||
+          steps.collect.outputs.exit_code == '4' ||
+          steps.collect.outputs.terminal == 'true' ||
+          steps.checkout.outcome == 'failure' ||
+          steps.python.outcome == 'failure' ||
+          steps.deps.outcome == 'failure' ||
+          steps.normalize.outcome == 'failure' ||
+          steps.restore.outcome == 'failure' ||
+          steps.persist.outcome == 'failure'
+        ) }}
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
