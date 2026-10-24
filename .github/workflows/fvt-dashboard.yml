@@ -1,0 +1,146 @@
+name: FVT Dashboard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "dashboard/**"
+      - ".github/workflows/fvt-dashboard.yml"
+  schedule:
+    - cron: "20,50 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: fvt-dashboard-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build evidence-backed dashboard
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout dashboard source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Restore latest private shadow snapshot
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if git fetch --depth=1 origin refs/heads/p6-mom-runtime:refs/remotes/origin/p6-mom-runtime; then
+            git worktree add --detach "$RUNNER_TEMP/fvt-p6-runtime" refs/remotes/origin/p6-mom-runtime
+          else
+            echo "Runtime branch not available yet; dashboard will show awaiting data."
+          fi
+
+      - name: Build sanitized dashboard feed
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p site
+          cp dashboard/index.html site/index.html
+          python - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          root = Path(".")
+          source = root / "dashboard" / "data.json"
+          data = json.loads(source.read_text(encoding="utf-8"))
+          data["updated_at_utc"] = datetime.now(timezone.utc).isoformat()
+          runtime = Path(os.environ.get("RUNNER_TEMP", "/tmp")) / "fvt-p6-runtime"
+          session_rel = Path("data/shadow/p6_mom_mom_tf240_lb96_20261025T000000Z")
+          session = runtime / session_rel
+          shadow = data["shadow"]
+          shadow["status"] = "awaiting"
+          shadow["status_label"] = "AGUARDANDO"
+          shadow["status_detail"] = "Nenhum checkpoint prospectivo sincronizado ainda."
+          shadow["events"] = []
+          state_path = session / "state.json"
+          risk_path = session / "risk_monitor.json"
+          event_path = session / "events.jsonl"
+          stop_path = session / "reports" / "scheduler_stop.json"
+
+          if event_path.is_file():
+              for line in event_path.read_text(encoding="utf-8").splitlines():
+                  if line.strip():
+                      try:
+                          shadow["events"].append(json.loads(line))
+                      except json.JSONDecodeError:
+                          shadow["events"].append({"event":"EVENT_PARSE_ERROR","detail":"Registro de evento ilegível"})
+          shadow["events"] = shadow["events"][-100:]
+
+          if state_path.is_file():
+              state = json.loads(state_path.read_text(encoding="utf-8"))
+              shadow["last_timestamp"] = state.get("last_timestamp")
+              shadow["continuity"] = "Último segmento validado pelo coletor"
+              segment_dir = session / "segments"
+              files = sorted(segment_dir.glob("*.csv")) if segment_dir.is_dir() else []
+              shadow["segments_count"] = len(files)
+              rows = 0
+              for file in files:
+                  try:
+                      with file.open("r", encoding="utf-8-sig", errors="replace") as stream:
+                          rows += max(0, sum(1 for _ in stream) - 1)
+                  except OSError:
+                      pass
+              shadow["candles_observed"] = rows
+              shadow["state_updated_at_utc"] = state.get("updated_at_utc")
+              age = None
+              try:
+                  stamp = datetime.fromisoformat(str(state.get("updated_at_utc")).replace("Z","+00:00"))
+                  age = max(0, (datetime.now(timezone.utc)-stamp.astimezone(timezone.utc)).total_seconds())
+              except (TypeError, ValueError):
+                  pass
+              if risk_path.is_file():
+                  risk = json.loads(risk_path.read_text(encoding="utf-8"))
+                  dd = risk.get("max_drawdown_net")
+                  shadow["max_drawdown_net"] = dd if isinstance(dd,(int,float)) else None
+                  shadow["breached"] = bool(risk.get("breached"))
+                  shadow["risk_updated_at_utc"] = risk.get("updated_at_utc")
+              terminal_events = {"PROTOCOL_STOP_SCHEDULER_GAP","PROTOCOL_STOP_INITIAL_SCHEDULER_GAP","RISK_LIMIT_BREACHED","FATAL_SESSION_STOP","COLLECTION_FAILURE","CLOUD_COLLECTOR_STOP"}
+              terminal = next((e for e in reversed(shadow["events"]) if e.get("event") in terminal_events), None)
+              if shadow["breached"]:
+                  shadow.update(status="risk_breach",status_label="RISCO ACIONADO",status_detail="Monitor registrou violação do limite aprovado; sessão não deve ser reiniciada automaticamente.",continuity="Parada por limite de risco")
+              elif terminal:
+                  shadow.update(status="protocol_stopped",status_label="INTERROMPIDA",status_detail=terminal.get("detail") or terminal.get("event"),continuity="Interrupção registrada; investigar antes de retomar")
+              elif age is None or age > 2700:
+                  shadow.update(status="protocol_stopped",status_label="SEM CONTINUIDADE",status_detail="O checkpoint ficou ausente ou desatualizado por mais de 45 minutos; não foi criado resultado prospectivo sintético.",continuity="Lacuna ou estado desatualizado")
+              else:
+                  shadow.update(status="running",status_label="SESSÃO ATIVA",status_detail="Checkpoint recente sincronizado; observar apenas o limite de risco.",continuity="Estado atualizado dentro da tolerância")
+          elif stop_path.is_file():
+              stop = json.loads(stop_path.read_text(encoding="utf-8"))
+              shadow.update(status="protocol_stopped",status_label="INTERROMPIDA",status_detail=stop.get("detail") or stop.get("event"),continuity="A primeira coleta não gerou sessão contínua")
+              if not shadow["events"]:
+                  shadow["events"].append(stop)
+          data["source_label"] = "Gerado automaticamente a partir do branch de estado privado; sem exposição de CSV bruto."
+          Path("site/data.json").write_text(json.dumps(data,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+          print("Dashboard feed generated. Live performance returns are intentionally omitted.")
+          PY
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload static dashboard
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  deploy:
+    name: Publish dashboard
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
