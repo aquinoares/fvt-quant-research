@@ -134,7 +134,8 @@ jobs:
           if-no-files-found: error
 
   deploy:
-    name: Publish dashboard
+    name: Publish dashboard (opt-in; may expose the page publicly)
+    if: ${{ vars.ENABLE_PUBLIC_PAGES == 'true' }}
     needs: build
     runs-on: ubuntu-latest
     environment:
