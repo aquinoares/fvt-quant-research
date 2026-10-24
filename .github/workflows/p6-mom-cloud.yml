@@ -311,19 +311,7 @@ jobs:
           fi
 
       - name: Stop schedule on breach, protocol stop, or fatal error
-        if: ${{ always() && (
-          steps.collect.outputs.exit_code == '2' ||
-          steps.collect.outputs.exit_code == '3' ||
-          steps.collect.outputs.exit_code == '4' ||
-          steps.collect.outputs.terminal == 'true' ||
-          steps.checkout.outcome == 'failure' ||
-          steps.python.outcome == 'failure' ||
-          steps.freeze.outcome == 'failure' ||
-          steps.deps.outcome == 'failure' ||
-          steps.normalize.outcome == 'failure' ||
-          steps.restore.outcome == 'failure' ||
-          steps.persist.outcome == 'failure'
-        ) }}
+        if: ${{ always() && (steps.collect.outputs.exit_code == '2' || steps.collect.outputs.exit_code == '3' || steps.collect.outputs.exit_code == '4' || steps.collect.outputs.terminal == 'true' || steps.checkout.outcome == 'failure' || steps.python.outcome == 'failure' || steps.freeze.outcome == 'failure' || steps.deps.outcome == 'failure' || steps.normalize.outcome == 'failure' || steps.restore.outcome == 'failure' || steps.persist.outcome == 'failure') }}
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
