@@ -121,7 +121,7 @@ jobs:
               if not shadow["events"]:
                   shadow["events"].append(stop)
           data["source_label"] = "Gerado automaticamente a partir do branch de estado privado; sem exposição de CSV bruto."
-          Path("site/data.json").write_text(json.dumps(data,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+          Path("site/data.json").write_text(json.dumps(data,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
           print("Dashboard feed generated. Live performance returns are intentionally omitted.")
           PY
 
