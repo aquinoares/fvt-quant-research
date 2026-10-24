@@ -143,7 +143,7 @@ jobs:
               echo "Unable to evaluate initial window timing; stopping safely."
               echo "exit_code=4" >> "$GITHUB_OUTPUT"
               echo "terminal=true" >> "$GITHUB_OUTPUT"
-              printf 'Unable to evaluate initial window timing.\\n' > "$LOG"
+              printf 'Unable to evaluate initial window timing.\n' > "$LOG"
               exit 0
             }
 
@@ -161,15 +161,15 @@ jobs:
               "detail": f"First cloud collection would begin {age} seconds after window start; no retrospective backfill was attempted."
           }
           with (session / "events.jsonl").open("a", encoding="utf-8") as fh:
-              fh.write(json.dumps(event, ensure_ascii=False) + "\\n")
+              fh.write(json.dumps(event, ensure_ascii=False) + "\n")
           (session / "reports" / "scheduler_stop.json").write_text(
-              json.dumps(event, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8"
+              json.dumps(event, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
           )
           PY
               echo "exit_code=4" >> "$GITHUB_OUTPUT"
               echo "terminal=true" >> "$GITHUB_OUTPUT"
               echo "Stopped: initial cloud collection was more than 45 minutes late."
-              printf 'Stopped: initial cloud collection was more than 45 minutes late.\\n' > "$LOG"
+              printf 'Stopped: initial cloud collection was more than 45 minutes late.\n' > "$LOG"
               exit 0
             fi
           fi
