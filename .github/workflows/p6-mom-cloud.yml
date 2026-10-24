@@ -43,6 +43,58 @@ jobs:
         id: deps
         run: python -m pip install --disable-pip-version-check -r requirements.txt
 
+      - name: Verify frozen P6-MOM manifest and code hashes
+        id: freeze
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+
+          root = Path(".")
+          manifest_rel = "research/out/p6_mom_freeze_20261024T011825Z/manifest.json"
+          expected_manifest_sha = "661EAA0326B7B4C201E7A897FF58CD45382FB10DDACFECF4F0A6F89DB0B76592"
+          manifest_path = root / manifest_rel
+          actual_manifest_sha = hashlib.sha256(manifest_path.read_bytes()).hexdigest().upper()
+          if actual_manifest_sha != expected_manifest_sha:
+              raise SystemExit("Frozen manifest SHA256 mismatch.")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          if manifest.get("protocol") != "P6-MOM" or manifest.get("variant") != "MOM_TF240_LB96":
+              raise SystemExit("Unexpected protocol or variant in frozen manifest.")
+
+          records = []
+          for line in (root / "memory/hypotheses_ledger.jsonl").read_text(encoding="utf-8").splitlines():
+              if line.strip():
+                  records.append(json.loads(line))
+          starts = [r for r in records if r.get("id") == "P6-MOM-START"]
+          risks = [r for r in records if r.get("id") == "P6-MOM-RISK"]
+          if len(starts) != 1 or len(risks) != 1:
+              raise SystemExit("P6-MOM start/risk record is missing or duplicated.")
+          start, risk = starts[0], risks[0]
+          if start.get("window_start_authorized") is not True:
+              raise SystemExit("P6-MOM window start is not authorized in the ledger.")
+          if start.get("window_start_utc") != "2026-10-25T00:00:00Z" or start.get("window_end_utc") != "2027-01-23T00:00:00Z":
+              raise SystemExit("P6-MOM window dates differ from the registration.")
+          if risk.get("status") != "ativo" or risk.get("risk_limit_approved") is not True:
+              raise SystemExit("P6-MOM risk approval is not active.")
+          if abs(float(risk.get("limit_drawdown_net", 0)) + 0.1) > 1e-12:
+              raise SystemExit("P6-MOM risk threshold differs from the approved -10% limit.")
+
+          expected_hashes = dict(manifest.get("code_sha256", {}))
+          expected_hashes.update(start.get("code_sha256", {}))
+          for rel, expected in expected_hashes.items():
+              path = root / rel
+              if not path.is_file():
+                  raise SystemExit(f"Frozen dependency is missing: {rel}")
+              actual = hashlib.sha256(path.read_bytes()).hexdigest().upper()
+              if actual != str(expected).upper():
+                  raise SystemExit(f"Frozen code SHA256 mismatch: {rel}")
+
+          print(f"Frozen manifest verified; {len(expected_hashes)} dependency hashes verified.")
+          print("Authorization, window dates, risk approval, and frozen variant match.")
+          PY
+
       - name: Normalize approval reference path for Linux runner
         id: normalize
         shell: bash
@@ -249,6 +301,7 @@ jobs:
           steps.collect.outputs.terminal == 'true' ||
           steps.checkout.outcome == 'failure' ||
           steps.python.outcome == 'failure' ||
+          steps.freeze.outcome == 'failure' ||
           steps.deps.outcome == 'failure' ||
           steps.normalize.outcome == 'failure' ||
           steps.restore.outcome == 'failure' ||
