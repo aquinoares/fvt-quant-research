@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1118">
+<title>FVT Quant — Central de inteligência</title>
+<style>
+:root{color-scheme:dark;--bg:#080d13;--panel:#101821;--panel2:#0c141c;--line:#25323f;--text:#e9f0f7;--muted:#8fa1b3;--cyan:#65e0dc;--blue:#7aa9ff;--green:#65d6a0;--amber:#f3c969;--red:#ff777e}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% -10%,#1b3447 0,transparent 34%),var(--bg);color:var(--text);font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline}.shell{max-width:1420px;margin:auto;padding:26px 24px 48px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}.brand{display:flex;align-items:center;gap:13px}.mark{width:42px;height:42px;border-radius:13px;background:linear-gradient(140deg,#7de5df,#558bff);display:grid;place-items:center;color:#071018;font-weight:900;font-size:20px;box-shadow:0 0 30px #68dcd52a}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.2em;color:var(--cyan);font-weight:800}.brand h1{font-size:19px;letter-spacing:-.035em;margin:1px 0 0}.topright{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.pill{border:1px solid var(--line);border-radius:30px;padding:7px 11px;font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:7px}.dot{width:7px;height:7px;border-radius:50%;background:var(--amber);display:inline-block}.btn{border:1px solid #344655;background:#14212c;color:var(--text);border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}.btn:hover{border-color:var(--cyan)}
+.hero{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;margin-bottom:22px}.hero h2{font-size:clamp(27px,4vw,43px);letter-spacing:-.055em;line-height:1.06;margin:9px 0 12px}.hero p{color:var(--muted);max-width:730px;margin:0}.heroaside{text-align:right;color:var(--muted);font-size:11px;min-width:185px}.heroaside strong{display:block;font-size:15px;color:var(--text);margin-bottom:4px}
+.warning{background:#2b2111;border:1px solid #5f4923;color:#f0d9a2;border-radius:12px;padding:12px 15px;margin:20px 0 22px;display:flex;gap:11px;align-items:flex-start}.warning b{color:#ffe8a4}.warning p{margin:0}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}.metric,.panel{border:1px solid var(--line);background:linear-gradient(155deg,#121d27,#0d141c);border-radius:15px}.metric{padding:17px 18px;min-height:125px}.metric .label{font-size:11px;color:var(--muted);letter-spacing:.04em}.metric .value{font-size:29px;font-weight:760;letter-spacing:-.05em;margin:8px 0 2px}.metric .sub{color:var(--muted);font-size:11px}.green{color:var(--green)}.cyan{color:var(--cyan)}.amber{color:var(--amber)}.red{color:var(--red)}
+.grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:15px;margin-bottom:15px}.panel{padding:19px;min-width:0}.panelhead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:15px}.panel h3{font-size:14px;margin:0 0 4px}.hint{font-size:11px;color:var(--muted)}.sectiontag{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:var(--muted)}
+.bars{display:grid;gap:17px;margin:20px 0 10px}.barrow{display:grid;grid-template-columns:88px minmax(60px,1fr) 65px;gap:11px;align-items:center;font-size:12px}.barlabel{color:var(--muted)}.track{height:10px;border-radius:20px;background:#202d39;overflow:hidden}.bar{height:100%;border-radius:20px;background:linear-gradient(90deg,#60cfc9,#6da5ff);width:0}.bar.neg{background:linear-gradient(90deg,#d8a85f,#ff777e)}.barvalue{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}.microgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:20px}.micro{padding:10px;background:#0b1219;border:1px solid #1d2a35;border-radius:10px}.micro span{display:block;color:var(--muted);font-size:10px}.micro b{display:block;font-size:16px;margin-top:4px}
+.statustable{display:grid;gap:0}.statusrow{padding:12px 0;border-bottom:1px solid #23303b;display:flex;gap:14px;justify-content:space-between;align-items:flex-start}.statusrow:last-child{border-bottom:0}.statusrow span{color:var(--muted)}.statusrow strong{text-align:right;font-weight:650;max-width:60%;overflow-wrap:anywhere}
+.insight{border:1px solid #2a424b;background:linear-gradient(145deg,#11232b,#0d151c);padding:14px;border-radius:12px;margin-bottom:10px}.insight:last-child{margin-bottom:0}.insight .kind{font-size:10px;color:var(--cyan);font-weight:800;letter-spacing:.13em;text-transform:uppercase}.insight h4{font-size:13px;margin:6px 0}.insight p{margin:0;color:#b2c1cd;font-size:12px}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.chip{font-size:10px;padding:5px 8px;border-radius:20px;background:#162630;border:1px solid #2a414c;color:#b8d7da}
+.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:11px 9px;border-bottom:1px solid #23303b;white-space:nowrap}th{color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.08em}td.num{text-align:right;font-variant-numeric:tabular-nums}tr:last-child td{border-bottom:0}
+.footer{margin-top:18px;display:flex;justify-content:space-between;gap:14px;color:var(--muted);font-size:10px;flex-wrap:wrap}.links{display:flex;gap:14px;flex-wrap:wrap}
+.nav{display:flex;gap:7px;border-bottom:1px solid var(--line);margin:0 0 16px;flex-wrap:wrap}.nav button{background:none;border:0;color:var(--muted);padding:10px 12px;border-bottom:2px solid transparent;cursor:pointer}.nav button.active{color:var(--cyan);border-color:var(--cyan)}.view{display:none}.view.active{display:block}
+.empty{color:var(--muted);font-size:12px;padding:13px;border:1px dashed #344554;border-radius:10px}
+@media(max-width:900px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}.hero{align-items:flex-start;flex-direction:column}.heroaside{text-align:left}.shell{padding:18px 14px 32px}}
+@media(max-width:460px){.metric{padding:13px;min-height:112px}.metric .value{font-size:24px}.top{align-items:flex-start;flex-direction:column}.microgrid{grid-template-columns:1fr 1fr}.barrow{grid-template-columns:70px minmax(40px,1fr) 57px}.panel{padding:14px}}
+</style>
+</head>
+<body><div class="shell">
+<header class="top">
+  <div class="brand"><div class="mark">F</div><div><div class="eyebrow">FVT · QUANT RESEARCH</div><h1>Central de inteligência</h1></div></div>
+  <div class="topright"><span class="pill"><i class="dot" id="liveDot"></i><span id="connectionLabel">Carregando estado</span></span><button class="btn" id="refreshBtn">↻ Atualizar</button></div>
+</header>
+<section class="hero">
+ <div><div class="eyebrow">OBSERVAÇÃO · MÉTRICAS · PROTOCOLO</div><h2>Dados claros.<br>Decisões sob controle.</h2><p>Painel central para observar a estratégia P6-MOM, a integridade da coleta, os limites de risco e as evidências históricas. A janela prospectiva não autoriza ordens reais nem ajuste de parâmetros.</p></div>
+ <div class="heroaside"><strong id="windowStatus">Janela prospectiva</strong><span id="lastUpdate">Estado ainda não sincronizado</span></div>
+</section>
+<div class="warning"><span>⚠</span><p><b>Separação obrigatória de evidências.</b> Os números históricos abaixo são de treino/validação e não representam resultado prospectivo. O monitoramento prospectivo está restrito ao risco e à continuidade dos dados; retornos correntes não serão inventados ou inferidos.</p></div>
+<nav class="nav" aria-label="Seções do painel"><button class="active" data-view="overview">Visão geral</button><button data-view="strategy">Estratégia</button><button data-view="intelligence">Inteligência</button><button data-view="audit">Protocolo & dados</button></nav>
+<main>
+<section class="view active" id="view-overview">
+ <div class="metrics">
+  <article class="metric"><div class="label">Retorno histórico · treino</div><div class="value green" id="trainReturn">+21,95%</div><div class="sub">Não é retorno ao vivo</div></article>
+  <article class="metric"><div class="label">Retorno histórico · validação</div><div class="value green" id="valReturn">+6,47%</div><div class="sub">Bloco de validação histórica</div></article>
+  <article class="metric"><div class="label">Drawdown prospectivo</div><div class="value amber" id="liveDD">—</div><div class="sub" id="ddSub">Aguardando monitor real</div></article>
+  <article class="metric"><div class="label">Candles observados</div><div class="value cyan" id="candleCount">0</div><div class="sub" id="segmentCount">Nenhum segmento confirmado</div></article>
+ </div>
+ <div class="grid2">
+  <article class="panel"><div class="panelhead"><div><div class="sectiontag">Evidência histórica</div><h3>Retorno líquido por bloco</h3><div class="hint">Seleção histórica publicada no manifesto congelado</div></div><span class="chip">30 bps RT</span></div>
+   <div class="bars"><div class="barrow"><span class="barlabel">Treino</span><div class="track"><div class="bar" id="barTrain"></div></div><span class="barvalue" id="barTrainText">+21,95%</span></div><div class="barrow"><span class="barlabel">Validação</span><div class="track"><div class="bar" id="barVal"></div></div><span class="barvalue" id="barValText">+6,47%</span></div></div>
+   <div class="microgrid"><div class="micro"><span>Profit factor treino</span><b>8,63</b></div><div class="micro"><span>Profit factor validação</span><b>9,08</b></div><div class="micro"><span>Operações históricas</span><b>4 + 3</b></div></div>
+   <p class="hint">A amostra histórica é pequena (7 operações nos dois blocos). Não é prova de robustez nem garantia de desempenho.</p>
+  </article>
+  <article class="panel"><div class="panelhead"><div><div class="sectiontag">Sessão sombra</div><h3>Estado operacional</h3><div class="hint">Atualizado pela automação, quando disponível</div></div><span class="chip" id="sessionBadge">AGUARDANDO</span></div>
+   <div class="statustable"><div class="statusrow"><span>Estratégia</span><strong>P6-MOM · MOM_TF240_LB96</strong></div><div class="statusrow"><span>Ativo / mercado</span><strong>BTCUSDT · spot long-only</strong></div><div class="statusrow"><span>Janela autorizada</span><strong>25 out 2026 — 23 jan 2027 UTC</strong></div><div class="statusrow"><span>Último candle</span><strong id="lastCandle">Nenhum recebido</strong></div><div class="statusrow"><span>Continuidade</span><strong id="continuity">Ainda não verificada</strong></div><div class="statusrow"><span>Limite de drawdown</span><strong class="amber">−10%</strong></div></div>
+  </article>
+ </div>
+ <article class="panel"><div class="panelhead"><div><div class="sectiontag">Ciclo de pesquisa</div><h3>Estratégias e validações</h3><div class="hint">Somente resultados com fonte rastreável aparecem como métricas.</div></div><a href="https://github.com/aquinoares/fvt-quant-research" target="_blank" rel="noopener">Código-fonte ↗</a></div>
+ <div class="tablewrap"><table><thead><tr><th>Hipótese / versão</th><th>Etapa</th><th>Resultado visível</th><th>Regra atual</th></tr></thead><tbody><tr><td><b>P6-MOM</b><br><span class="hint">MOM_TF240_LB96</span></td><td><span class="chip" id="strategyStage">Preparação/execução</span></td><td>Histórico separado da janela ao vivo</td><td>Somente sombra · sem ordens reais</td></tr><tr><td>Modelos Trindade</td><td>Pesquisa histórica</td><td>Sem score comparável publicado neste painel</td><td>Não misturar com P6-MOM</td></tr></tbody></table></div></article>
+</section>
+<section class="view" id="view-strategy">
+ <div class="grid2">
+  <article class="panel"><div class="sectiontag">Parâmetros congelados</div><h3 style="margin-top:7px">P6-MOM</h3><div class="statustable"><div class="statusrow"><span>Identificador do vencedor</span><strong>722a0dd140</strong></div><div class="statusrow"><span>Timeframe do sinal</span><strong>240 minutos</strong></div><div class="statusrow"><span>Lookback</span><strong>96 barras</strong></div><div class="statusrow"><span>Threshold</span><strong>+0,005</strong></div><div class="statusrow"><span>Custos P4</span><strong>10 bps taxa + 5 bps slippage / lado</strong></div><div class="statusrow"><span>Stress</span><strong>60 bps por operação completa</strong></div><div class="statusrow"><span>Execução modelada</span><strong>Sinal no fechamento; execução na abertura seguinte</strong></div></div></article>
+  <article class="panel"><div class="sectiontag">Critérios de aceitação</div><h3 style="margin-top:7px">Condições não negociáveis</h3><div class="statustable"><div class="statusrow"><span>Retorno líquido P4</span><strong>Maior que zero</strong></div><div class="statusrow"><span>Acima de buy & hold</span><strong>Após custos</strong></div><div class="statusrow"><span>Drawdown líquido</span><strong>≥ −10%</strong></div><div class="statusrow"><span>Profit factor</span><strong>Maior que 1</strong></div><div class="statusrow"><span>Operações completas</span><strong>≥ 10; abaixo disso é inconclusivo</strong></div><div class="statusrow"><span>Stress 60 bps</span><strong>Retorno positivo</strong></div></div></article>
+ </div>
+ <article class="panel"><div class="panelhead"><div><div class="sectiontag">Blocos históricos</div><h3>Treino vs. validação</h3><div class="hint">Números exatamente como registrados no manifesto. Não são dados da janela futura.</div></div></div><div class="tablewrap"><table><thead><tr><th>Métrica</th><th>Treino</th><th>Validação</th></tr></thead><tbody><tr><td>Retorno líquido total</td><td class="num green">+21,946%</td><td class="num green">+6,472%</td></tr><tr><td>Profit factor líquido</td><td class="num">8,627</td><td class="num">9,076</td></tr><tr><td>Drawdown máximo líquido</td><td class="num">−6,020%</td><td class="num">−5,439%</td></tr><tr><td>Operações</td><td class="num">4</td><td class="num">3</td></tr><tr><td>Taxa de acerto líquida</td><td class="num">25,0%</td><td class="num">66,7%</td></tr><tr><td>Exposição</td><td class="num">47,21%</td><td class="num">41,83%</td></tr></tbody></table></div></article>
+</section>
+<section class="view" id="view-intelligence">
+ <div class="grid2"><article class="panel"><div class="sectiontag">Inteligência analítica</div><h3 style="margin:7px 0 12px">Leitura baseada em evidências</h3><div id="insights"></div></article>
+ <article class="panel"><div class="sectiontag">Limites do agente</div><h3 style="margin:7px 0 12px">O que a inteligência faz agora</h3><div class="statustable"><div class="statusrow"><span>Origem das conclusões</span><strong>Manifesto + estado + eventos reais</strong></div><div class="statusrow"><span>Detecção de risco</span><strong>Limite de −10% e interrupções</strong></div><div class="statusrow"><span>Alteração de estratégia</span><strong class="green">Bloqueada</strong></div><div class="statusrow"><span>Ordens reais</span><strong class="green">Desabilitadas</strong></div><div class="statusrow"><span>LLM conectado</span><strong class="amber">Ainda não integrado</strong></div></div><p class="hint" style="margin-top:12px">Esta primeira versão entrega regras analíticas transparentes. Ainda não existe um agente de IA conectado a um modelo externo nesta interface.</p></article></div>
+ <article class="panel"><div class="panelhead"><div><div class="sectiontag">Eventos do sistema</div><h3>Ocorrências operacionais registradas</h3></div><span class="chip" id="eventCount">0 eventos</span></div><div id="events"><div class="empty">Nenhum evento foi sincronizado ainda.</div></div></article>
+</section>
+<section class="view" id="view-audit">
+ <div class="grid2"><article class="panel"><div class="sectiontag">Integridade</div><h3 style="margin-top:7px">Versão e fonte de dados</h3><div class="statustable"><div class="statusrow"><span>Manifesto congelado</span><strong><code>p6_mom_freeze_20261024T011825Z</code></strong></div><div class="statusrow"><span>SHA-256 do manifesto</span><strong style="font-size:10px">661EAA0326B7B4C201E7A897FF58CD45382FB10DDACFECF4F0A6F89DB0B76592</strong></div><div class="statusrow"><span>Origem candles</span><strong>Dados públicos BTCUSDT 1m</strong></div><div class="statusrow"><span>Estado cloud</span><strong id="dataSource">Feed ainda não confirmado</strong></div></div></article>
+ <article class="panel"><div class="sectiontag">Política de segurança</div><h3 style="margin-top:7px">Shadow only</h3><div class="insight"><div class="kind">Regra de risco</div><h4>Interromper ao atingir o drawdown autorizado</h4><p>O limite de −10% é um gatilho operacional; a interface não negocia, não alavanca e não promete lucro.</p></div><div class="insight"><div class="kind">Regra de dados</div><h4>Não preencher lacunas retroativamente</h4><p>Uma lacuna operacional encerra a sessão para investigação. Os candles históricos não substituem uma observação contínua.</p></div></article></div>
+ <article class="panel"><div class="sectiontag">Diagnóstico da nuvem</div><h3 style="margin:7px 0 12px">Sincronização & execução</h3><div class="statustable"><div class="statusrow"><span>Última atualização do feed</span><strong id="feedTimestamp">Não disponível</strong></div><div class="statusrow"><span>Estado do coletor</span><strong id="collectorState">Ainda não confirmado</strong></div><div class="statusrow"><span>Branch de estado</span><strong>p6-mom-runtime</strong></div></div><p class="hint" style="margin-top:14px">Ver o log detalhado no <a href="https://github.com/aquinoares/fvt-quant-research/actions/workflows/p6-mom-cloud.yml" target="_blank" rel="noopener">GitHub Actions ↗</a>.</p></article>
+</section>
+</main>
+<footer class="footer"><span>FVT Quant Research · painel de observação · sem ordens reais</span><div class="links"><a href="https://github.com/aquinoares/fvt-quant-research" target="_blank" rel="noopener">Repositório</a><a href="https://github.com/aquinoares/fvt-quant-research/actions" target="_blank" rel="noopener">Execuções cloud</a><span id="footerVersion">painel v0.1</span></div></footer>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const fmtPct=(n,d=2)=>Number.isFinite(Number(n))?(Number(n)*100).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})+'%':'—';
+const fmtNum=n=>Number(n||0).toLocaleString('pt-BR');
+const fmtTime=s=>{if(!s)return 'Não disponível';const d=new Date(s);return Number.isNaN(d.getTime())?String(s):d.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short',timeZone:'UTC'})+' UTC'};
+let data={};
+function text(id,value){$(id).textContent=value==null?'—':String(value)}
+function makeInsights(d){
+ const items=[];
+ const hist=d.historical||{};
+ items.push({kind:'AMOSTRA HISTÓRICA',title:'A validação parece positiva, mas ainda tem poucas operações',body:'Treino: 4 operações; validação: 3. O critério congelado exige pelo menos 10 operações completas na avaliação prospectiva. Não flexibilizar esse limite.'});
+ items.push({kind:'PROTOCOLO',title:'Não confundir histórico com evidência prospectiva',body:'Retornos de +21,95% no treino e +6,47% na validação são históricos. Durante a janela sombra, este painel não publica retorno corrente nem P&L porque o protocolo operacional limita a telemetria a risco e continuidade.'});
+ const shadow=d.shadow||{};
+ if(shadow.status==='risk_breach')items.unshift({kind:'RISCO · CRÍTICO',title:'Limite de drawdown ultrapassado',body:'A sessão foi sinalizada como interrompida pelo monitor de risco. Não retomar nem alterar parâmetros automaticamente.'});
+ else if(shadow.status==='protocol_stopped')items.unshift({kind:'PROTOCOLO · PARADA',title:'A coleta foi interrompida por uma condição operacional',body:shadow.stop_reason||'Verifique o evento de interrupção antes de qualquer nova autorização.'});
+ else if(Number.isFinite(Number(shadow.max_drawdown_net))){
+  const dd=Number(shadow.max_drawdown_net),lim=Number(d.strategy?.risk_limit??-0.1);
+  const remaining=Math.max(0,Math.abs(lim)-Math.abs(Math.min(0,dd)));
+  items.unshift({kind:dd<=lim?'RISCO · CRÍTICO':'RISCO · MONITORAMENTO',title:dd<=lim?'Limite de risco alcançado':'Drawdown monitorado: '+fmtPct(dd),body:dd<=lim?'O protocolo exige interrupção; não reiniciar automaticamente.':'Margem aritmética até o limite aprovado: '+fmtPct(remaining)+'. Isso não representa previsão de risco futuro.'});
+ }else items.push({kind:'COLETA',title:'Aguardando a primeira sessão cloud confirmada',body:'Ainda não há monitor de drawdown prospectivo sincronizado. O painel não preenche esse espaço com números fictícios.'});
+ return items.map(x=>'<div class="insight"><div class="kind">'+esc(x.kind)+'</div><h4>'+esc(x.title)+'</h4><p>'+esc(x.body)+'</p></div>').join('');
+}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(d){
+ data=d||{};
+ const sh=data.shadow||{}, hist=data.historical||{};
+ text('trainReturn',fmtPct(hist.train?.net_total_return));text('valReturn',fmtPct(hist.validation?.net_total_return));
+ $('barTrain').style.width=Math.max(0,Math.min(100,Number(hist.train?.net_total_return||0)/.25*100))+'%';
+ $('barVal').style.width=Math.max(0,Math.min(100,Number(hist.validation?.net_total_return||0)/.25*100))+'%';
+ text('barTrainText',fmtPct(hist.train?.net_total_return));text('barValText',fmtPct(hist.validation?.net_total_return));
+ if(Number.isFinite(Number(sh.max_drawdown_net))&&sh.max_drawdown_net!==null){text('liveDD',fmtPct(sh.max_drawdown_net));$('liveDD').className='value '+(sh.status==='risk_breach'?'red':'amber');text('ddSub','Limite autorizado: −10%')}else{text('liveDD','—');text('ddSub','Aguardando monitor real')}
+ text('candleCount',fmtNum(sh.candles_observed||0));text('segmentCount',(sh.segments_count||0)+' segmentos persistidos');
+ text('sessionBadge',sh.status_label||'AGUARDANDO');text('lastCandle',sh.last_timestamp||'Nenhum recebido');
+ text('continuity',sh.continuity||'Ainda não verificada');
+ text('strategyStage',sh.status==='running'?'Sombra em andamento':sh.status==='risk_breach'?'Interrompida por risco':sh.status==='protocol_stopped'?'Parada pelo protocolo':'Aguardando coleta');
+ text('dataSource',data.source_label||'Feed ainda não confirmado');
+ text('feedTimestamp',fmtTime(data.updated_at_utc));text('lastUpdate',data.updated_at_utc?'Sincronizado em '+fmtTime(data.updated_at_utc):'Estado ainda não sincronizado');
+ text('collectorState',sh.status_detail||'Ainda não confirmado');
+ text('windowStatus',sh.status==='risk_breach'?'Risco acionado':sh.status==='protocol_stopped'?'Sessão interrompida':sh.status==='running'?'Coleta ativa':'Janela prospectiva');
+ const healthy=sh.status==='running';$('liveDot').style.background=sh.status==='risk_breach'||sh.status==='protocol_stopped'?'var(--red)':healthy?'var(--green)':'var(--amber)';
+ text('connectionLabel',healthy?'Estado cloud sincronizado':sh.status==='risk_breach'?'Risco acionado':sh.status==='protocol_stopped'?'Protocolo interrompido':'Sem telemetria confirmada');
+ $('insights').innerHTML=makeInsights(data);
+ const events=Array.isArray(sh.events)?sh.events:[];text('eventCount',events.length+' evento(s)');
+ $('events').innerHTML=events.length?events.slice(-12).reverse().map(e=>'<div class="statusrow"><span>'+esc(fmtTime(e.at_utc))+'</span><strong>'+esc(e.event||'Evento')+'<br><span class="hint">'+esc(e.detail||'')+'</span></strong></div>').join(''):'<div class="empty">Nenhum evento foi sincronizado ainda. Erros de execução também aparecem no GitHub Actions.</div>';
+}
+async function refresh(){
+ $('refreshBtn').disabled=true;text('connectionLabel','Atualizando…');
+ try{const r=await fetch('./data.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('feed HTTP '+r.status);const d=await r.json();render(d)}
+ catch(e){if(!data||!Object.keys(data).length)render({historical:{train:{net_total_return:.21946998037371812},validation:{net_total_return:.06472294924882593}},shadow:{status:'awaiting',status_label:'AGUARDANDO'},source_label:'Feed não encontrado'});text('connectionLabel','Painel sem sincronização cloud');}
+ finally{$('refreshBtn').disabled=false}
+}
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+b.dataset.view))}));
+$('refreshBtn').addEventListener('click',refresh);
+render({historical:{train:{net_total_return:.21946998037371812},validation:{net_total_return:.06472294924882593}},shadow:{status:'awaiting',status_label:'AGUARDANDO'},source_label:'Feed ainda não confirmado'});
+refresh();setInterval(refresh,60000);
+</script>
+</body></html>
