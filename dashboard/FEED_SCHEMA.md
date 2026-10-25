@@ -15,3 +15,27 @@ Contrato opcional de timeline: o verificador só roda quando um feed futuro trou
 
 
 Metadados de auditoria da v0.3: `audit.panel_commit_sha` identifica o commit do painel; `audit.panel_run` contém o ID/URL da execução do workflow que gerou o snapshot, quando disponíveis; `audit.collector_last_run` representa a execução do coletor consultada e não prova a validade da sessão. Os incidentes são apresentados a partir de `shadow.events[]` (`event`, `at_utc`, `detail`). O painel só exibe decisão humana quando o evento já contém `human_decision` com horário, responsável, decisão e assinatura/commit; caso contrário, mantém “decisão pendente do responsável” e não cria uma decisão.
+
+## Campos estruturados da ocorrência e frescor do coletor
+
+O workflow FVT Dashboard acrescenta o objeto **shadow.incident** sem editar o estado persistido do coletor:
+
+| Campo | Tipo | Origem / regra |
+|---|---|---|
+| shadow.incident.event | string ou null | event do último evento operacional relevante já presente em shadow.events[]; nenhum evento novo é criado. |
+| shadow.incident.at_utc | string UTC ou null | at_utc do mesmo evento persistido. |
+| shadow.incident.tolerance_seconds | inteiro não negativo ou null | Lido, somente para leitura, do workflow existente .github/workflows/p6-mom-cloud-live.yml. O builder exige encontrar exatamente uma guarda para age_seconds e uma para seconds_after_start, e que ambas declarem o mesmo inteiro. Se a estrutura faltar, for ambígua ou divergir, publica null. |
+| shadow.incident.delay_seconds | inteiro não negativo ou null | Copiado exclusivamente de delay_seconds numérico já existente no objeto do evento. Não é extraído do texto detail nem calculado a partir da hora de criação do run. Se não existir como campo estruturado, permanece null. |
+
+O painel exibe “— · tolerância não informada no feed” quando a tolerância é nula e “— · atraso não informado no feed” quando o atraso é nulo. A comparação só aparece quando os dois números estiverem presentes. Não há fallback para um número fixo nem parsing do texto em inglês.
+
+### Proveniência e idade da execução do coletor
+
+| Campo | Tipo | Origem / regra |
+|---|---|---|
+| audit.collector_last_run.head_branch | string ou null | head_branch retornado pela API de workflow runs do GitHub. |
+| audit.collector_last_run.main_commit_sha | string SHA ou null | Copia head_sha somente quando a API informa head_branch igual a main. O painel não chama esse SHA de commit que criou o coletor. |
+| audit.collector_last_run.created_at | timestamp UTC ou null | Horário de criação do run retornado pela API do GitHub. É a base da idade exibida. |
+| audit.collector_last_run.run_started_at | timestamp UTC ou null | Horário de início retornado pela API, se disponível. |
+
+A idade do coletor é calculada no painel como agora menos created_at. O limiar do aviso é 1,5 vezes o intervalo derivado de health_schedule.collector_cron. Acima dele, o painel mostra um aviso separado “coletor sem execução recente — verificar Actions”. Esse aviso não substitui nem altera shadow.status (inclusive protocol_stopped). Se created_at ou o cron estiver ausente/inválido, a idade/comparação é “—” com o motivo.
