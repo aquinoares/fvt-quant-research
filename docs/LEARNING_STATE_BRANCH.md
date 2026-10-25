@@ -4,7 +4,7 @@
 
 O GitHub Actions executa um evento `schedule` na branch padrão do repositório (atualmente `main`). O workflow `.github/workflows/learning-collect.yml` deve usar o código da referência que acionou a execução, mas **não deve gravar os resultados na branch que contém o código**. Para separar código e estado gerado, os dados públicos da Trilha A são persistidos na branch dedicada `learning-state`.
 
-A branch `learning-state` foi criada separadamente para esse estado. A alteração não cria commits em `main` e não escreve em `p6-mom-runtime`.
+A branch `learning-state` foi criada separadamente para esse estado. Seu snapshot inicial contém apenas este README de estado e placeholders (`.gitkeep`) nos três diretórios de saída; não contém o código-fonte do painel/coletor no estado atual da branch. A alteração não cria commits em `main` e não escreve em `p6-mom-runtime`.
 
 ## Fluxo do coletor
 
