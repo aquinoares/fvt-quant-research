@@ -73,7 +73,8 @@
   },
   "audit": {
     "panel_commit_sha": null,
-    "collector_last_run": null
+    "collector_last_run": null,
+    "panel_run": null
   },
   "frozen_acceptance_criteria": null
 }
