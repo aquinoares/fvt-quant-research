@@ -148,8 +148,39 @@ jobs:
                           return match.group(1)
               return None
 
-          collector_cron = cron_from_workflow(root / ".github" / "workflows" / "p6-mom-cloud-live.yml")
+          collector_workflow_path = root / ".github" / "workflows" / "p6-mom-cloud-live.yml"
+          collector_cron = cron_from_workflow(collector_workflow_path)
           dashboard_cron = cron_from_workflow(root / ".github" / "workflows" / "fvt-dashboard.yml")
+
+          def collector_tolerance_seconds(path):
+              # Read-only: compare the two existing collector guards without changing the collector.
+              try:
+                  source = path.read_text(encoding="utf-8")
+              except OSError:
+                  return None
+
+              def guard_values(variable):
+                  prefix = 'if [ "$' + variable + '" -gt '
+                  suffix = " ]; then"
+                  values = []
+                  for line in source.splitlines():
+                      candidate = line.strip()
+                      if candidate.startswith(prefix) and candidate.endswith(suffix):
+                          value = candidate[len(prefix):-len(suffix)]
+                          if not value.isdigit():
+                              return None
+                          values.append(int(value))
+                  return values
+
+              continuity = guard_values("age_seconds")
+              initial = guard_values("seconds_after_start")
+              if continuity is None or initial is None or len(continuity) != 1 or len(initial) != 1:
+                  return None
+              if continuity[0] != initial[0]:
+                  return None
+              return continuity[0] if continuity[0] >= 0 else None
+
+          incident_tolerance_seconds = collector_tolerance_seconds(collector_workflow_path)
           data["health_schedule"] = {
               "collector_cron": collector_cron,
               "dashboard_cron": dashboard_cron,
