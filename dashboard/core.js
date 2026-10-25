@@ -266,6 +266,38 @@
     return { status: 'verified', reason: 'Cadeia verificada com SHA-256 conforme a especificação documentada no feed.' };
   }
 
+  function computeOtherTradesReturn(bestNetTrade,totalNetReturn,trades) {
+    if (!isFiniteNumber(bestNetTrade) || !isFiniteNumber(totalNetReturn) || !isFiniteNumber(trades) ||
+        bestNetTrade <= -1 || totalNetReturn <= -1 || trades <= 1) return null;
+    const value = (1 + totalNetReturn) / (1 + bestNetTrade) - 1;
+    return Number.isFinite(value) ? value : null;
+  }
+
+  function computeOperationsProjection(referenceTrades,referenceDays,targetDays) {
+    if (!isFiniteNumber(referenceTrades) || !isFiniteNumber(referenceDays) || !isFiniteNumber(targetDays) ||
+        referenceTrades < 0 || referenceDays <= 0 || targetDays < 0) return null;
+    const value = referenceTrades / referenceDays * targetDays;
+    return Number.isFinite(value) ? value : null;
+  }
+
+  function computeCoveragePercentage(minutesPresent,minutesExpected) {
+    if (!isFiniteNumber(minutesPresent) || !isFiniteNumber(minutesExpected) ||
+        minutesPresent < 0 || minutesExpected <= 0 || minutesPresent > minutesExpected) return null;
+    return minutesPresent / minutesExpected * 100;
+  }
+
+  function freshnessStatus(updatedAt,nowMs,staleAfterMinutes,hasError) {
+    if (hasError) return {status:'error',ageMinutes:null,reason:'Consulta do feed falhou; métricas anteriores devem ser ocultadas.'};
+    const timestamp = parseTimestamp(updatedAt);
+    if (timestamp === null || !isFiniteNumber(nowMs) || !isFiniteNumber(staleAfterMinutes) || staleAfterMinutes < 0) {
+      return {status:'unknown',ageMinutes:null,reason:'Timestamp de atualização ausente ou inválido.'};
+    }
+    const ageMinutes=(nowMs-timestamp)/60000;
+    if (ageMinutes < 0) return {status:'error',ageMinutes:null,reason:'Timestamp do feed está no futuro.'};
+    if (ageMinutes > staleAfterMinutes) return {status:'stale',ageMinutes:ageMinutes,reason:'Feed antigo; não há confirmação de atualização recente.'};
+    return {status:'current',ageMinutes:ageMinutes,reason:'Timestamp dentro do limite de frescor.'};
+  }
+
   return {
     parseTimestamp: parseTimestamp,
     deriveIntervalMinutes: deriveIntervalMinutes,
@@ -275,6 +307,10 @@
     evaluateCollectorRun: evaluateCollectorRun,
     drawdownState: drawdownState,
     numericField: numericField,
-    verifyHashChain: verifyHashChain
+    verifyHashChain: verifyHashChain,
+    computeOtherTradesReturn: computeOtherTradesReturn,
+    computeOperationsProjection: computeOperationsProjection,
+    computeCoveragePercentage: computeCoveragePercentage,
+    freshnessStatus: freshnessStatus
   };
 });

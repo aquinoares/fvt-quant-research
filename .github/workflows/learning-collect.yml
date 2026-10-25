@@ -1,0 +1,57 @@
+name: Learning Track — Public Candle Collector
+
+on:
+  schedule:
+    - cron: "13 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: learning-public-candle-collector
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    name: Collect public BTCUSDT candles
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Collect, report, run educational baseline, and commit only learning/
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          set +e
+          python -m learning.collector --root learning --max-requests 10
+          collect_status=$?
+          python -m learning.experiments.backtest --root learning
+          backtest_status=$?
+          set -e
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- learning/
+          if git diff --cached --quiet; then
+            echo "No learning/ files changed; no commit created."
+          else
+            git commit -m "learning: collect public BTCUSDT candles"
+            git push origin HEAD
+          fi
+
+          if [ "$collect_status" -ne 0 ]; then
+            exit "$collect_status"
+          fi
+          exit "$backtest_status"

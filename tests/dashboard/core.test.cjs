@@ -140,3 +140,68 @@ test('workflow lê tolerância sem escrever no coletor e não fixa 2700 no paine
   assert.match(dashboardHtml, /coletor sem execução recente — verificar Actions/);
   assert.match(dashboardHtml, /c\.head_branch==='main'/);
 });
+
+
+test('nota da melhor operação calcula o retorno composto das demais',()=>{
+  const value=core.computeOtherTradesReturn(0.2565241260433213,0.21946998037371812,4);
+  assert.ok(Math.abs(value - (-0.0295)) < 0.001);
+  assert.equal(core.computeOtherTradesReturn(null,0.219,4),null);
+  assert.equal(core.computeOtherTradesReturn(0.2,0.1,1),null);
+});
+
+test('buy-and-hold ausente continua desconhecido, não zero',()=>{
+  const feed={historical:{}};
+  assert.equal(core.numericField(feed.historical,'buy_and_hold_net_return'),null);
+  assert.equal(core.computeCoveragePercentage(null,null),null);
+});
+
+test('projeção de operações é aritmética e valida denominadores',()=>{
+  const projected=core.computeOperationsProjection(7,67.5,90);
+  assert.ok(Math.abs(projected - (9.3333333333)) < 0.00001);
+  assert.equal(core.computeOperationsProjection(7,0,90),null);
+});
+
+test('cobertura de minutos exige denominador versionado',()=>{
+  assert.equal(core.computeCoveragePercentage(75,100),75);
+  assert.equal(core.computeCoveragePercentage(0,0),null);
+  assert.equal(core.computeCoveragePercentage(101,100),null);
+});
+
+test('frescor distingue atual, antigo, erro e timestamp ausente',()=>{
+  const now=Date.parse('2026-10-25T01:00:00Z');
+  assert.equal(core.freshnessStatus('2026-10-25T00:59:00Z',now,90,false).status,'current');
+  assert.equal(core.freshnessStatus('2026-10-24T20:00:00Z',now,90,false).status,'stale');
+  assert.equal(core.freshnessStatus('2026-10-25T00:59:00Z',now,90,true).status,'error');
+  assert.equal(core.freshnessStatus(null,now,90,false).status,'unknown');
+});
+
+test('timeline do incidente mantém fato e inferência como classificações separadas',()=>{
+  const fixture=require('./fixtures/incident-timing-cases.json');
+  assert.equal(fixture.cases[0].expectedDelay,2893);
+  assert.ok(fixture.cases.some(x=>x.name==='tolerância ausente'&&x.expectedComparison==='unknown'));
+  const timeline=[
+    {at_utc:'2026-10-25T00:15:00Z',classification:'inferência do diagnóstico'},
+    {at_utc:'2026-10-25T00:48:13.150235Z',classification:'fato registrado'}
+  ];
+  assert.equal(timeline[0].classification,'inferência do diagnóstico');
+  assert.equal(timeline[1].classification,'fato registrado');
+});
+
+test('HTML limpa dados após erro, evita innerHTML com dados e não inclui login nem e-mail',()=>{
+  const html=require('fs').readFileSync(require('path').join(__dirname,'../../dashboard/index.html'),'utf8');
+  assert.match(html,/Feed indisponível/);
+  assert.doesNotMatch(html,/\.innerHTML\s*=/);
+  assert.doesNotMatch(html,/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  assert.doesNotMatch(html,/login\s+(?:visual|de usuário)/i);
+  assert.match(html,/id="learning"/);
+  assert.match(html,/id="decisions"/);
+});
+
+test('Trilha A daily gap quality summary is source-backed and report download is disabled without report',()=>{
+  const html=require('fs').readFileSync(require('path').join(__dirname,'../../dashboard/index.html'),'utf8');
+  assert.match(html,/learning\/reports\/latest\.json/);
+  assert.match(html,/learning\/experiments\/registry\.json/);
+  assert.match(html,/learning\/hypotheses\.jsonl/);
+  assert.match(html,/dailyGapsChart/);
+  assert.match(html,/learningReportBtn/);
+});
