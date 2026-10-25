@@ -220,9 +220,15 @@ jobs:
               "risk_updated_at_utc": None,
               "continuity": "Ainda não verificada",
               "events": [],
+              "incident": {
+                  "event": None,
+                  "at_utc": None,
+                  "tolerance_seconds": incident_tolerance_seconds,
+                  "delay_seconds": None,
+              },
           })
 
-          state_path = session / "state.json"
+          state_path = session / "state.json
           risk_path = session / "risk_monitor.json"
           event_path = session / "events.jsonl"
           stop_path = session / "reports" / "scheduler_stop.json"
@@ -314,8 +320,14 @@ jobs:
                   shadow.update(status="risk_breach", status_label="RISCO ACIONADO", status_detail="Monitor registrou violação do limite aprovado; não retomar automaticamente.", continuity="Parada por limite de risco")
               elif terminal:
                   shadow.update(status="protocol_stopped", status_label="INTERROMPIDA", status_detail=terminal.get("detail") or terminal.get("event"), continuity="Interrupção registrada; investigar antes de retomar")
-              elif state_age_seconds is None or state_age_seconds > 2700:
-                  shadow.update(status="protocol_stopped", status_label="SEM CONTINUIDADE", status_detail="Checkpoint ausente/desatualizado por mais de 45 minutos; nenhuma métrica prospectiva foi sintetizada.", continuity="Lacuna ou estado desatualizado")
+              elif state_age_seconds is None or incident_tolerance_seconds is None or state_age_seconds > incident_tolerance_seconds:
+                  if incident_tolerance_seconds is None:
+                      stop_detail = "Tolerância do código existente do coletor não pôde ser lida sem ambiguidade; continuidade não confirmada e nenhuma métrica prospectiva foi sintetizada."
+                  elif state_age_seconds is None:
+                      stop_detail = "Timestamp do checkpoint ausente ou inválido; continuidade não confirmada e nenhuma métrica prospectiva foi sintetizada."
+                  else:
+                      stop_detail = f"Checkpoint atualizado há {int(state_age_seconds)} s, acima da tolerância lida do coletor ({incident_tolerance_seconds} s); nenhuma métrica prospectiva foi sintetizada."
+                  shadow.update(status="protocol_stopped", status_label="SEM CONTINUIDADE", status_detail=stop_detail, continuity="Lacuna ou estado desatualizado")
               else:
                   shadow.update(status="running", status_label="SESSÃO ATIVA", status_detail="Checkpoint recente sincronizado; telemetria restrita ao protocolo.", continuity="Estado atualizado dentro da tolerância")
           elif stop_path.is_file():
@@ -323,6 +335,27 @@ jobs:
               shadow.update(status="protocol_stopped", status_label="INTERROMPIDA", status_detail=stop.get("detail") or stop.get("event"), continuity="A sessão não contém checkpoint de estado")
               if not shadow["events"]:
                   shadow["events"].append(stop)
+
+          # Publish structured incident fields; never parse a metric from event prose.
+          incident_event = next((
+              event for event in reversed(shadow["events"])
+              if isinstance(event, dict) and event.get("event") in {
+                  "PROTOCOL_STOP_SCHEDULER_GAP", "PROTOCOL_STOP_INITIAL_SCHEDULER_GAP",
+                  "RISK_LIMIT_BREACHED", "FATAL_SESSION_STOP", "COLLECTION_FAILURE",
+                  "CLOUD_COLLECTOR_STOP",
+              }
+          ), None)
+          raw_delay = incident_event.get("delay_seconds") if incident_event else None
+          incident_delay_seconds = (
+              raw_delay if isinstance(raw_delay, int) and not isinstance(raw_delay, bool) and raw_delay >= 0
+              else None
+          )
+          shadow["incident"] = {
+              "event": incident_event.get("event") if incident_event else None,
+              "at_utc": incident_event.get("at_utc") if incident_event else None,
+              "tolerance_seconds": incident_tolerance_seconds,
+              "delay_seconds": incident_delay_seconds,
+          }
 
           # Derive exact rolling 48h counts only from stored candle timestamps. A missing/invalid scan stays null.
           recent_unique = sorted(set(recent_timestamps)) if state is not None and scan_ok and segment_files else []
@@ -367,8 +400,12 @@ jobs:
                   runs = run_payload.get("workflow_runs", [])
                   if runs:
                       latest = runs[0]
+                      head_branch = latest.get("head_branch")
+                      head_sha = latest.get("head_sha")
                       collector_meta = {
-                          "head_sha": latest.get("head_sha"),
+                          "head_sha": head_sha,
+                          "head_branch": head_branch,
+                          "main_commit_sha": head_sha if head_branch == "main" else None,
                           "run_id": latest.get("id"),
                           "status": latest.get("status"),
                           "conclusion": latest.get("conclusion"),
