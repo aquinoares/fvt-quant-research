@@ -90,7 +90,7 @@ test('painel destaca incidente, pendência humana e origem de auditoria', functi
 });
 
 test('JavaScript embutido no HTML passa pelo parser do Node.js', function () {
-  const scripts = Array.from(dashboardHtml.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi));
+  const scripts = Array.from(dashboardHtml.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi));
   assert.ok(scripts.length >= 1, 'deve existir ao menos um script inline');
   scripts.forEach(function (match) { new vm.Script(match[1]); });
 });
