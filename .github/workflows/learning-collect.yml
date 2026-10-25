@@ -17,18 +17,35 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Checkout
+      - name: Checkout code from the triggering ref
         uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: true
+
+      - name: Restore persisted Trilha A state from learning-state
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git fetch --depth=1 origin refs/heads/learning-state:refs/remotes/origin/learning-state
+          state_dir="$RUNNER_TEMP/learning-state"
+          git worktree add --detach "$state_dir" refs/remotes/origin/learning-state
+
+          mkdir -p learning/data learning/reports learning/experiments
+          rsync -a --delete "$state_dir/learning/data/" learning/data/
+          rsync -a --delete "$state_dir/learning/reports/" learning/reports/
+          if [[ -f "$state_dir/learning/experiments/latest_backtest.json" ]]; then
+            cp "$state_dir/learning/experiments/latest_backtest.json" learning/experiments/latest_backtest.json
+          else
+            rm -f learning/experiments/latest_backtest.json
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
-      - name: Collect, report, run educational baseline, and commit only learning/
+      - name: Collect, report, and run educational baseline
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -39,14 +56,26 @@ jobs:
           backtest_status=$?
           set -e
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- learning/
-          if git diff --cached --quiet; then
-            echo "No learning/ files changed; no commit created."
+          # Copy generated state into a worktree based on learning-state, never the
+          # schedule's default branch. Only data, reports, and generated backtest
+          # output are staged; source code/configuration is not copied from this run.
+          state_dir="$RUNNER_TEMP/learning-state"
+          rsync -a --delete learning/data/ "$state_dir/learning/data/"
+          rsync -a --delete learning/reports/ "$state_dir/learning/reports/"
+          if [[ -f learning/experiments/latest_backtest.json ]]; then
+            cp learning/experiments/latest_backtest.json "$state_dir/learning/experiments/latest_backtest.json"
           else
-            git commit -m "learning: collect public BTCUSDT candles"
-            git push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
+            rm -f "$state_dir/learning/experiments/latest_backtest.json"
+          fi
+
+          git -C "$state_dir" config user.name "github-actions[bot]"
+          git -C "$state_dir" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$state_dir" add -- learning/data/ learning/reports/ learning/experiments/
+          if git -C "$state_dir" diff --cached --quiet; then
+            echo "No learning-state files changed; no commit created."
+          else
+            git -C "$state_dir" commit -m "learning: persist public collector state"
+            git -C "$state_dir" push origin "HEAD:refs/heads/learning-state"
           fi
 
           if [ "$collect_status" -ne 0 ]; then
