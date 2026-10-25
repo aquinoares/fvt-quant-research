@@ -88,7 +88,7 @@ def test_learning_collector_uses_fixed_non_cancelling_concurrency_and_safe_push_
     assert "failed after 3 attempts" in workflow
     push_lines = [line for line in workflow.splitlines() if "push origin" in line]
     assert push_lines
-    assert all("--force" not in line and not re.search(r"\\s-f(?:\\s|$)", line) for line in push_lines)
+    assert all("--force" not in line and "push origin -f" not in line for line in push_lines)
 
 
 def test_all_repository_workflows_are_safe_for_pull_requests_from_forks():
