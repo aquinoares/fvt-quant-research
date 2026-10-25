@@ -12,8 +12,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: fvt-dashboard-pages
@@ -22,6 +20,8 @@ concurrency:
 jobs:
   build:
     name: Build evidence-backed dashboard
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -111,6 +111,8 @@ jobs:
                   shadow.update(status="risk_breach",status_label="RISCO ACIONADO",status_detail="Monitor registrou violação do limite aprovado; sessão não deve ser reiniciada automaticamente.",continuity="Parada por limite de risco")
               elif terminal:
                   shadow.update(status="protocol_stopped",status_label="INTERROMPIDA",status_detail=terminal.get("detail") or terminal.get("event"),continuity="Interrupção registrada; investigar antes de retomar")
+                  if terminal.get("event") == "PROTOCOL_STOP_INITIAL_SCHEDULER_GAP":
+                      shadow["scheduler_notice"] = "Agendamento desabilitado após parada de protocolo (esperado)"
               elif age is None or age > 2700:
                   shadow.update(status="protocol_stopped",status_label="SEM CONTINUIDADE",status_detail="O checkpoint ficou ausente ou desatualizado por mais de 45 minutos; não foi criado resultado prospectivo sintético.",continuity="Lacuna ou estado desatualizado")
               else:
@@ -118,9 +120,37 @@ jobs:
           elif stop_path.is_file():
               stop = json.loads(stop_path.read_text(encoding="utf-8"))
               shadow.update(status="protocol_stopped",status_label="INTERROMPIDA",status_detail=stop.get("detail") or stop.get("event"),continuity="A primeira coleta não gerou sessão contínua")
+              if stop.get("event") == "PROTOCOL_STOP_INITIAL_SCHEDULER_GAP":
+                  shadow["scheduler_notice"] = "Agendamento desabilitado após parada de protocolo (esperado)"
               if not shadow["events"]:
                   shadow["events"].append(stop)
           data["source_label"] = "Gerado automaticamente a partir do branch de estado privado; sem exposição de CSV bruto."
+          learning_default = data.get("learning", {})
+          learning_path = root / "learning" / "reports" / "latest.json"
+          if learning_path.is_file():
+              q = json.loads(learning_path.read_text(encoding="utf-8"))
+              run_id = q.get("run_id")
+              data["learning"] = {
+                  "label": "EXPLORATÓRIO — NÃO É PROVA",
+                  "status": q.get("status", "unknown"),
+                  "symbol": q.get("symbol", "BTCUSDT"),
+                  "interval": q.get("interval", "1m"),
+                  "latest_run_at_utc": q.get("run_at_utc"),
+                  "latest_candle_open_time_utc": q.get("last_candle_open_time_utc"),
+                  "candle_count_1m": q.get("candle_count", 0),
+                  "new_candles": q.get("new_candles", 0),
+                  "gaps_found": q.get("gaps_found", 0),
+                  "gaps_filled": q.get("gaps_filled", 0),
+                  "gaps_remaining": q.get("gaps_remaining", 0),
+                  "duplicates_removed": q.get("duplicates_removed", 0),
+                  "age_last_candle_seconds": q.get("age_last_candle_seconds"),
+                  "pending_backfill_candles": q.get("pending_backfill_candles", 0),
+                  "message": q.get("message", "Sem detalhe da última coleta."),
+                  "latest_run_url": ("https://github.com/aquinoares/fvt-quant-research/actions/runs/" + str(run_id)) if run_id else None,
+                  "latest_report_url": "https://github.com/aquinoares/fvt-quant-research/blob/main/learning/reports/latest.md"
+              }
+          else:
+              data["learning"] = learning_default
           Path("site/data.json").write_text(json.dumps(data,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
           index_path = Path("site/index.html")
           html = index_path.read_text(encoding="utf-8")
@@ -145,6 +175,9 @@ jobs:
     name: Publish dashboard (opt-in; may expose the page publicly)
     if: ${{ vars.ENABLE_PUBLIC_PAGES == 'true' }}
     needs: build
+    permissions:
+      pages: write
+      id-token: write
     runs-on: ubuntu-latest
     environment:
       name: github-pages
