@@ -30,7 +30,8 @@ def test_learning_collector_has_no_dependency_on_frozen_track():
     assert 'rsync -a --delete "$state_dir/learning/reports/" learning/reports/' in workflow
     assert "for report in latest_backtest.json latest_backtest.md; do" in workflow
     assert 'cp "$state_dir/learning/experiments/$report" "learning/experiments/$report"' in workflow
-    assert 'cp learning/experiments/latest_backtest.md "$state_dir/learning/experiments/latest_backtest.md"' in workflow
+    persistence = (ROOT / "learning" / "state_persistence.py").read_text(encoding="utf-8")
+    assert "shutil.copy2(source_path, target_experiments / filename)" in persistence
     assert "permissions:\n      contents: write\n    runs-on:" in workflow
     assert "contents: write" not in workflow.split("jobs:", 1)[0]
     assert "hypotheses_ledger" not in collector_source
