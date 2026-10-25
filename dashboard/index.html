@@ -154,8 +154,13 @@ function renderHealth(feed) {
   setStateClass($('collectionHealth'),h.status);$('topDot').className='dot '+h.status;setText('healthTitle',labels[h.status]);setText('healthSummary',h.reason);
   setText('healthCandleAge',h.candle.ageMinutes===null?'—':fmtAge(h.candle.ageMinutes));setText('healthCandleTime',h.candle.timestampMs===null?h.candle.reason:fmtPair(h.candle.timestampMs));
   setText('healthFeedAge',h.feed.ageMinutes===null?'—':fmtAge(h.feed.ageMinutes));setText('healthFeedTime',h.feed.timestampMs===null?h.feed.reason:fmtPair(h.feed.timestampMs));
-  setText('candles48h',h.candles48h===null?'—':fmtInt(h.candles48h));setText('candles48hReason',h.candles48h===null?'O feed não contém collection_health.candles_48h.':'Contagem reportada para as últimas 48 h.');
-  setText('gaps48h',h.gaps48h===null?'—':fmtInt(h.gaps48h));setText('gaps48hReason',h.gaps48h===null?'O feed não contém collection_health.gaps_48h.':h.gaps48h>0?'Lacunas registradas; saúde no mínimo amarela.':'Nenhuma lacuna reportada no feed.');
+  const healthRecord=feed.collection_health&&typeof feed.collection_health==='object'?feed.collection_health:{};
+  const candlesFieldPresent=Object.prototype.hasOwnProperty.call(healthRecord,'candles_48h');
+  const gapsFieldPresent=Object.prototype.hasOwnProperty.call(healthRecord,'gaps_48h');
+  setText('candles48h',h.candles48h===null?'—':fmtInt(h.candles48h));
+  setText('candles48hReason',h.candles48h!==null?'Contagem reportada para as últimas 48 h.':candlesFieldPresent?'Campo presente, mas sem valor válido; não há estado/CSV suficiente para contar.':'Campo collection_health.candles_48h ausente no feed.');
+  setText('gaps48h',h.gaps48h===null?'—':fmtInt(h.gaps48h));
+  setText('gaps48hReason',h.gaps48h===null?(gapsFieldPresent?'Campo presente, mas sem valor válido; integridade das últimas 48 h não confirmada.':'Campo collection_health.gaps_48h ausente no feed.'):h.gaps48h>0?'Lacunas registradas; saúde no mínimo amarela.':'Nenhuma lacuna reportada no feed.');
   const cg=h.collectorIntervalMinutes===null?'—':String(h.collectorIntervalMinutes*1.5)+' min',cy=h.collectorIntervalMinutes===null?'—':String(h.collectorIntervalMinutes*3)+' min';
   const fg=h.feedIntervalMinutes===null?'—':String(h.feedIntervalMinutes*1.5)+' min',fy=h.feedIntervalMinutes===null?'—':String(h.feedIntervalMinutes*3)+' min';
   setText('healthThresholds','Cron coletor: '+(h.collectorCron||'não registrado')+' · verde ≤ '+cg+' · amarelo ≤ '+cy+'. Cron feed: '+(h.dashboardCron||'não registrado')+' · verde ≤ '+fg+' · amarelo ≤ '+fy+'. Limites derivados em 1,5× e 3× do intervalo mínimo do cron.');
@@ -166,18 +171,19 @@ function renderSession(feed) {
   const hasState=status==='running'||status==='protocol_stopped'||status==='risk_breach';
   const count=hasState?window.FVTCore.numericField(s,'candles_observed'):null,segments=hasState?window.FVTCore.numericField(s,'segments_count'):null;
   setText('candleCount',count===null?'—':fmtInt(count));setText('candleCountReason',count===null?'Sem contagem real de uma sessão confirmada.':'Total real de candles nos segmentos persistidos.');
-  setText('positionValue',typeof s.position_state==='string'&&s.position_state.trim()?s.position_state:'—');setText('positionReason',s.position_state?'Posição informada diretamente pelo feed; não calculada no painel.':'O feed não contém shadow.position_state.');
-  setText('entryPrice',fmtPrice(s.entry_price));setText('entryReason',finite(s.entry_price)?'Preço de entrada informado diretamente pelo feed.':'O feed não contém um preço de entrada real.');
-  setText('nextClose',s.next_close_4h_utc?fmtTime(s.next_close_4h_utc,'UTC')+' UTC':'—');setText('nextCloseLocal',s.next_close_4h_utc?fmtTime(s.next_close_4h_utc,'America/Sao_Paulo')+' Brasília':'O feed não contém next_close_4h_utc; o painel não calcula esse horário.');
+  setText('positionValue',typeof s.position_state==='string'&&s.position_state.trim()?s.position_state:'—');
+  setText('positionReason',typeof s.position_state==='string'&&s.position_state.trim()?'Posição informada diretamente pelo feed; não calculada no painel.':Object.prototype.hasOwnProperty.call(s,'position_state')?'Campo presente, sem posição confirmada na sessão atual.':'Campo shadow.position_state ausente no feed.');
+  setText('entryPrice',fmtPrice(s.entry_price));setText('entryReason',finite(s.entry_price)?'Preço de entrada informado diretamente pelo feed.':Object.prototype.hasOwnProperty.call(s,'entry_price')?'Campo presente, mas sem preço de entrada real no estado atual.':'Campo shadow.entry_price ausente no feed.');
+  setText('nextClose',s.next_close_4h_utc?fmtTime(s.next_close_4h_utc,'UTC')+' UTC':'—');setText('nextCloseLocal',s.next_close_4h_utc?fmtTime(s.next_close_4h_utc,'America/Sao_Paulo')+' Brasília':Object.prototype.hasOwnProperty.call(s,'next_close_4h_utc')?'Campo presente, sem timestamp de próximo fechamento; o painel não calcula esse horário.':'Campo shadow.next_close_4h_utc ausente no feed.');
   const label=s.status_label||s.status||'—';setText('sessionBadge',label);setText('sessionStatus',label+(s.status_detail?' · '+s.status_detail:''));setText('segmentCount',segments===null?'—':fmtInt(segments));setText('continuity',typeof s.continuity==='string'?s.continuity:'—');
-  const last=(feed.collection_health&&feed.collection_health.last_open_time)||s.last_timestamp;setText('lastCandleTime',fmtPair(last));setText('entryTime',s.entry_time_utc?fmtPair(s.entry_time_utc):'— · O feed não contém shadow.entry_time_utc.');setText('sessionUpdated',s.state_updated_at_utc?fmtPair(s.state_updated_at_utc):'— · O feed não contém state_updated_at_utc.');
+  const last=(feed.collection_health&&feed.collection_health.last_open_time)||s.last_timestamp;setText('lastCandleTime',fmtPair(last));setText('entryTime',s.entry_time_utc?fmtPair(s.entry_time_utc):'— · O estado atual não contém um horário de entrada real.');setText('sessionUpdated',s.state_updated_at_utc?fmtPair(s.state_updated_at_utc):'— · Sem state.json confirmado, não há atualização de estado para mostrar.');
   const dd=window.FVTCore.numericField(s,'max_drawdown_net'),risk=window.FVTCore.drawdownState(dd,s.breached);
   setText('drawdownValue',fmtPct(dd));$('drawdownValue').classList.remove('value-green','value-yellow','value-red');$('riskAlert').classList.remove('warning-risk','critical-risk');$('riskAlert').hidden=true;
   if(risk.status==='critical'){ $('drawdownValue').classList.add('value-red');setText('riskBadge','Crítico · interrupção');setText('riskAlertTitle','Risco crítico');setText('riskAlertBody','Protocolo exige interrupção; não retomar automaticamente.');$('riskAlert').classList.add('critical-risk');$('riskAlert').hidden=false; }
   else if(risk.status==='warning'){ $('drawdownValue').classList.add('value-yellow');setText('riskBadge','Aviso · −7%');setText('riskAlertTitle','Aviso escalonado');setText('riskAlertBody',risk.reason);$('riskAlert').classList.add('warning-risk');$('riskAlert').hidden=false; }
   else if(risk.status==='normal'){ $('drawdownValue').classList.add('value-green');setText('riskBadge','Abaixo do aviso'); }
   else setText('riskBadge','Sem dado real');
-  setText('drawdownReason',risk.reason);setText('riskTimestamp',s.risk_updated_at_utc?'Atualizado: '+fmtPair(s.risk_updated_at_utc):'O feed não contém risk_updated_at_utc.');$('sessionError').hidden=true;
+  setText('drawdownReason',risk.reason);setText('riskTimestamp',s.risk_updated_at_utc?'Atualizado: '+fmtPair(s.risk_updated_at_utc):Object.prototype.hasOwnProperty.call(s,'risk_updated_at_utc')?'Campo presente, sem atualização real do monitor de risco.':'Campo shadow.risk_updated_at_utc ausente no feed.');$('sessionError').hidden=true;
 }
 function renderHistory(feed) {
   const h=feed.historical&&typeof feed.historical==='object'?feed.historical:{},t=h.train||{},v=h.validation||{};
@@ -217,7 +223,7 @@ function renderAudit(feed) {
   if(c.html_url)setLink('collectorRun',c.html_url,'Execução #'+String(c.run_id||'—')+' · '+String(c.status||'desconhecido')+(c.conclusion?' / '+String(c.conclusion):''));else setText('collectorRun','— · Metadados da última execução do coletor não disponíveis.');
   const ps=typeof a.panel_commit_sha==='string'?a.panel_commit_sha:null;setLink('panelCommit',ps?'https://github.com/aquinoares/fvt-quant-research/commit/'+ps:null,ps||'— · SHA do painel ausente no feed');
   setText('manifestSha',s.manifest_sha256||'— · O feed não contém SHA-256 do manifesto.');const server=feed.collection_health&&feed.collection_health.server_time_ms;
-  setText('serverTime',server===null||server===undefined?'— · Horário do servidor ausente.':fmtPair(server));setText('feedSchema',feed.schema_version===undefined?'—':String(feed.schema_version)+' · dashboard '+String(feed.dashboard_version||'—'));
+  setText('serverTime',server===null||server===undefined?'— · Campo server_time_ms sem valor; o workflow não obteve horário do servidor.':fmtPair(server));setText('feedSchema',feed.schema_version===undefined?'—':String(feed.schema_version)+' · dashboard '+String(feed.dashboard_version||'—'));
   setText('footerCommit','Commit do painel/feed: '+(ps||'—'));setText('footerManifest','Manifesto SHA-256 informado pelo feed: '+(s.manifest_sha256||'—'));
 }
 async function renderTimeline(feed) {
