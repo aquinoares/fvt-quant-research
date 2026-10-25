@@ -59,7 +59,13 @@
     "entry_price": null,
     "entry_time_utc": null,
     "next_close_4h_utc": null,
-    "risk_updated_at_utc": null
+    "risk_updated_at_utc": null,
+    "incident": {
+      "event": null,
+      "at_utc": null,
+      "tolerance_seconds": null,
+      "delay_seconds": null
+    }
   },
   "collection_health": {
     "last_open_time": null,
