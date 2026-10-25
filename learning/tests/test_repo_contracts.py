@@ -28,3 +28,11 @@ def test_exploratory_language_is_explicit():
     backtest = (ROOT / "learning" / "experiments" / "backtest.py").read_text(encoding="utf-8")
     assert "EXPLORATÓRIO — NÃO É PROVA" in dashboard
     assert "EXPLORATÓRIO — NÃO É PROVA" in backtest
+
+
+def test_learning_data_and_quality_reports_are_not_ignored():
+    ignore = (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
+    assert "!learning/data/" in ignore
+    assert "!learning/data/**" in ignore
+    assert "!learning/reports/" in ignore
+    assert "!learning/reports/**" in ignore
