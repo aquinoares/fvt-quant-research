@@ -355,44 +355,44 @@ function drawDailyGaps(items){
  const maxLabel=document.createElementNS(NS,'text');maxLabel.setAttribute('x','4');maxLabel.setAttribute('y','13');maxLabel.setAttribute('class','daily-label');maxLabel.textContent=fmtInt(max);svg.appendChild(maxLabel);
 }
 function renderLearning(feed){
- const l=feed.learning&&typeof feed.learning==='object'?feed.learning:{},label=l.label||'EXPLORATÓRIO — NÃO É PROVA';
- const statusLabels={ok:'COLETA ATUALIZADA',backfill_pending:'BACKFILL PENDENTE',warning:'ATENÇÃO À QUALIDADE',blocked:'API BLOQUEADA',api_error:'ERRO DE API',empty_api:'API SEM DADOS',awaiting:'AGUARDANDO PRIMEIRA COLETA',unknown:'ESTADO DESCONHECIDO'};
- setText('learningStatus',(statusLabels[l.status]||String(l.status||'awaiting').toUpperCase())+' · '+label);
- setText('learningCandleCount',finite(l.candle_count_1m)?fmtInt(l.candle_count_1m):'—');
- setText('learningCandleReason',finite(l.candle_count_1m)?'Fonte: '+(l.report_source||'learning/reports/latest.json'):'— · contagem não disponível no relatório versionado.');
- const coverage=window.FVTCore.computeCoveragePercentage(l.coverage_minutes_present,l.coverage_minutes_expected);
- setText('learningCoverage',coverage===null?'—':coverage.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%');
- setText('learningCoverageReason',coverage===null?'— · minutos presentes/esperados ausentes no relatório.':'Cobertura desde o primeiro candle; '+fmtInt(l.coverage_minutes_present)+' / '+fmtInt(l.coverage_minutes_expected)+' minutos. Fonte: '+(l.report_source||'learning/reports/latest.json'));
- setText('learningFirstDate',l.first_candle_open_time_utc?String(l.first_candle_open_time_utc).slice(0,10):'—');
- setText('learningFirstDateReason',l.first_candle_open_time_utc?'Primeiro candle armazenado (UTC). Fonte: '+(l.report_source||'learning/reports/latest.json'):'— · primeira data não consta no relatório.');
- setText('experimentCount',Number.isInteger(l.experiment_count)&&l.experiment_count>=0?fmtInt(l.experiment_count):'—');
- setText('experimentCountReason',Number.isInteger(l.experiment_count)&&l.experiment_count>=0?'Fonte: learning/experiments/registry.json':'— · registro de experimentos ausente ou inválido.');
- setText('learningNewCandles',finite(l.new_candles)?fmtInt(l.new_candles):'—');
- setText('learningGapCounts',[l.gaps_found,l.gaps_filled,l.gaps_remaining].every(finite)?fmtInt(l.gaps_found)+' / '+fmtInt(l.gaps_filled)+' / '+fmtInt(l.gaps_remaining):'— · lacunas ausentes no relatório.');
- setText('learningDuplicates',finite(l.duplicates_removed)?fmtInt(l.duplicates_removed):'—');
- setText('learningAge',finite(l.age_last_candle_seconds)?fmtAge(l.age_last_candle_seconds/60):'— · idade não disponível.');
- setText('learningBackfill',finite(l.pending_backfill_candles)?fmtInt(l.pending_backfill_candles)+' candles':'— · backfill não disponível.');
- setText('learningRunTime',l.latest_run_at_utc?fmtPair(l.latest_run_at_utc):'— · nenhuma execução confirmada.');
- setText('learningQualityReason',l.quality_report_reason||l.message||'EXPLORATÓRIO — NÃO É PROVA.');
- setText('learningReportSource','Fonte: '+(l.report_source||'learning/reports/latest.json')+' · branch de estado: '+(l.state_branch||'learning-state')+' · EXPLORATÓRIO — NÃO É PROVA.');
- $('learningReportBtn').disabled!==true;
- $('learningReportBtn').disabled=l.report_available!==true;
- drawDailyGaps(l.daily_gaps);
- setText('dailyGapsSummary',Array.isArray(l.daily_gaps)&&l.daily_gaps.length?'Dias com lacunas reportados: '+fmtInt(l.daily_gaps.length)+' (até 30 dias exibidos).':'— · lacunas por dia não estão no relatório versionado.');
- setText('dailyGapsSource','Fonte: '+(l.report_source||'learning/reports/latest.json')+' · EXPLORATÓRIO — NÃO É PROVA.');
- const bt=l.backtest&&typeof l.backtest==='object'?l.backtest:null;
- function renderBacktestBlock(prefix,block){
-  block=block&&typeof block==='object'?block:{};
-  setText(prefix+'Return',finite(block.net_return)?fmtPct(block.net_return):'— · retorno ausente');
-  setText(prefix+'BH',finite(block.buy_hold_net_return)?fmtPct(block.buy_hold_net_return):'— · buy-and-hold ausente');
-  setText(prefix+'Trades',finite(block.completed_trades)?fmtInt(block.completed_trades):'— · operações ausentes');
-  setText(prefix+'Exposure',finite(block.exposure_bars)?fmtInt(block.exposure_bars)+' barras':'— · exposição ausente');
- }
- if(bt){renderBacktestBlock('backtestTrain',bt.train);renderBacktestBlock('backtestVal',bt.validation);const notes=Array.isArray(bt.warnings)?bt.warnings.filter(x=>typeof x==='string'):[];setText('backtestWarnings','EXPLORATÓRIO — NÃO É PROVA. SMA-20 didático, não conclusivo. Custo declarado: 30 bps por operação completa; divisão cronológica treino 70% / validação 30%. '+(notes.length?notes.join(' '):'Avisos detalhados não disponíveis.'));}
- else {['backtestTrainReturn','backtestTrainBH','backtestTrainTrades','backtestTrainExposure','backtestValReturn','backtestValBH','backtestValTrades','backtestValExposure'].forEach(id=>setText(id,'—'));setText('backtestWarnings','— · learning/experiments/latest_backtest.json ausente. EXPLORATÓRIO — NÃO É PROVA.');}
- setText('hypothesisCount',Number.isInteger(l.hypothesis_count)&&l.hypothesis_count>=0?fmtInt(l.hypothesis_count):'— · registro não disponível');
- if(l.report_available===true){$('learningReportBtn').disabled=false;$('learningReportBtn').onclick=async function(){try{const response=await fetch('./learning-report.json?ts='+Date.now(),{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);const json=await response.json();const blob=new Blob([JSON.stringify(json,null,2)+'\n'],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='learning-quality-report.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}catch(e){setText('learningQualityReason','Falha ao baixar relatório JSON: '+String(e&&e.message||e));}};}
- else {$('learningReportBtn').disabled=true;$('learningReportBtn').onclick=null;}
+  const l=feed.learning&&typeof feed.learning==='object'?feed.learning:{},label=l.label||'EXPLORATÓRIO — NÃO É PROVA';
+  const report=window.FVTCore.learningReportView(l);
+  const statusLabels={ok:'COLETA ATUALIZADA',backfill_pending:'BACKFILL PENDENTE',warning:'ATENÇÃO À QUALIDADE',blocked:'API BLOQUEADA',api_error:'ERRO DE API',empty_api:'API SEM DADOS',awaiting:'AGUARDANDO PRIMEIRA COLETA',unknown:'ESTADO DESCONHECIDO'};
+  setText('learningStatus',(statusLabels[l.status]||String(l.status||'awaiting').toUpperCase())+' · '+label);
+  setText('learningCandleCount',report.candleCount===null?'—':fmtInt(report.candleCount));
+  setText('learningCandleReason',report.candleCount===null?report.reason:'Fonte: '+(l.report_source||'learning/reports/latest.json'));
+  const coverage=report.coveragePercent;
+  setText('learningCoverage',coverage===null?'—':coverage.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%');
+  setText('learningCoverageReason',coverage===null?(report.available?'— · cobertura numérica não consta no relatório validado.':report.reason):'Cobertura desde o primeiro candle; '+(report.coverageMinutesPresent===null?'—':fmtInt(report.coverageMinutesPresent))+' / '+(report.coverageMinutesExpected===null?'—':fmtInt(report.coverageMinutesExpected))+' minutos. Fonte: '+(l.report_source||'learning/reports/latest.json'));
+  setText('learningFirstDate',report.firstCandleOpenTimeUtc?String(report.firstCandleOpenTimeUtc).slice(0,10):'—');
+  setText('learningFirstDateReason',report.firstCandleOpenTimeUtc?'Primeiro candle armazenado (UTC). Fonte: '+(l.report_source||'learning/reports/latest.json'):(report.available?'— · primeira data não consta no relatório validado.':report.reason));
+  setText('experimentCount',Number.isInteger(l.experiment_count)&&l.experiment_count>=0?fmtInt(l.experiment_count):'—');
+  setText('experimentCountReason',Number.isInteger(l.experiment_count)&&l.experiment_count>=0?'Fonte: learning/experiments/registry.json':'— · registro de experimentos ausente ou inválido.');
+  setText('learningNewCandles',report.newCandles===null?'—':fmtInt(report.newCandles));
+  setText('learningGapCounts',[report.gapsFound,report.gapsFilled,report.gapsRemaining].every(finite)?fmtInt(report.gapsFound)+' / '+fmtInt(report.gapsFilled)+' / '+fmtInt(report.gapsRemaining):(report.available?'— · lacunas ausentes no relatório validado.':report.reason));
+  setText('learningDuplicates',report.duplicatesRemoved===null?'—':fmtInt(report.duplicatesRemoved));
+  setText('learningAge',report.ageLastCandleSeconds===null?(report.available?'— · idade não disponível no relatório.':report.reason):fmtAge(report.ageLastCandleSeconds/60));
+  setText('learningBackfill',report.pendingBackfillCandles===null?(report.available?'— · backfill não disponível no relatório.':report.reason):fmtInt(report.pendingBackfillCandles)+' candles');
+  setText('learningRunTime',report.latestRunAtUtc?fmtPair(report.latestRunAtUtc):(report.available?'— · horário ausente no relatório.':report.reason));
+  setText('learningQualityReason',report.available?(l.message||'Relatório de qualidade validado; valores de origem versionada.'):report.reason);
+  setText('learningReportSource','Fonte: '+(l.report_source||'learning/reports/latest.json')+' · branch de estado: '+(l.state_branch||'learning-state')+' · EXPLORATÓRIO — NÃO É PROVA.');
+  $('learningReportBtn').disabled=!report.available;
+  drawDailyGaps(report.dailyGaps);
+  setText('dailyGapsSummary',report.available?(report.dailyGaps.length?'Dias com lacunas reportados: '+fmtInt(report.dailyGaps.length)+' (até 30 dias exibidos).':'— · nenhuma lacuna diária reportada.'):'— · '+report.reason);
+  setText('dailyGapsSource','Fonte: '+(l.report_source||'learning/reports/latest.json')+' · EXPLORATÓRIO — NÃO É PROVA.');
+  const bt=l.backtest&&typeof l.backtest==='object'?l.backtest:null;
+  function renderBacktestBlock(prefix,block){
+   block=block&&typeof block==='object'?block:{};
+   setText(prefix+'Return',finite(block.net_return)?fmtPct(block.net_return):'— · retorno ausente');
+   setText(prefix+'BH',finite(block.buy_hold_net_return)?fmtPct(block.buy_hold_net_return):'— · buy-and-hold ausente');
+   setText(prefix+'Trades',finite(block.completed_trades)?fmtInt(block.completed_trades):'— · operações ausentes');
+   setText(prefix+'Exposure',finite(block.exposure_bars)?fmtInt(block.exposure_bars)+' barras':'— · exposição ausente');
+  }
+  if(bt){renderBacktestBlock('backtestTrain',bt.train);renderBacktestBlock('backtestVal',bt.validation);const notes=Array.isArray(bt.warnings)?bt.warnings.filter(x=>typeof x==='string'):[];setText('backtestWarnings','EXPLORATÓRIO — NÃO É PROVA. SMA-20 didático, não conclusivo. Custo declarado: 30 bps por operação completa; divisão cronológica treino 70% / validação 30%. '+(notes.length?notes.join(' '):'Avisos detalhados não disponíveis.'));}
+  else {['backtestTrainReturn','backtestTrainBH','backtestTrainTrades','backtestTrainExposure','backtestValReturn','backtestValBH','backtestValTrades','backtestValExposure'].forEach(id=>setText(id,'—'));setText('backtestWarnings','— · learning/experiments/latest_backtest.json ausente. EXPLORATÓRIO — NÃO É PROVA.');}
+  setText('hypothesisCount',Number.isInteger(l.hypothesis_count)&&l.hypothesis_count>=0?fmtInt(l.hypothesis_count):'— · registro não disponível');
+  if(report.available){$('learningReportBtn').disabled=false;$('learningReportBtn').onclick=async function(){try{const response=await fetch('./learning-report.json?ts='+Date.now(),{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);const json=await response.json();const blob=new Blob([JSON.stringify(json,null,2)+'\n'],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='learning-quality-report.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}catch(e){setText('learningQualityReason','Falha ao baixar relatório JSON: '+String(e&&e.message||e));}};}
+  else {$('learningReportBtn').disabled=true;$('learningReportBtn').onclick=null;}
 }
 function renderDecisions(feed){
  const d=feed.decision&&typeof feed.decision==='object'?feed.decision:{};
