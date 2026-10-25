@@ -11,6 +11,12 @@ Robô experimental de geração de sinais para criptomoedas, inicialmente restri
 
 Os cinco modelos são hipóteses testáveis, não garantias de previsão. Bandas estatísticas não são automaticamente atratores de Lorenz; área de volume não demonstra direção; ângulo geométrico não é uma medida invariante de aceleração.
 
+## Skill local de pesquisa
+
+O skill de projeto para Codex e agentes compatíveis fica em `.agents/skills/trader-skill/SKILL.md`. Ele orienta a formular hipóteses, testar sinais de forma causal, declarar custos, validar temporalmente e relatar evidência sem inventar métricas. É adaptado do workflow conceitual `strategy-generate` do [HKUDS/Vibe-Trading](https://github.com/HKUDS/Vibe-Trading/blob/main/agent/src/skills/strategy-generate/SKILL.md), com atribuição em `.agents/skills/trader-skill/UPSTREAM.md`.
+
+A skill é apenas instrução de agente: não instala Vibe-Trading, não conecta corretoras, não envia ordens reais e não autoriza alterar a Trilha B congelada.
+
 ## Ambiente
 
 Requer Python 3.11 ou superior.
