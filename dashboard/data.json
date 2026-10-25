@@ -19,7 +19,7 @@
       "stress_round_trip_bps": 60
     },
     "winner_id": "722a0dd140",
-    "manifest_sha256": "661EAA0326B7B4C201E7A897FF58CD45382FB10DDACFECF4F0A6F89DB0B76592",
+    "manifest_sha256": null,
     "execution": null
   },
   "historical": {
