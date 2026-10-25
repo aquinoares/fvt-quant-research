@@ -134,4 +134,9 @@ test('workflow lê tolerância sem escrever no coletor e não fixa 2700 no paine
   assert.equal(feedTemplate.shadow.incident.delay_seconds, null);
   assert.doesNotMatch(dashboardHtml, /2700/);
   assert.doesNotMatch(dashboardHtml, /seconds after window start/i);
+  assert.match(dashboardHtml, /Commit da main no momento da última execução do coletor/);
+  assert.match(dashboardHtml, /Horário da última execução do coletor/);
+  assert.match(dashboardHtml, /Idade da última execução do coletor/);
+  assert.match(dashboardHtml, /coletor sem execução recente — verificar Actions/);
+  assert.match(dashboardHtml, /c\.head_branch==='main'/);
 });
