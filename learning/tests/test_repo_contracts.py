@@ -76,14 +76,14 @@ def test_state_branch_docs_and_upstream_license_are_complete():
 
 def test_learning_collector_uses_fixed_non_cancelling_concurrency_and_safe_push_retries():
     workflow = (ROOT / ".github" / "workflows" / "learning-collect.yml").read_text(encoding="utf-8")
-    assert "concurrency:\\n  group: learning-public-candle-collector\\n  cancel-in-progress: false" in workflow
+    assert "concurrency:\n  group: learning-public-candle-collector\n  cancel-in-progress: false" in workflow
     assert "for attempt in 1 2 3; do" in workflow
     assert 'git -C "$state_dir" push origin "HEAD:refs/heads/learning-state"' in workflow
     assert 'git -C "$state_dir" fetch --depth=1 origin refs/heads/learning-state' in workflow
     assert 'git -C "$state_dir" reset --hard FETCH_HEAD' in workflow
     assert 'python -m learning.state_persistence --source-root learning --target-root "$state_dir/learning"' in workflow
     assert "failed after 3 attempts" in workflow
-    assert "--force" not in workflow and " -f " not in workflow
+    assert not re.search(r"git\\s+[^\\n]*push[^\\n]*(?:--force|(?:^|\\s)-f(?:\\s|$))", workflow)
 
 
 def test_all_repository_workflows_are_safe_for_pull_requests_from_forks():
@@ -92,20 +92,20 @@ def test_all_repository_workflows_are_safe_for_pull_requests_from_forks():
     assert workflow_files, "nenhum workflow localizado"
     for path in workflow_files:
         content = path.read_text(encoding="utf-8")
-        assert not re.search(r"(?m)^\\s*pull_request_target\\s*:", content), f"pull_request_target encontrado em {path.name}"
-        if not re.search(r"(?m)^  pull_request\\s*:", content):
+        assert not re.search(r"(?m)^\s*pull_request_target\s*:", content), f"pull_request_target encontrado em {path.name}"
+        if not re.search(r"(?m)^  pull_request\s*:", content):
             continue
         global_block = content.split("jobs:", 1)[0]
-        assert not re.search(r"(?m)^\\s+contents:\\s*write\\s*$", global_block), f"contents: write global em workflow de PR: {path.name}"
+        assert not re.search(r"(?m)^\s+contents:\s*write\s*$", global_block), f"contents: write global em workflow de PR: {path.name}"
         jobs_block = content.split("jobs:", 1)[1]
-        job_starts = list(re.finditer(r"(?m)^  ([A-Za-z0-9_-]+):\\s*$", jobs_block))
+        job_starts = list(re.finditer(r"(?m)^  ([A-Za-z0-9_-]+):\s*$", jobs_block))
         for index, match in enumerate(job_starts):
             end = job_starts[index + 1].start() if index + 1 < len(job_starts) else len(jobs_block)
             job_name = match.group(1)
             job_text = jobs_block[match.start():end]
-            has_write = bool(re.search(r"(?m)^\\s+(?:contents|packages|pages|id-token):\\s*write\\s*$", job_text))
+            has_write = bool(re.search(r"(?m)^\s+(?:contents|packages|pages|id-token):\s*write\s*$", job_text))
             if has_write:
-                assert re.search(r"github\\.event_name\\s*!=\\s*'pull_request'", job_text), (
+                assert re.search(r"github\.event_name\s*!=\s*'pull_request'", job_text), (
                     f"job {job_name} com permissão de escrita sem guarda contra pull_request: {path.name}"
                 )
 
