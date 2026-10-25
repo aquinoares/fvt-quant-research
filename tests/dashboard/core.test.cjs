@@ -12,6 +12,10 @@ const fixtureDir = path.join(__dirname, 'fixtures');
 const healthFixture = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'health-cases.json'), 'utf8'));
 const brokenChainFixture = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'broken-hash-chain.json'), 'utf8'));
 const drawdownFixture = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'drawdown-cases.json'), 'utf8'));
+const incidentTimingFixture = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'incident-timing-cases.json'), 'utf8'));
+const collectorRunFixture = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'collector-run-cases.json'), 'utf8'));
+const dashboardWorkflow = fs.readFileSync(path.join(__dirname, '../../.github/workflows/fvt-dashboard.yml'), 'utf8');
+const feedTemplate = JSON.parse(fs.readFileSync(path.join(__dirname, '../../dashboard/data.json'), 'utf8'));
 const dashboardHtml = fs.readFileSync(path.join(__dirname, '../../dashboard/index.html'), 'utf8');
 const nowMs = Date.parse(healthFixture.now_utc);
 
@@ -93,4 +97,41 @@ test('JavaScript embutido no HTML passa pelo parser do Node.js', function () {
   const scripts = Array.from(dashboardHtml.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi));
   assert.ok(scripts.length >= 1, 'deve existir ao menos um script inline');
   scripts.forEach(function (match) { new vm.Script(match[1]); });
+});
+
+for (const fixture of incidentTimingFixture.cases) {
+  test('campos estruturados de incidente: ' + fixture.name, function () {
+    const state = Core.evaluateIncidentTiming(fixture.incident);
+    assert.equal(state.toleranceSeconds, fixture.expectedTolerance);
+    assert.equal(state.delaySeconds, fixture.expectedDelay);
+    assert.equal(state.exceedsTolerance, fixture.expectedExceeds);
+    assert.equal(state.comparison, fixture.expectedComparison);
+  });
+}
+
+const collectorNowMs = Date.parse(collectorRunFixture.now_utc);
+for (const fixture of collectorRunFixture.cases) {
+  test('frescor da execução do coletor: ' + fixture.name, function () {
+    const run = fixture.created_at === null ? {} : { created_at: fixture.created_at };
+    const result = Core.evaluateCollectorRun(run, collectorNowMs, fixture.cron);
+    assert.equal(result.status, fixture.expectedStatus);
+    assert.equal(result.stale, fixture.expectedStale);
+    if (fixture.expectedAgeMinutes === null) {
+      assert.equal(result.ageMinutes, null);
+    } else {
+      assert.equal(result.ageMinutes, fixture.expectedAgeMinutes);
+    }
+  });
+}
+
+test('workflow lê tolerância sem escrever no coletor e não fixa 2700 no painel', function () {
+  assert.match(dashboardWorkflow, /def collector_tolerance_seconds/);
+  assert.match(dashboardWorkflow, /guard_values\("age_seconds"\)/);
+  assert.match(dashboardWorkflow, /guard_values\("seconds_after_start"\)/);
+  assert.match(dashboardWorkflow, /"tolerance_seconds": incident_tolerance_seconds/);
+  assert.doesNotMatch(dashboardWorkflow, /state_age_seconds > 2700/);
+  assert.equal(feedTemplate.shadow.incident.tolerance_seconds, null);
+  assert.equal(feedTemplate.shadow.incident.delay_seconds, null);
+  assert.doesNotMatch(dashboardHtml, /2700/);
+  assert.doesNotMatch(dashboardHtml, /seconds after window start/i);
 });
