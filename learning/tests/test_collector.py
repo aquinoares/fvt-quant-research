@@ -29,12 +29,15 @@ def row(open_ms, interval="1m", open_price="1.0", high="2.0", low="0.5", close="
 
 
 def write_partition(root: Path, timestamps, duplicate_first=False):
-    folder = root / "data" / "BTCUSDT_1m"
-    folder.mkdir(parents=True, exist_ok=True)
-    path = folder / "2024-01.csv"
     records = [row(ts) for ts in timestamps]
     if duplicate_first and records:
         records.insert(1, dict(records[0]))
+    if not records:
+        folder = root / "data" / "BTCUSDT_1m"
+        folder.mkdir(parents=True, exist_ok=True)
+        return folder / "empty.csv"
+    path = collector.month_path(root / "data", "1m", int(records[0]["open_time_ms"]))
+    path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=collector.COLUMNS, lineterminator="\n")
         writer.writeheader()
