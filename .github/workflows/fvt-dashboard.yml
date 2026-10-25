@@ -348,8 +348,20 @@ jobs:
               except Exception:
                   collector_meta = None
 
+          panel_run_id = os.environ.get("GITHUB_RUN_ID")
+          panel_repo = os.environ.get("GITHUB_REPOSITORY", "")
+          panel_server = os.environ.get("GITHUB_SERVER_URL", "https://github.com").rstrip("/")
+          panel_run = None
+          if panel_run_id and panel_repo and panel_server == "https://github.com":
+              panel_run = {
+                  "run_id": panel_run_id,
+                  "html_url": panel_server + "/" + panel_repo + "/actions/runs/" + panel_run_id,
+                  "head_sha": os.environ.get("PANEL_COMMIT_SHA"),
+              }
+
           data["audit"] = {
               "panel_commit_sha": os.environ.get("PANEL_COMMIT_SHA"),
+              "panel_run": panel_run,
               "collector_last_run": collector_meta,
           }
           data["updated_at_utc"] = datetime.now(timezone.utc).isoformat()
