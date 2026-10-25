@@ -39,6 +39,11 @@ jobs:
           else
             rm -f learning/experiments/latest_backtest.json
           fi
+          if [[ -f "$state_dir/learning/experiments/latest_backtest.md" ]]; then
+            cp "$state_dir/learning/experiments/latest_backtest.md" learning/experiments/latest_backtest.md
+          else
+            rm -f learning/experiments/latest_backtest.md
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -66,6 +71,11 @@ jobs:
             cp learning/experiments/latest_backtest.json "$state_dir/learning/experiments/latest_backtest.json"
           else
             rm -f "$state_dir/learning/experiments/latest_backtest.json"
+          fi
+          if [[ -f learning/experiments/latest_backtest.md ]]; then
+            cp learning/experiments/latest_backtest.md "$state_dir/learning/experiments/latest_backtest.md"
+          else
+            rm -f "$state_dir/learning/experiments/latest_backtest.md"
           fi
 
           git -C "$state_dir" config user.name "github-actions[bot]"
