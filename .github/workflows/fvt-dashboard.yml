@@ -228,7 +228,7 @@ jobs:
               },
           })
 
-          state_path = session / "state.json
+          state_path = session / "state.json"
           risk_path = session / "risk_monitor.json"
           event_path = session / "events.jsonl"
           stop_path = session / "reports" / "scheduler_stop.json"
