@@ -1,137 +1,233 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0b1118">
-<title>FVT Quant — Central de inteligência</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#080e15">
+<title>FVT Quant Research · Painel de observação v0.3</title>
 <style>
-:root{color-scheme:dark;--bg:#080d13;--panel:#101821;--panel2:#0c141c;--line:#25323f;--text:#e9f0f7;--muted:#8fa1b3;--cyan:#65e0dc;--blue:#7aa9ff;--green:#65d6a0;--amber:#f3c969;--red:#ff777e}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% -10%,#1b3447 0,transparent 34%),var(--bg);color:var(--text);font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
-a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline}.shell{max-width:1420px;margin:auto;padding:26px 24px 48px}
-.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}.brand{display:flex;align-items:center;gap:13px}.mark{width:42px;height:42px;border-radius:13px;background:linear-gradient(140deg,#7de5df,#558bff);display:grid;place-items:center;color:#071018;font-weight:900;font-size:20px;box-shadow:0 0 30px #68dcd52a}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.2em;color:var(--cyan);font-weight:800}.brand h1{font-size:19px;letter-spacing:-.035em;margin:1px 0 0}.topright{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.pill{border:1px solid var(--line);border-radius:30px;padding:7px 11px;font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:7px}.dot{width:7px;height:7px;border-radius:50%;background:var(--amber);display:inline-block}.btn{border:1px solid #344655;background:#14212c;color:var(--text);border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}.btn:hover{border-color:var(--cyan)}
-.hero{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;margin-bottom:22px}.hero h2{font-size:clamp(27px,4vw,43px);letter-spacing:-.055em;line-height:1.06;margin:9px 0 12px}.hero p{color:var(--muted);max-width:730px;margin:0}.heroaside{text-align:right;color:var(--muted);font-size:11px;min-width:185px}.heroaside strong{display:block;font-size:15px;color:var(--text);margin-bottom:4px}
-.warning{background:#2b2111;border:1px solid #5f4923;color:#f0d9a2;border-radius:12px;padding:12px 15px;margin:20px 0 22px;display:flex;gap:11px;align-items:flex-start}.warning b{color:#ffe8a4}.warning p{margin:0}
-.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}.metric,.panel{border:1px solid var(--line);background:linear-gradient(155deg,#121d27,#0d141c);border-radius:15px}.metric{padding:17px 18px;min-height:125px}.metric .label{font-size:11px;color:var(--muted);letter-spacing:.04em}.metric .value{font-size:29px;font-weight:760;letter-spacing:-.05em;margin:8px 0 2px}.metric .sub{color:var(--muted);font-size:11px}.green{color:var(--green)}.cyan{color:var(--cyan)}.amber{color:var(--amber)}.red{color:var(--red)}
-.grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:15px;margin-bottom:15px}.panel{padding:19px;min-width:0}.panelhead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:15px}.panel h3{font-size:14px;margin:0 0 4px}.hint{font-size:11px;color:var(--muted)}.sectiontag{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:var(--muted)}
-.bars{display:grid;gap:17px;margin:20px 0 10px}.barrow{display:grid;grid-template-columns:88px minmax(60px,1fr) 65px;gap:11px;align-items:center;font-size:12px}.barlabel{color:var(--muted)}.track{height:10px;border-radius:20px;background:#202d39;overflow:hidden}.bar{height:100%;border-radius:20px;background:linear-gradient(90deg,#60cfc9,#6da5ff);width:0}.bar.neg{background:linear-gradient(90deg,#d8a85f,#ff777e)}.barvalue{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}.microgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:20px}.micro{padding:10px;background:#0b1219;border:1px solid #1d2a35;border-radius:10px}.micro span{display:block;color:var(--muted);font-size:10px}.micro b{display:block;font-size:16px;margin-top:4px}
-.statustable{display:grid;gap:0}.statusrow{padding:12px 0;border-bottom:1px solid #23303b;display:flex;gap:14px;justify-content:space-between;align-items:flex-start}.statusrow:last-child{border-bottom:0}.statusrow span{color:var(--muted)}.statusrow strong{text-align:right;font-weight:650;max-width:60%;overflow-wrap:anywhere}
-.insight{border:1px solid #2a424b;background:linear-gradient(145deg,#11232b,#0d151c);padding:14px;border-radius:12px;margin-bottom:10px}.insight:last-child{margin-bottom:0}.insight .kind{font-size:10px;color:var(--cyan);font-weight:800;letter-spacing:.13em;text-transform:uppercase}.insight h4{font-size:13px;margin:6px 0}.insight p{margin:0;color:#b2c1cd;font-size:12px}
-.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.chip{font-size:10px;padding:5px 8px;border-radius:20px;background:#162630;border:1px solid #2a414c;color:#b8d7da}
-.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:11px 9px;border-bottom:1px solid #23303b;white-space:nowrap}th{color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.08em}td.num{text-align:right;font-variant-numeric:tabular-nums}tr:last-child td{border-bottom:0}
-.footer{margin-top:18px;display:flex;justify-content:space-between;gap:14px;color:var(--muted);font-size:10px;flex-wrap:wrap}.links{display:flex;gap:14px;flex-wrap:wrap}
-.nav{display:flex;gap:7px;border-bottom:1px solid var(--line);margin:0 0 16px;flex-wrap:wrap}.nav button{background:none;border:0;color:var(--muted);padding:10px 12px;border-bottom:2px solid transparent;cursor:pointer}.nav button.active{color:var(--cyan);border-color:var(--cyan)}.view{display:none}.view.active{display:block}
-.empty{color:var(--muted);font-size:12px;padding:13px;border:1px dashed #344554;border-radius:10px}
-@media(max-width:900px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}.hero{align-items:flex-start;flex-direction:column}.heroaside{text-align:left}.shell{padding:18px 14px 32px}}
-@media(max-width:460px){.metric{padding:13px;min-height:112px}.metric .value{font-size:24px}.top{align-items:flex-start;flex-direction:column}.microgrid{grid-template-columns:1fr 1fr}.barrow{grid-template-columns:70px minmax(40px,1fr) 57px}.panel{padding:14px}}
+:root{color-scheme:dark;--bg:#080e15;--panel:#111b25;--line:#293947;--text:#eff5fb;--muted:#a4b3c1;--cyan:#77e4dc;--green:#6fe0a5;--yellow:#f2cf79;--red:#ff858d}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 80% -12%,#173242 0,transparent 36%),var(--bg);color:var(--text);font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}a{color:var(--cyan);text-underline-offset:3px}a:focus-visible,button:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}button{font:inherit}.app{max-width:1440px;margin:0 auto;padding:24px clamp(14px,2.5vw,32px) 38px}.topbar,.hero,.section-heading,.footer{display:flex;justify-content:space-between;gap:16px}.topbar{align-items:center;margin-bottom:24px}.brand{display:flex;align-items:center;gap:12px;min-width:0}.mark{height:44px;width:44px;flex:0 0 auto;border-radius:13px;background:linear-gradient(145deg,#83eee2,#7ba7ff);display:grid;place-items:center;color:#07111a;font-weight:900;font-size:21px}.eyebrow,.small-label{font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--cyan);font-weight:800}.small-label{letter-spacing:.12em;color:var(--muted)}h1{font-size:clamp(16px,2vw,21px);letter-spacing:-.03em;margin:2px 0 0}.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.pill,.tag{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:30px;padding:6px 10px;color:var(--muted);font-size:11px}.dot{width:9px;height:9px;border-radius:50%;background:var(--yellow);display:inline-block;flex:0 0 auto}.dot.green{background:var(--green)}.dot.yellow{background:var(--yellow)}.dot.red{background:var(--red)}.btn{border:1px solid #3a4c5c;background:#182532;color:var(--text);border-radius:10px;padding:9px 13px;font-weight:700;cursor:pointer}.btn:hover{border-color:var(--cyan)}.btn:disabled{opacity:.6;cursor:wait}.hero{align-items:flex-end;margin:10px 0 18px}.hero h2{font-size:clamp(30px,4.2vw,44px);line-height:1.04;letter-spacing:-.055em;margin:8px 0 12px}.hero p{max-width:800px;margin:0;color:var(--muted)}.hero-meta{text-align:right;min-width:210px;color:var(--muted);font-size:11px}.hero-meta strong{display:block;font-size:14px;color:var(--text);margin-bottom:3px}.snapshot{padding:10px 13px;border:1px solid var(--line);background:#0b141d;border-radius:11px;color:var(--muted);font-size:12px;margin-bottom:13px;overflow-wrap:anywhere}.snapshot strong{color:var(--text)}.snapshot.warn{border-color:#725a2a;color:#f0dda8}.panel{background:linear-gradient(155deg,#121d27,#0d151e);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0}.health{margin:0 0 16px;display:grid;grid-template-columns:minmax(210px,.9fr) minmax(0,2fr);gap:18px;align-items:center}.health.green{border-color:#2d6c53;background:linear-gradient(145deg,#10251f,#0d171c)}.health.yellow{border-color:#725a2a;background:linear-gradient(145deg,#282215,#11171c)}.health.red{border-color:#7b343d;background:linear-gradient(145deg,#2a171d,#11151c)}.health-left{display:flex;align-items:center;gap:13px}.health-icon{width:44px;height:44px;border-radius:14px;background:#ffffff08;display:grid;place-items:center;font-size:19px;flex:0 0 auto}.health-title{font-weight:850;font-size:17px}.health-age{font-size:12px;color:var(--muted);margin-top:3px}.health-right{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.health-stat{padding-left:12px;border-left:1px solid #ffffff17;min-width:0}.health-stat span{display:block;font-size:11px;color:var(--muted)}.health-stat strong{display:block;font-size:16px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;margin-top:3px}.reason{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:3px;overflow-wrap:anywhere}.health-note{grid-column:1/-1;font-size:12px;color:var(--muted);margin:0;overflow-wrap:anywhere}.health-note.error{color:var(--red)}.section-nav{display:flex;gap:7px;border-bottom:1px solid var(--line);margin:0 0 18px;overflow:auto}.section-nav a{flex:0 0 auto;padding:10px 12px;color:var(--muted);text-decoration:none;border-bottom:2px solid transparent;font-size:12px}.section-nav a:hover,.section-nav a:focus-visible{color:var(--cyan);border-color:var(--cyan)}.section{scroll-margin-top:18px;margin-bottom:20px}.section-heading{align-items:flex-start;margin-bottom:13px}.section-heading h3{font-size:15px;margin:0 0 3px}.section-heading p,.muted{color:var(--muted);font-size:12px;margin:0}.tag{white-space:nowrap}.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.metric{padding:15px;min-height:112px}.metric-label{font-size:11px;color:var(--muted)}.metric-value{font-size:24px;font-weight:780;letter-spacing:-.04em;line-height:1.2;margin:8px 0 5px;overflow-wrap:anywhere}.metric-sub{font-size:11px;color:var(--muted);overflow-wrap:anywhere}.value-green{color:var(--green)}.value-yellow{color:var(--yellow)}.value-red{color:var(--red)}.warning{padding:13px 15px;border:1px solid #665324;background:#241f12;border-radius:12px;color:#f0dda8;display:flex;align-items:flex-start;gap:10px;margin-bottom:15px}.warning strong{color:#ffe6a0}.warning p{margin:0;font-size:12px}.keyvals{display:grid;gap:0}.kv{display:grid;grid-template-columns:minmax(140px,.9fr) minmax(0,1.1fr);gap:14px;align-items:start;padding:11px 0;border-bottom:1px solid #202d39}.kv:last-child{border-bottom:0}.kv .k{color:var(--muted);font-size:12px}.kv .v{text-align:right;overflow-wrap:anywhere;font-weight:650;font-size:12px}.value-large{font-size:26px;letter-spacing:-.04em;font-weight:850;margin:8px 0 3px;overflow-wrap:anywhere}.risk-line{border-left:3px solid var(--line);padding:10px 12px;margin:11px 0;border-radius:0 9px 9px 0;background:#ffffff04}.risk-line.warning-risk{border-left-color:var(--yellow)}.risk-line.critical-risk{border-left-color:var(--red)}.risk-line p{margin:3px 0 0;font-size:12px;color:var(--muted)}.history-card{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.history-block{padding:14px;background:#0b131b;border:1px solid #263642;border-radius:12px;min-width:0}.history-number{font-size:25px;font-weight:850;letter-spacing:-.04em;margin:7px 0 2px}.history-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:14px 0}.history-stat{background:#111b24;border:1px solid #263642;border-radius:10px;padding:9px}.history-stat span{display:block;color:var(--muted);font-size:10px}.history-stat strong{display:block;font-size:14px;margin-top:4px;overflow-wrap:anywhere}.pf-inline{font-size:11px;color:var(--muted);font-weight:400}.table-wrap{overflow:auto;width:100%}table{width:100%;border-collapse:collapse;font-size:12px;min-width:510px}th,td{text-align:left;padding:10px 9px;border-bottom:1px solid #202d39;vertical-align:top}th{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700}td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}tbody tr:last-child td{border-bottom:0}.notice{border:1px dashed #344657;background:#0b131a;border-radius:10px;color:var(--muted);padding:12px;font-size:12px;margin-top:12px;overflow-wrap:anywhere}.empty{border:1px dashed #3b4b59;border-radius:11px;padding:13px;color:var(--muted);font-size:12px}.timeline{display:grid;gap:10px}.signal{display:grid;grid-template-columns:minmax(120px,160px) minmax(0,1fr);gap:12px;padding:12px;border:1px solid #263642;background:#0b131b;border-radius:11px}.signal-action{font-weight:800}.signal-meta{color:var(--muted);font-size:11px;margin-top:3px}.signal-details{font-size:12px;overflow-wrap:anywhere}.hash{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:10px;color:#b5c2cf;overflow-wrap:anywhere}.criteria-group{border-top:1px solid #263642;padding-top:12px;margin-top:12px}.criteria-group:first-child{border-top:0;padding-top:0;margin-top:0}.criteria-group h4{margin:0 0 6px;font-size:13px}.criteria-list{margin:5px 0 0;padding-left:20px;color:#d5e0e9;font-size:12px}.criteria-list li{margin:5px 0}.error-note{font-size:12px;color:var(--red);margin:8px 0 0;overflow-wrap:anywhere}.footer{align-items:flex-start;flex-wrap:wrap;padding-top:19px;margin-top:22px;border-top:1px solid var(--line);color:var(--muted);font-size:11px}.footer-hash{max-width:100%;overflow-wrap:anywhere}.footer-links{display:flex;gap:14px;flex-wrap:wrap}.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:1050px){.health{grid-template-columns:1fr}.health-right{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{align-items:flex-start;flex-direction:column}.hero-meta{text-align:left}.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:650px){.app{padding:15px 12px 28px}.topbar{align-items:flex-start;flex-direction:column}.actions{width:100%;justify-content:flex-start}.hero h2{font-size:32px}.panel{padding:14px;border-radius:13px}.health-right,.grid-4,.grid-2,.history-card{grid-template-columns:1fr}.health-stat{border-left:0;border-top:1px solid #ffffff17;padding:9px 0 0}.section-heading{flex-direction:column;gap:8px}.kv{grid-template-columns:1fr;gap:4px}.kv .v{text-align:left}.signal{grid-template-columns:1fr}.history-number{font-size:24px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 </head>
-<body><div class="shell">
-<header class="top">
-  <div class="brand"><div class="mark">F</div><div><div class="eyebrow">FVT · QUANT RESEARCH</div><h1>Central de inteligência</h1></div></div>
-  <div class="topright"><span class="pill"><i class="dot" id="liveDot"></i><span id="connectionLabel">Carregando estado</span></span><button class="btn" id="refreshBtn">↻ Atualizar</button></div>
+<body>
+<div class="app">
+<header class="topbar">
+<div class="brand"><div class="mark" aria-hidden="true">F</div><div><div class="eyebrow">FVT · QUANT RESEARCH</div><h1>Painel de observação <span class="muted">v0.3</span></h1></div></div>
+<div class="actions"><span class="pill"><span id="topDot" class="dot red" aria-hidden="true"></span><span id="topStatus" role="status" aria-live="polite">Carregando snapshot…</span></span><button class="btn" id="refreshBtn" type="button">↻ Atualizar feed</button></div>
 </header>
-<section class="hero">
- <div><div class="eyebrow">OBSERVAÇÃO · MÉTRICAS · PROTOCOLO</div><h2>Dados claros.<br>Decisões sob controle.</h2><p>Painel central para observar a estratégia P6-MOM, a integridade da coleta, os limites de risco e as evidências históricas. A janela prospectiva não autoriza ordens reais nem ajuste de parâmetros.</p></div>
- <div class="heroaside"><strong id="windowStatus">Janela prospectiva</strong><span id="lastUpdate">Estado ainda não sincronizado</span></div>
+<section class="hero" aria-labelledby="pageTitle">
+<div><div class="eyebrow">OBSERVAÇÃO · INTEGRIDADE · RISCO</div><h2 id="pageTitle">Acompanhar sem<br>inventar evidências.</h2><p>P6-MOM · MOM_TF240_LB96 · BTCUSDT spot long-only · sinal em candles de 4 horas. Modo somente sombra, leitura e auditoria; sem ordens reais e sem edição de parâmetros.</p></div>
+<div class="hero-meta"><strong>Janela prospectiva</strong><span>25 out 2026 · 00:00 UTC</span><br><span>até 23 jan 2027 · 00:00 UTC</span></div>
 </section>
-<div class="warning"><span>⚠</span><p><b>Separação obrigatória de evidências.</b> Os números históricos abaixo são de treino/validação e não representam resultado prospectivo. O monitoramento prospectivo está restrito ao risco e à continuidade dos dados; retornos correntes não serão inventados ou inferidos.</p></div>
-<nav class="nav" aria-label="Seções do painel"><button class="active" data-view="overview">Visão geral</button><button data-view="strategy">Estratégia</button><button data-view="intelligence">Inteligência</button><button data-view="audit">Protocolo & dados</button></nav>
-<main>
-<section class="view active" id="view-overview">
- <div class="metrics">
-  <article class="metric"><div class="label">Retorno histórico · treino</div><div class="value green" id="trainReturn">+21,95%</div><div class="sub">Não é retorno ao vivo</div></article>
-  <article class="metric"><div class="label">Retorno histórico · validação</div><div class="value green" id="valReturn">+6,47%</div><div class="sub">Bloco de validação histórica</div></article>
-  <article class="metric"><div class="label">Drawdown prospectivo</div><div class="value amber" id="liveDD">—</div><div class="sub" id="ddSub">Aguardando monitor real</div></article>
-  <article class="metric"><div class="label">Candles observados</div><div class="value cyan" id="candleCount">0</div><div class="sub" id="segmentCount">Nenhum segmento confirmado</div></article>
- </div>
- <div class="grid2">
-  <article class="panel"><div class="panelhead"><div><div class="sectiontag">Evidência histórica</div><h3>Retorno líquido por bloco</h3><div class="hint">Seleção histórica publicada no manifesto congelado</div></div><span class="chip">30 bps RT</span></div>
-   <div class="bars"><div class="barrow"><span class="barlabel">Treino</span><div class="track"><div class="bar" id="barTrain"></div></div><span class="barvalue" id="barTrainText">+21,95%</span></div><div class="barrow"><span class="barlabel">Validação</span><div class="track"><div class="bar" id="barVal"></div></div><span class="barvalue" id="barValText">+6,47%</span></div></div>
-   <div class="microgrid"><div class="micro"><span>Profit factor treino</span><b>8,63</b></div><div class="micro"><span>Profit factor validação</span><b>9,08</b></div><div class="micro"><span>Operações históricas</span><b>4 + 3</b></div></div>
-   <p class="hint">A amostra histórica é pequena (7 operações nos dois blocos). Não é prova de robustez nem garantia de desempenho.</p>
-  </article>
-  <article class="panel"><div class="panelhead"><div><div class="sectiontag">Sessão sombra</div><h3>Estado operacional</h3><div class="hint">Atualizado pela automação, quando disponível</div></div><span class="chip" id="sessionBadge">AGUARDANDO</span></div>
-   <div class="statustable"><div class="statusrow"><span>Estratégia</span><strong>P6-MOM · MOM_TF240_LB96</strong></div><div class="statusrow"><span>Ativo / mercado</span><strong>BTCUSDT · spot long-only</strong></div><div class="statusrow"><span>Janela autorizada</span><strong>25 out 2026 — 23 jan 2027 UTC</strong></div><div class="statusrow"><span>Último candle</span><strong id="lastCandle">Nenhum recebido</strong></div><div class="statusrow"><span>Continuidade</span><strong id="continuity">Ainda não verificada</strong></div><div class="statusrow"><span>Limite de drawdown</span><strong class="amber">−10%</strong></div></div>
-  </article>
- </div>
- <article class="panel"><div class="panelhead"><div><div class="sectiontag">Ciclo de pesquisa</div><h3>Estratégias e validações</h3><div class="hint">Somente resultados com fonte rastreável aparecem como métricas.</div></div><a href="https://github.com/aquinoares/fvt-quant-research" target="_blank" rel="noopener">Código-fonte ↗</a></div>
- <div class="tablewrap"><table><thead><tr><th>Hipótese / versão</th><th>Etapa</th><th>Resultado visível</th><th>Regra atual</th></tr></thead><tbody><tr><td><b>P6-MOM</b><br><span class="hint">MOM_TF240_LB96</span></td><td><span class="chip" id="strategyStage">Preparação/execução</span></td><td>Histórico separado da janela ao vivo</td><td>Somente sombra · sem ordens reais</td></tr><tr><td>Modelos Trindade</td><td>Pesquisa histórica</td><td>Sem score comparável publicado neste painel</td><td>Não misturar com P6-MOM</td></tr></tbody></table></div></article>
+<div id="snapshotBanner" class="snapshot" role="status" aria-live="polite">Lendo timestamp do feed…</div>
+<section id="collectionHealth" class="panel health red" aria-labelledby="healthTitle">
+<div class="health-left"><div class="health-icon" aria-hidden="true">◉</div><div><div class="small-label">Saúde da coleta</div><div id="healthTitle" class="health-title">Verificando feed…</div><div id="healthSummary" class="health-age">Aguardando os timestamps do feed.</div></div></div>
+<div class="health-right">
+<div class="health-stat"><span>Idade do último candle</span><strong id="healthCandleAge">—</strong><span id="healthCandleTime" class="reason">Timestamp indisponível no feed.</span></div>
+<div class="health-stat"><span>Idade do próprio feed</span><strong id="healthFeedAge">—</strong><span id="healthFeedTime" class="reason">Timestamp indisponível no feed.</span></div>
+<div class="health-stat"><span>Candles nas últimas 48 h</span><strong id="candles48h">—</strong><span id="candles48hReason" class="reason">Campo não disponível no feed.</span></div>
+<div class="health-stat"><span>Lacunas nas últimas 48 h</span><strong id="gaps48h">—</strong><span id="gaps48hReason" class="reason">Campo não disponível no feed.</span></div>
+</div>
+<p id="healthThresholds" class="health-note">Limites de frescor serão derivados dos crons registrados no feed.</p><p id="healthError" class="health-note error" hidden></p>
 </section>
-<section class="view" id="view-strategy">
- <div class="grid2">
-  <article class="panel"><div class="sectiontag">Parâmetros congelados</div><h3 style="margin-top:7px">P6-MOM</h3><div class="statustable"><div class="statusrow"><span>Identificador do vencedor</span><strong>722a0dd140</strong></div><div class="statusrow"><span>Timeframe do sinal</span><strong>240 minutos</strong></div><div class="statusrow"><span>Lookback</span><strong>96 barras</strong></div><div class="statusrow"><span>Threshold</span><strong>+0,005</strong></div><div class="statusrow"><span>Custos P4</span><strong>10 bps taxa + 5 bps slippage / lado</strong></div><div class="statusrow"><span>Stress</span><strong>60 bps por operação completa</strong></div><div class="statusrow"><span>Execução modelada</span><strong>Sinal no fechamento; execução na abertura seguinte</strong></div></div></article>
-  <article class="panel"><div class="sectiontag">Critérios de aceitação</div><h3 style="margin-top:7px">Condições não negociáveis</h3><div class="statustable"><div class="statusrow"><span>Retorno líquido P4</span><strong>Maior que zero</strong></div><div class="statusrow"><span>Acima de buy & hold</span><strong>Após custos</strong></div><div class="statusrow"><span>Drawdown líquido</span><strong>≥ −10%</strong></div><div class="statusrow"><span>Profit factor</span><strong>Maior que 1</strong></div><div class="statusrow"><span>Operações completas</span><strong>≥ 10; abaixo disso é inconclusivo</strong></div><div class="statusrow"><span>Stress 60 bps</span><strong>Retorno positivo</strong></div></div></article>
- </div>
- <article class="panel"><div class="panelhead"><div><div class="sectiontag">Blocos históricos</div><h3>Treino vs. validação</h3><div class="hint">Números exatamente como registrados no manifesto. Não são dados da janela futura.</div></div></div><div class="tablewrap"><table><thead><tr><th>Métrica</th><th>Treino</th><th>Validação</th></tr></thead><tbody><tr><td>Retorno líquido total</td><td class="num green">+21,946%</td><td class="num green">+6,472%</td></tr><tr><td>Profit factor líquido</td><td class="num">8,627</td><td class="num">9,076</td></tr><tr><td>Drawdown máximo líquido</td><td class="num">−6,020%</td><td class="num">−5,439%</td></tr><tr><td>Operações</td><td class="num">4</td><td class="num">3</td></tr><tr><td>Taxa de acerto líquida</td><td class="num">25,0%</td><td class="num">66,7%</td></tr><tr><td>Exposição</td><td class="num">47,21%</td><td class="num">41,83%</td></tr></tbody></table></div></article>
+<nav class="section-nav" aria-label="Navegação do painel"><a href="#session">Sessão sombra</a><a href="#history">Evidência histórica</a><a href="#criteria">Critérios definidos</a><a href="#audit">Auditoria</a></nav>
+<div class="warning" role="note"><span aria-hidden="true">⚠</span><p><strong>Histórico não é resultado prospectivo.</strong> A amostra histórica é pequena: <strong id="sampleNotice">—</strong> operações nos blocos de treino e validação. Esses dados não demonstram robustez nem garantem desempenho futuro. A janela prospectiva permanece separada; somente valores entregues pelo feed são exibidos.</p></div>
+<section id="session" class="section" aria-labelledby="sessionHeading">
+<div class="section-heading"><div><h3 id="sessionHeading">Sessão sombra</h3><p>Estado da sessão somente quando incluído no feed gerado pelo workflow.</p></div><span id="sessionBadge" class="tag">Aguardando feed</span></div>
+<div class="grid-4">
+<article class="panel metric"><div class="metric-label">Candles observados na sessão</div><div class="metric-value" id="candleCount">—</div><div class="metric-sub" id="candleCountReason">Aguardando contagem real.</div></article>
+<article class="panel metric"><div class="metric-label">Posição atual</div><div class="metric-value" id="positionValue">—</div><div class="metric-sub" id="positionReason">O feed não fornece a posição.</div></article>
+<article class="panel metric"><div class="metric-label">Preço de entrada</div><div class="metric-value" id="entryPrice">—</div><div class="metric-sub" id="entryReason">O feed não fornece o preço de entrada.</div></article>
+<article class="panel metric"><div class="metric-label">Próximo fechamento de candle 4 h</div><div class="metric-value" id="nextClose">—</div><div class="metric-sub" id="nextCloseLocal">O feed não fornece esse timestamp.</div></article>
+</div>
+<div class="grid-2" style="margin-top:14px">
+<article class="panel"><div class="section-heading"><div><h3>Monitor de drawdown prospectivo</h3><p>Somente leitura · aviso −7% · limite −10%</p></div><span id="riskBadge" class="tag">Sem dado real</span></div><div id="drawdownValue" class="value-large">—</div><div id="drawdownReason" class="muted">Sem dado real de drawdown no feed.</div><div id="riskAlert" class="risk-line" hidden><strong id="riskAlertTitle"></strong><p id="riskAlertBody"></p></div><div id="riskTimestamp" class="reason">Última atualização do monitor: —</div></article>
+<article class="panel"><div class="section-heading"><div><h3>Estado do coletor e timestamps</h3><p>Horários em UTC e Brasília (America/Sao_Paulo).</p></div></div><div class="keyvals"><div class="kv"><span class="k">Estado informado pelo feed</span><span class="v" id="sessionStatus">—</span></div><div class="kv"><span class="k">Último candle · UTC / Brasília</span><span class="v" id="lastCandleTime">—</span></div><div class="kv"><span class="k">Horário de entrada</span><span class="v" id="entryTime">—</span></div><div class="kv"><span class="k">Última atualização do estado</span><span class="v" id="sessionUpdated">—</span></div><div class="kv"><span class="k">Segmentos persistidos</span><span class="v" id="segmentCount">—</span></div><div class="kv"><span class="k">Continuidade</span><span class="v" id="continuity">—</span></div></div><p id="sessionError" class="error-note" hidden></p></article>
+</div>
+<article class="panel" style="margin-top:14px"><div class="section-heading"><div><h3>Linha do tempo de sinais</h3><p>Somente registros presentes no feed. Eventos operacionais não são tratados como sinais.</p></div><span id="timelineBadge" class="tag">Não verificada</span></div><p id="timelineStatus" class="muted">Aguardando timeline de sinais.</p><div id="timeline" class="timeline" style="margin-top:10px"><div class="empty">A timeline real não está disponível no snapshot.</div></div><p id="timelineError" class="error-note" hidden></p></article>
 </section>
-<section class="view" id="view-intelligence">
- <div class="grid2"><article class="panel"><div class="sectiontag">Inteligência analítica</div><h3 style="margin:7px 0 12px">Leitura baseada em evidências</h3><div id="insights"></div></article>
- <article class="panel"><div class="sectiontag">Limites do agente</div><h3 style="margin:7px 0 12px">O que a inteligência faz agora</h3><div class="statustable"><div class="statusrow"><span>Origem das conclusões</span><strong>Manifesto + estado + eventos reais</strong></div><div class="statusrow"><span>Detecção de risco</span><strong>Limite de −10% e interrupções</strong></div><div class="statusrow"><span>Alteração de estratégia</span><strong class="green">Bloqueada</strong></div><div class="statusrow"><span>Ordens reais</span><strong class="green">Desabilitadas</strong></div><div class="statusrow"><span>LLM conectado</span><strong class="amber">Ainda não integrado</strong></div></div><p class="hint" style="margin-top:12px">Esta primeira versão entrega regras analíticas transparentes. Ainda não existe um agente de IA conectado a um modelo externo nesta interface.</p></article></div>
- <article class="panel"><div class="panelhead"><div><div class="sectiontag">Eventos do sistema</div><h3>Ocorrências operacionais registradas</h3></div><span class="chip" id="eventCount">0 eventos</span></div><div id="events"><div class="empty">Nenhum evento foi sincronizado ainda.</div></div></article>
+<section id="history" class="section" aria-labelledby="historyHeading">
+<article class="panel"><div class="section-heading"><div><h3 id="historyHeading">Evidência histórica · separada da sessão prospectiva</h3><p>Somente valores agregados vindos do feed, originados do manifesto congelado.</p></div><span class="tag">Histórico · não é previsão</span></div>
+<div class="history-card">
+<div class="history-block"><div class="small-label">Treino histórico</div><div id="trainReturn" class="history-number value-green">—</div><div class="muted">Retorno líquido total registrado.</div><div class="history-stats"><div class="history-stat"><span>Operações completas</span><strong id="trainTrades">—</strong></div><div class="history-stat"><span>Drawdown máximo</span><strong id="trainDrawdown">—</strong></div><div class="history-stat"><span>Taxa de acerto líquida</span><strong id="trainWinRate">—</strong></div><div class="history-stat"><span>Exposição</span><strong id="trainExposure">—</strong></div></div><div class="muted">Profit factor líquido: <strong id="trainPF">—</strong> <span class="pf-inline">métrica secundária; amostra pequena</span></div></div>
+<div class="history-block"><div class="small-label">Validação histórica</div><div id="validationReturn" class="history-number value-green">—</div><div class="muted">Retorno líquido total registrado.</div><div class="history-stats"><div class="history-stat"><span>Operações completas</span><strong id="validationTrades">—</strong></div><div class="history-stat"><span>Drawdown máximo</span><strong id="validationDrawdown">—</strong></div><div class="history-stat"><span>Taxa de acerto líquida</span><strong id="validationWinRate">—</strong></div><div class="history-stat"><span>Exposição</span><strong id="validationExposure">—</strong></div></div><div class="muted">Profit factor líquido: <strong id="validationPF">—</strong> <span class="pf-inline">métrica secundária; amostra pequena</span></div></div>
+</div>
+<div class="warning" role="note" style="margin-top:14px;margin-bottom:0"><span aria-hidden="true">⚠</span><p><strong>Amostra pequena: <span id="historySampleNotice">—</span> operações no total.</strong> A evidência do feed tem somente poucos registros agregados; não se deve concluir robustez com sete operações históricas.</p></div>
+<div class="notice" id="individualTradesNote">Verificando se existem operações individuais…</div><div class="notice" id="buyHoldNote">Verificando comparação buy-and-hold…</div></article>
 </section>
-<section class="view" id="view-audit">
- <div class="grid2"><article class="panel"><div class="sectiontag">Integridade</div><h3 style="margin-top:7px">Versão e fonte de dados</h3><div class="statustable"><div class="statusrow"><span>Manifesto congelado</span><strong><code>p6_mom_freeze_20261024T011825Z</code></strong></div><div class="statusrow"><span>SHA-256 do manifesto</span><strong style="font-size:10px">661EAA0326B7B4C201E7A897FF58CD45382FB10DDACFECF4F0A6F89DB0B76592</strong></div><div class="statusrow"><span>Origem candles</span><strong>Dados públicos BTCUSDT 1m</strong></div><div class="statusrow"><span>Estado cloud</span><strong id="dataSource">Feed ainda não confirmado</strong></div></div></article>
- <article class="panel"><div class="sectiontag">Política de segurança</div><h3 style="margin-top:7px">Shadow only</h3><div class="insight"><div class="kind">Regra de risco</div><h4>Interromper ao atingir o drawdown autorizado</h4><p>O limite de −10% é um gatilho operacional; a interface não negocia, não alavanca e não promete lucro.</p></div><div class="insight"><div class="kind">Regra de dados</div><h4>Não preencher lacunas retroativamente</h4><p>Uma lacuna operacional encerra a sessão para investigação. Os candles históricos não substituem uma observação contínua.</p></div></article></div>
- <article class="panel"><div class="sectiontag">Diagnóstico da nuvem</div><h3 style="margin:7px 0 12px">Sincronização & execução</h3><div class="statustable"><div class="statusrow"><span>Última atualização do feed</span><strong id="feedTimestamp">Não disponível</strong></div><div class="statusrow"><span>Estado do coletor</span><strong id="collectorState">Ainda não confirmado</strong></div><div class="statusrow"><span>Branch de estado</span><strong>p6-mom-runtime</strong></div></div><p class="hint" style="margin-top:14px">Ver o log detalhado no <a href="https://github.com/aquinoares/fvt-quant-research/actions/workflows/p6-mom-cloud.yml" target="_blank" rel="noopener">GitHub Actions ↗</a>.</p></article>
+<section id="criteria" class="section" aria-labelledby="criteriaHeading">
+<article class="panel"><div class="section-heading"><div><h3 id="criteriaHeading">Critérios pré-definidos no manifesto</h3><p>Texto copiado do manifesto congelado pelo workflow; não é veredito antecipado.</p></div><span class="tag">Fonte: manifesto</span></div>
+<div id="criteriaSource" class="muted">Carregando critérios do feed…</div>
+<div class="criteria-group"><h4>Critérios de sucesso registrados no manifesto</h4><ul id="criteriaSuccess" class="criteria-list"><li>Não definido no manifesto.</li></ul></div>
+<div class="criteria-group"><h4>Critério de inconclusivo registrado no manifesto</h4><ul id="criteriaInconclusive" class="criteria-list"><li>Não definido no manifesto.</li></ul></div>
+<div class="criteria-group"><h4>Regra explícita de fracasso / veredito</h4><p id="criteriaFailure" class="muted">Não definido no manifesto.</p></div>
+<div class="criteria-group"><h4>Nota de seleção registrada</h4><p id="criteriaSelection" class="muted">Não definido no manifesto.</p></div><p id="criteriaPending" class="error-note" hidden></p>
+</article></section>
+<section id="audit" class="section" aria-labelledby="auditHeading">
+<article class="panel"><div class="section-heading"><div><h3 id="auditHeading">Auditoria e origem dos dados</h3><p>Valores dinâmicos do feed e metadados de execução do GitHub Actions.</p></div><span class="tag">Shadow only · sem ordens reais</span></div>
+<div class="keyvals">
+<div class="kv"><span class="k">Protocolo / variante</span><span class="v" id="auditProtocol">—</span></div>
+<div class="kv"><span class="k">Ativo / execução</span><span class="v" id="auditAsset">—</span></div>
+<div class="kv"><span class="k">Limite de drawdown</span><span class="v" id="auditRisk">—</span></div>
+<div class="kv"><span class="k">Commit do coletor · última execução bem-sucedida</span><span class="v footer-hash" id="collectorCommit">—</span></div>
+<div class="kv"><span class="k">Execução do coletor</span><span class="v" id="collectorRun">—</span></div>
+<div class="kv"><span class="k">Commit do painel/feed</span><span class="v footer-hash" id="panelCommit">—</span></div>
+<div class="kv"><span class="k">SHA-256 do manifesto informado pelo feed</span><span class="v footer-hash" id="manifestSha">—</span></div>
+<div class="kv"><span class="k">Horário do servidor Binance</span><span class="v" id="serverTime">—</span></div>
+<div class="kv"><span class="k">Schema do feed</span><span class="v" id="feedSchema">—</span></div>
+</div>
+<div class="notice">O SHA do manifesto é lido do feed; o workflow compara o valor com o arquivo congelado. O commit do coletor identifica a última execução concluída com sucesso consultada na API do GitHub; o feed não associa esse commit a um candle específico. Se a API falhar, o campo fica ausente.</div></article>
 </section>
-</main>
-<footer class="footer"><span>FVT Quant Research · painel de observação · sem ordens reais</span><div class="links"><a href="https://github.com/aquinoares/fvt-quant-research" target="_blank" rel="noopener">Repositório</a><a href="https://github.com/aquinoares/fvt-quant-research/actions" target="_blank" rel="noopener">Execuções cloud</a><span id="footerVersion">painel v0.1</span></div></footer>
+<footer class="footer"><div><div>FVT Quant Research · Painel de observação v0.3 · somente leitura</div><div class="footer-hash" id="footerSnapshot">Snapshot: ainda não carregado.</div><div class="footer-hash" id="footerCommit">Commit do painel/feed: —</div><div class="footer-hash" id="footerManifest">Manifesto SHA-256 informado pelo feed: —</div><div id="lastRefresh">Atualização: —</div></div><div class="footer-links"><a href="https://github.com/aquinoares/fvt-quant-research" target="_blank" rel="noopener noreferrer">Repositório GitHub</a><a href="https://github.com/aquinoares/fvt-quant-research/actions" target="_blank" rel="noopener noreferrer">Execuções GitHub Actions</a><a href="https://github.com/aquinoares/fvt-quant-research/actions/workflows/p6-mom-cloud-live.yml" target="_blank" rel="noopener noreferrer">Workflow do coletor</a><a href="https://github.com/aquinoares/fvt-quant-research/actions/workflows/fvt-dashboard.yml" target="_blank" rel="noopener noreferrer">Workflow do painel</a></div></footer>
 </div>
 <!-- FVT_RUNTIME_DATA -->
+<!-- FVT_CORE_LOGIC -->
 <script>
-const $=id=>document.getElementById(id);
-const fmtPct=(n,d=2)=>Number.isFinite(Number(n))?(Number(n)*100).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})+'%':'—';
-const fmtNum=n=>Number(n||0).toLocaleString('pt-BR');
-const fmtTime=s=>{if(!s)return 'Não disponível';const d=new Date(s);return Number.isNaN(d.getTime())?String(s):d.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short',timeZone:'UTC'})+' UTC'};
-let data={};
-function text(id,value){$(id).textContent=value==null?'—':String(value)}
-function makeInsights(d){
- const items=[];
- const hist=d.historical||{};
- items.push({kind:'AMOSTRA HISTÓRICA',title:'A validação parece positiva, mas ainda tem poucas operações',body:'Treino: 4 operações; validação: 3. O critério congelado exige pelo menos 10 operações completas na avaliação prospectiva. Não flexibilizar esse limite.'});
- items.push({kind:'PROTOCOLO',title:'Não confundir histórico com evidência prospectiva',body:'Retornos de +21,95% no treino e +6,47% na validação são históricos. Durante a janela sombra, este painel não publica retorno corrente nem P&L porque o protocolo operacional limita a telemetria a risco e continuidade.'});
- const shadow=d.shadow||{};
- if(shadow.status==='risk_breach')items.unshift({kind:'RISCO · CRÍTICO',title:'Limite de drawdown ultrapassado',body:'A sessão foi sinalizada como interrompida pelo monitor de risco. Não retomar nem alterar parâmetros automaticamente.'});
- else if(shadow.status==='protocol_stopped')items.unshift({kind:'PROTOCOLO · PARADA',title:'A coleta foi interrompida por uma condição operacional',body:shadow.stop_reason||'Verifique o evento de interrupção antes de qualquer nova autorização.'});
- else if(Number.isFinite(Number(shadow.max_drawdown_net))){
-  const dd=Number(shadow.max_drawdown_net),lim=Number(d.strategy?.risk_limit??-0.1);
-  const remaining=Math.max(0,Math.abs(lim)-Math.abs(Math.min(0,dd)));
-  items.unshift({kind:dd<=lim?'RISCO · CRÍTICO':'RISCO · MONITORAMENTO',title:dd<=lim?'Limite de risco alcançado':'Drawdown monitorado: '+fmtPct(dd),body:dd<=lim?'O protocolo exige interrupção; não reiniciar automaticamente.':'Margem aritmética até o limite aprovado: '+fmtPct(remaining)+'. Isso não representa previsão de risco futuro.'});
- }else items.push({kind:'COLETA',title:'Aguardando a primeira sessão cloud confirmada',body:'Ainda não há monitor de drawdown prospectivo sincronizado. O painel não preenche esse espaço com números fictícios.'});
- return items.map(x=>'<div class="insight"><div class="kind">'+esc(x.kind)+'</div><h4>'+esc(x.title)+'</h4><p>'+esc(x.body)+'</p></div>').join('');
+'use strict';
+const $ = function (id) { return document.getElementById(id); };
+const STATIC_FEED = window.FVT_DASHBOARD_DATA && typeof window.FVT_DASHBOARD_DATA === 'object' ? window.FVT_DASHBOARD_DATA : null;
+const REQUEST_TIMEOUT_MS = 10000, AUTO_REFRESH_MS = 60000;
+let refreshInProgress = false, lastSuccessfulFetch = false, pollingStarted = false;
+function setText(id, value) { const el = $(id); if (el) el.textContent = value === null || value === undefined || value === '' ? '—' : String(value); }
+function clearText(container, text) { container.replaceChildren(); const n = document.createElement('div'); n.className = 'empty'; n.textContent = text; container.appendChild(n); }
+function finite(v) { return typeof v === 'number' && Number.isFinite(v); }
+function fmtInt(v) { return finite(v) && v >= 0 ? Math.round(v).toLocaleString('pt-BR') : '—'; }
+function fmtPct(v) { return finite(v) ? (v * 100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%' : '—'; }
+function fmtPrice(v) { return finite(v) && v > 0 ? v.toLocaleString('pt-BR',{maximumFractionDigits:8})+' USDT' : '—'; }
+function fmtTime(v, zone) { const ms = window.FVTCore.parseTimestamp(v); if(ms===null)return '—'; try{return new Intl.DateTimeFormat('pt-BR',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(ms));}catch(_){return '—';} }
+function fmtPair(v) { const ms=window.FVTCore.parseTimestamp(v); return ms===null?'—':fmtTime(ms,'UTC')+' UTC · '+fmtTime(ms,'America/Sao_Paulo')+' Brasília'; }
+function fmtAge(v) { return !finite(v)||v<0?'idade indisponível':v<1?'há menos de 1 min':'há '+Math.floor(v)+' min'; }
+function setStateClass(el, state) { el.classList.remove('green','yellow','red'); if(['green','yellow','red'].includes(state))el.classList.add(state); }
+function safeGitHubUrl(v) { if(typeof v!=='string')return null; try{const u=new URL(v);return u.protocol==='https:'&&u.hostname==='github.com'?u.href:null;}catch(_){return null;} }
+function setLink(id, url, label) { const el=$(id);if(!el)return;el.replaceChildren();const safe=safeGitHubUrl(url);if(!safe){el.textContent=label||'—';return;}const a=document.createElement('a');a.href=safe;a.target='_blank';a.rel='noopener noreferrer';a.textContent=label||safe;el.appendChild(a); }
+function setDynamicUnavailable(reason) {
+  setStateClass($('collectionHealth'),'red');$('topDot').className='dot red';setText('topStatus','Feed indisponível');setText('healthTitle','Sem confirmação do feed');setText('healthSummary','Não é seguro mostrar os últimos valores como atuais.');
+  ['healthCandleAge','healthCandleTime','healthFeedAge','healthFeedTime','candles48h','gaps48h','candleCount','positionValue','entryPrice','nextClose','lastCandleTime','entryTime','sessionUpdated','segmentCount','continuity','serverTime'].forEach(function(id){setText(id,'—');});
+  setText('candles48hReason','Feed indisponível; campo não confirmado.');setText('gaps48hReason','Feed indisponível; campo não confirmado.');setText('healthThresholds','Feed indisponível; limiares e idades não podem ser confirmados.');setText('healthError',reason||'Não foi possível consultar data.json.');$('healthError').hidden=false;
+  setText('candleCountReason','Feed indisponível; contagem atual ocultada.');setText('positionReason','Feed indisponível; posição atual ocultada.');setText('entryReason','Feed indisponível; preço atual ocultado.');setText('nextCloseLocal','Feed indisponível; horário atual ocultado.');
+  setText('sessionBadge','Feed indisponível');setText('sessionStatus','—');$('sessionError').hidden=false;setText('sessionError','Estado prospectivo ocultado após falha do feed.');
+  setText('drawdownValue','—');setText('riskBadge','Sem dado atual');setText('drawdownReason','Feed indisponível. O drawdown anterior não será reutilizado como atual.');setText('riskTimestamp','—');$('riskAlert').hidden=true;
+  $('timeline').replaceChildren();clearText($('timeline'),'Timeline ocultada porque a consulta atual do feed falhou.');setText('timelineBadge','Indisponível');setText('timelineStatus','A imutabilidade não foi verificada.');setText('timelineError','Feed indisponível; timeline não verificada.');$('timelineError').hidden=false;
+  setText('lastRefresh','Falha na consulta. Valores prospectivos anteriores foram apagados.');
 }
-function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function render(d){
- data=d||{};
- const sh=data.shadow||{}, hist=data.historical||{};
- text('trainReturn',fmtPct(hist.train?.net_total_return));text('valReturn',fmtPct(hist.validation?.net_total_return));
- $('barTrain').style.width=Math.max(0,Math.min(100,Number(hist.train?.net_total_return||0)/.25*100))+'%';
- $('barVal').style.width=Math.max(0,Math.min(100,Number(hist.validation?.net_total_return||0)/.25*100))+'%';
- text('barTrainText',fmtPct(hist.train?.net_total_return));text('barValText',fmtPct(hist.validation?.net_total_return));
- if(Number.isFinite(Number(sh.max_drawdown_net))&&sh.max_drawdown_net!==null){text('liveDD',fmtPct(sh.max_drawdown_net));$('liveDD').className='value '+(sh.status==='risk_breach'?'red':'amber');text('ddSub','Limite autorizado: −10%')}else{text('liveDD','—');text('ddSub','Aguardando monitor real')}
- text('candleCount',fmtNum(sh.candles_observed||0));text('segmentCount',(sh.segments_count||0)+' segmentos persistidos');
- text('sessionBadge',sh.status_label||'AGUARDANDO');text('lastCandle',sh.last_timestamp||'Nenhum recebido');
- text('continuity',sh.continuity||'Ainda não verificada');
- text('strategyStage',sh.status==='running'?'Sombra em andamento':sh.status==='risk_breach'?'Interrompida por risco':sh.status==='protocol_stopped'?'Parada pelo protocolo':'Aguardando coleta');
- text('dataSource',data.source_label||'Feed ainda não confirmado');
- text('feedTimestamp',fmtTime(data.updated_at_utc));text('lastUpdate',data.updated_at_utc?'Sincronizado em '+fmtTime(data.updated_at_utc):'Estado ainda não sincronizado');
- text('collectorState',sh.status_detail||'Ainda não confirmado');
- text('windowStatus',sh.status==='risk_breach'?'Risco acionado':sh.status==='protocol_stopped'?'Sessão interrompida':sh.status==='running'?'Coleta ativa':'Janela prospectiva');
- const healthy=sh.status==='running';$('liveDot').style.background=sh.status==='risk_breach'||sh.status==='protocol_stopped'?'var(--red)':healthy?'var(--green)':'var(--amber)';
- text('connectionLabel',healthy?'Estado cloud sincronizado':sh.status==='risk_breach'?'Risco acionado':sh.status==='protocol_stopped'?'Protocolo interrompido':'Sem telemetria confirmada');
- $('insights').innerHTML=makeInsights(data);
- const events=Array.isArray(sh.events)?sh.events:[];text('eventCount',events.length+' evento(s)');
- $('events').innerHTML=events.length?events.slice(-12).reverse().map(e=>'<div class="statusrow"><span>'+esc(fmtTime(e.at_utc))+'</span><strong>'+esc(e.event||'Evento')+'<br><span class="hint">'+esc(e.detail||'')+'</span></strong></div>').join(''):'<div class="empty">Nenhum evento foi sincronizado ainda. Erros de execução também aparecem no GitHub Actions.</div>';
+function updateSnapshot(feed, mode, detail) {
+  const stamp=feed&&feed.updated_at_utc?feed.updated_at_utc:null, ms=window.FVTCore.parseTimestamp(stamp);
+  if(ms===null){setText('snapshotBanner','Snapshot sem updated_at_utc válido; sua idade não pode ser confirmada.');$('snapshotBanner').classList.add('warn');return;}
+  const age=(Date.now()-ms)/60000;
+  let message='Snapshot gerado em '+fmtTime(stamp,'UTC')+' UTC · '+fmtTime(stamp,'America/Sao_Paulo')+' Brasília · '+fmtAge(age)+'.';
+  if(mode==='fetch')message+=' Feed buscável consultado agora; a página tentará atualizar a cada 60 s.';
+  else if(mode==='file')message+=' Arquivo estático: este snapshot não se atualiza sozinho.';
+  else if(mode==='stale-error')message+=' Falha de consulta; métricas prospectivas ocultadas. '+(detail||'');
+  $('snapshotBanner').textContent=message;$('snapshotBanner').classList.toggle('warn',mode!=='fetch'||age<0||age>90);
+  setText('footerSnapshot','Snapshot gerado: '+fmtPair(stamp)+' · '+fmtAge(age));
 }
-async function refresh(){
- $('refreshBtn').disabled=true;text('connectionLabel','Atualizando…');
- try{const r=await fetch('./data.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('feed HTTP '+r.status);const d=await r.json();render(d)}
- catch(e){if(!data||!Object.keys(data).length)render({historical:{train:{net_total_return:.21946998037371812},validation:{net_total_return:.06472294924882593}},shadow:{status:'awaiting',status_label:'AGUARDANDO'},source_label:'Feed não encontrado'});text('connectionLabel',data.updated_at_utc?'Prévia local · dados incorporados':'Painel sem sincronização cloud');}
- finally{$('refreshBtn').disabled=false}
+function renderHealth(feed) {
+  const h=window.FVTCore.evaluateHealth(feed,Date.now()),labels={green:'Saúde verde',yellow:'Atenção à coleta',red:'Problema de coleta/feed'};
+  setStateClass($('collectionHealth'),h.status);$('topDot').className='dot '+h.status;setText('healthTitle',labels[h.status]);setText('healthSummary',h.reason);
+  setText('healthCandleAge',h.candle.ageMinutes===null?'—':fmtAge(h.candle.ageMinutes));setText('healthCandleTime',h.candle.timestampMs===null?h.candle.reason:fmtPair(h.candle.timestampMs));
+  setText('healthFeedAge',h.feed.ageMinutes===null?'—':fmtAge(h.feed.ageMinutes));setText('healthFeedTime',h.feed.timestampMs===null?h.feed.reason:fmtPair(h.feed.timestampMs));
+  setText('candles48h',h.candles48h===null?'—':fmtInt(h.candles48h));setText('candles48hReason',h.candles48h===null?'O feed não contém collection_health.candles_48h.':'Contagem reportada para as últimas 48 h.');
+  setText('gaps48h',h.gaps48h===null?'—':fmtInt(h.gaps48h));setText('gaps48hReason',h.gaps48h===null?'O feed não contém collection_health.gaps_48h.':h.gaps48h>0?'Lacunas registradas; saúde no mínimo amarela.':'Nenhuma lacuna reportada no feed.');
+  const cg=h.collectorIntervalMinutes===null?'—':String(h.collectorIntervalMinutes*1.5)+' min',cy=h.collectorIntervalMinutes===null?'—':String(h.collectorIntervalMinutes*3)+' min';
+  const fg=h.feedIntervalMinutes===null?'—':String(h.feedIntervalMinutes*1.5)+' min',fy=h.feedIntervalMinutes===null?'—':String(h.feedIntervalMinutes*3)+' min';
+  setText('healthThresholds','Cron coletor: '+(h.collectorCron||'não registrado')+' · verde ≤ '+cg+' · amarelo ≤ '+cy+'. Cron feed: '+(h.dashboardCron||'não registrado')+' · verde ≤ '+fg+' · amarelo ≤ '+fy+'. Limites derivados em 1,5× e 3× do intervalo mínimo do cron.');
+  setText('topStatus',labels[h.status]);$('healthError').hidden=h.status==='green';if(h.status!=='green')setText('healthError',h.reason);
 }
-document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+b.dataset.view))}));
-$('refreshBtn').addEventListener('click',refresh);
-render(window.FVT_DASHBOARD_DATA || {historical:{train:{net_total_return:.21946998037371812},validation:{net_total_return:.06472294924882593}},shadow:{status:'awaiting',status_label:'AGUARDANDO'},source_label:'Feed ainda não confirmado'});
-refresh();setInterval(refresh,60000);
+function renderSession(feed) {
+  const s=feed.shadow&&typeof feed.shadow==='object'?feed.shadow:{},status=s.status;
+  const hasState=status==='running'||status==='protocol_stopped'||status==='risk_breach';
+  const count=hasState?window.FVTCore.numericField(s,'candles_observed'):null,segments=hasState?window.FVTCore.numericField(s,'segments_count'):null;
+  setText('candleCount',count===null?'—':fmtInt(count));setText('candleCountReason',count===null?'Sem contagem real de uma sessão confirmada.':'Total real de candles nos segmentos persistidos.');
+  setText('positionValue',typeof s.position_state==='string'&&s.position_state.trim()?s.position_state:'—');setText('positionReason',s.position_state?'Posição informada diretamente pelo feed; não calculada no painel.':'O feed não contém shadow.position_state.');
+  setText('entryPrice',fmtPrice(s.entry_price));setText('entryReason',finite(s.entry_price)?'Preço de entrada informado diretamente pelo feed.':'O feed não contém um preço de entrada real.');
+  setText('nextClose',s.next_close_4h_utc?fmtTime(s.next_close_4h_utc,'UTC')+' UTC':'—');setText('nextCloseLocal',s.next_close_4h_utc?fmtTime(s.next_close_4h_utc,'America/Sao_Paulo')+' Brasília':'O feed não contém next_close_4h_utc; o painel não calcula esse horário.');
+  const label=s.status_label||s.status||'—';setText('sessionBadge',label);setText('sessionStatus',label+(s.status_detail?' · '+s.status_detail:''));setText('segmentCount',segments===null?'—':fmtInt(segments));setText('continuity',typeof s.continuity==='string'?s.continuity:'—');
+  const last=(feed.collection_health&&feed.collection_health.last_open_time)||s.last_timestamp;setText('lastCandleTime',fmtPair(last));setText('entryTime',s.entry_time_utc?fmtPair(s.entry_time_utc):'— · O feed não contém shadow.entry_time_utc.');setText('sessionUpdated',s.state_updated_at_utc?fmtPair(s.state_updated_at_utc):'— · O feed não contém state_updated_at_utc.');
+  const dd=window.FVTCore.numericField(s,'max_drawdown_net'),risk=window.FVTCore.drawdownState(dd,s.breached);
+  setText('drawdownValue',fmtPct(dd));$('drawdownValue').classList.remove('value-green','value-yellow','value-red');$('riskAlert').classList.remove('warning-risk','critical-risk');$('riskAlert').hidden=true;
+  if(risk.status==='critical'){ $('drawdownValue').classList.add('value-red');setText('riskBadge','Crítico · interrupção');setText('riskAlertTitle','Risco crítico');setText('riskAlertBody','Protocolo exige interrupção; não retomar automaticamente.');$('riskAlert').classList.add('critical-risk');$('riskAlert').hidden=false; }
+  else if(risk.status==='warning'){ $('drawdownValue').classList.add('value-yellow');setText('riskBadge','Aviso · −7%');setText('riskAlertTitle','Aviso escalonado');setText('riskAlertBody',risk.reason);$('riskAlert').classList.add('warning-risk');$('riskAlert').hidden=false; }
+  else if(risk.status==='normal'){ $('drawdownValue').classList.add('value-green');setText('riskBadge','Abaixo do aviso'); }
+  else setText('riskBadge','Sem dado real');
+  setText('drawdownReason',risk.reason);setText('riskTimestamp',s.risk_updated_at_utc?'Atualizado: '+fmtPair(s.risk_updated_at_utc):'O feed não contém risk_updated_at_utc.');$('sessionError').hidden=true;
+}
+function renderHistory(feed) {
+  const h=feed.historical&&typeof feed.historical==='object'?feed.historical:{},t=h.train||{},v=h.validation||{};
+  setText('trainReturn',fmtPct(t.net_total_return));setText('validationReturn',fmtPct(v.net_total_return));setText('trainTrades',fmtInt(t.trades));setText('validationTrades',fmtInt(v.trades));setText('trainDrawdown',fmtPct(t.max_drawdown_net));setText('validationDrawdown',fmtPct(v.max_drawdown_net));setText('trainWinRate',fmtPct(t.net_win_rate));setText('validationWinRate',fmtPct(v.net_win_rate));setText('trainExposure',fmtPct(t.exposure_fraction));setText('validationExposure',fmtPct(v.exposure_fraction));
+  setText('trainPF',finite(t.profit_factor_net)?t.profit_factor_net.toLocaleString('pt-BR',{maximumFractionDigits:2}):'—');setText('validationPF',finite(v.profit_factor_net)?v.profit_factor_net.toLocaleString('pt-BR',{maximumFractionDigits:2}):'—');
+  const tc=window.FVTCore.numericField(t,'trades'),vc=window.FVTCore.numericField(v,'trades'),sample=tc!==null&&vc!==null?fmtInt(tc)+' + '+fmtInt(vc):'—';setText('sampleNotice',sample);setText('historySampleNotice',tc!==null&&vc!==null?fmtInt(tc+vc):'—');
+  const individual=Array.isArray(h.individual_trades)?h.individual_trades:null;
+  if(!individual||individual.length===0)setText('individualTradesNote','Não existem operações individuais no feed/manifesto inspecionado. O painel não cria linhas artificiais a partir das contagens agregadas.');
+  else {
+    const wrapper=document.createElement('div');wrapper.className='table-wrap';const table=document.createElement('table'),thead=document.createElement('thead'),hr=document.createElement('tr');
+    ['Período','Sinal UTC','Ação','Preço','Resultado'].forEach(function(label){const th=document.createElement('th');th.textContent=label;hr.appendChild(th);});thead.appendChild(hr);table.appendChild(thead);const tbody=document.createElement('tbody');
+    individual.forEach(function(trade){const row=document.createElement('tr');[trade.period,trade.at_utc,trade.action,trade.price,trade.net_return].forEach(function(value){const td=document.createElement('td');td.textContent=value===null||value===undefined?'—':String(value);row.appendChild(td);});tbody.appendChild(row);});table.appendChild(tbody);wrapper.appendChild(table);$('individualTradesNote').replaceChildren(wrapper);
+  }
+  const bh=h.buy_and_hold;
+  setText('buyHoldNote',bh&&typeof bh==='object'?'Comparação buy-and-hold presente no feed: treino '+fmtPct(bh.train)+' · validação '+fmtPct(bh.validation)+'.':'Comparação com buy-and-hold: não existe no manifesto congelado consultado; não será importada de outra fonte.');
+}
+function fillList(id, items) {
+  const list=$(id);list.replaceChildren();
+  if(!Array.isArray(items)||items.length===0){const li=document.createElement('li');li.textContent='Não definido no manifesto.';list.appendChild(li);return;}
+  items.forEach(function(item){const li=document.createElement('li');li.textContent=item;list.appendChild(li);});
+}
+function renderCriteria(feed) {
+  const c=feed.frozen_acceptance_criteria&&typeof feed.frozen_acceptance_criteria==='object'?feed.frozen_acceptance_criteria:null;
+  const keys=['net_positive_after_p4','net_above_buy_and_hold','max_drawdown_not_below_limit','profit_factor_above_1','stress_60bps_positive'],success=[];
+  if(c)keys.forEach(function(key){if(typeof c[key]==='string'&&c[key].trim())success.push(key+': '+c[key]);});
+  fillList('criteriaSuccess',success);fillList('criteriaInconclusive',c&&typeof c.min_complete_trades==='string'&&c.min_complete_trades.trim()?[c.min_complete_trades]:[]);
+  setText('criteriaFailure','Não definido no manifesto.');setText('criteriaSelection',c&&typeof c.selection_note==='string'?c.selection_note:'Não definido no manifesto.');
+  setText('criteriaSource',c?'Texto carregado de frozen_acceptance_criteria no feed, originado do manifesto congelado.':'O feed não inclui frozen_acceptance_criteria; não definido no manifesto disponibilizado ao painel.');
+  const pending=[];if(!c)pending.push('O workflow precisa incluir frozen_acceptance_criteria do manifesto.');else{if(keys.some(function(key){return typeof c[key]!=='string'||!c[key].trim();}))pending.push('Um ou mais critérios de sucesso estão ausentes do feed.');if(typeof c.min_complete_trades!=='string'||!c.min_complete_trades.trim())pending.push('Critério de inconclusivo ausente no feed.');pending.push('Regra explícita de fracasso/veredito: não definida no manifesto.');}
+  $('criteriaPending').hidden=pending.length===0;setText('criteriaPending',pending.join(' '));
+}
+function renderAudit(feed) {
+  const s=feed.strategy&&typeof feed.strategy==='object'?feed.strategy:{},a=feed.audit&&typeof feed.audit==='object'?feed.audit:{},c=a.collector_last_success&&typeof a.collector_last_success==='object'?a.collector_last_success:{};
+  setText('auditProtocol',(s.protocol||'—')+' / '+(s.variant||'—'));setText('auditAsset',(s.symbol||'—')+' · '+(s.execution||'execução detalhada ausente no feed'));setText('auditRisk',finite(s.risk_limit)?fmtPct(s.risk_limit)+' · aviso −7%':'—');
+  const cs=typeof c.head_sha==='string'?c.head_sha:null;setLink('collectorCommit',cs?'https://github.com/aquinoares/fvt-quant-research/commit/'+cs:null,cs||'— · SHA do coletor ausente no feed');
+  if(c.html_url)setLink('collectorRun',c.html_url,'Execução #'+String(c.run_id||'—')+' · '+String(c.conclusion||''));else setText('collectorRun','— · Execução bem-sucedida do coletor não identificada.');
+  const ps=typeof a.panel_commit_sha==='string'?a.panel_commit_sha:null;setLink('panelCommit',ps?'https://github.com/aquinoares/fvt-quant-research/commit/'+ps:null,ps||'— · SHA do painel ausente no feed');
+  setText('manifestSha',s.manifest_sha256||'— · O feed não contém SHA-256 do manifesto.');const server=feed.collection_health&&feed.collection_health.server_time_ms;
+  setText('serverTime',server===null||server===undefined?'— · Horário do servidor ausente.':fmtPair(server));setText('feedSchema',feed.schema_version===undefined?'—':String(feed.schema_version)+' · dashboard '+String(feed.dashboard_version||'—'));
+  setText('footerCommit','Commit do painel/feed: '+(ps||'—'));setText('footerManifest','Manifesto SHA-256 informado pelo feed: '+(s.manifest_sha256||'—'));
+}
+async function renderTimeline(feed) {
+  const timeline=feed.signal_timeline&&typeof feed.signal_timeline==='object'?feed.signal_timeline:null,container=$('timeline');container.replaceChildren();
+  if(!timeline||!Array.isArray(timeline.records)){setText('timelineBadge','Não verificada');setText('timelineStatus','O feed atual não contém timeline de sinais. shadow.events são eventos operacionais e não serão reinterpretados como sinais; imutabilidade depende do backend.');clearText(container,'Nenhum registro de sinal foi incluído no feed atual.');$('timelineError').hidden=false;setText('timelineError','Pendência: o feed não publica timeline de sinais nem definição de hash.');return;}
+  const verified=await window.FVTCore.verifyHashChain(timeline);setText('timelineBadge',verified.status==='verified'?'Cadeia verificada':verified.status==='broken'?'Cadeia quebrada':'Não verificada');setText('timelineStatus',verified.reason);
+  const records=timeline.records.slice().sort(function(a,b){const x=window.FVTCore.parseTimestamp(a&&a.at_utc),y=window.FVTCore.parseTimestamp(b&&b.at_utc);if(x===null&&y===null)return 0;if(x===null)return 1;if(y===null)return -1;return x-y;});
+  records.forEach(function(r){const article=document.createElement('article');article.className='signal';const left=document.createElement('div'),action=document.createElement('div'),stamp=document.createElement('div');action.className='signal-action';action.textContent=r&&r.action?String(r.action):'Ação não informada';stamp.className='signal-meta';stamp.textContent=fmtPair(r&&r.at_utc);left.appendChild(action);left.appendChild(stamp);
+    const detail=document.createElement('div');detail.className='signal-details';[['Fechamento 4 h: ',fmtPair(r&&r.bar_close_utc)],['Preço: ',fmtPrice(r&&r.price)],['Motivo: ',r&&r.reason?String(r.reason):'—'],['Hash anterior: ',r&&r.prev_hash?String(r.prev_hash):'—'],['Hash: ',r&&r.record_hash?String(r.record_hash):'—']].forEach(function(pair){const d=document.createElement('div');if(pair[0].indexOf('Hash')===0)d.className='hash';d.textContent=pair[0]+pair[1];detail.appendChild(d);});article.appendChild(left);article.appendChild(detail);container.appendChild(article);
+  });
+  $('timelineError').hidden=verified.status==='verified';if(verified.status!=='verified')setText('timelineError',verified.reason);
+}
+function renderFeed(feed, mode) {
+  renderHealth(feed);renderSession(feed);renderHistory(feed);renderCriteria(feed);renderAudit(feed);renderTimeline(feed);updateSnapshot(feed,mode,'');
+  const time=Date.now();setText('lastRefresh',mode==='fetch'?'Feed buscável consultado: '+fmtTime(time,'UTC')+' UTC · '+fmtTime(time,'America/Sao_Paulo')+' Brasília. Próxima consulta em até 60 s.':'Arquivo estático: sem atualização automática.');
+}
+async function fetchFeed() {
+  const controller=new AbortController(),timer=setTimeout(function(){controller.abort();},REQUEST_TIMEOUT_MS);
+  try{const response=await fetch('./data.json?ts='+Date.now(),{cache:'no-store',signal:controller.signal,headers:{Accept:'application/json'}});if(!response.ok)throw new Error('O feed respondeu HTTP '+response.status+'.');const feed=await response.json();if(!feed||typeof feed!=='object'||!feed.strategy||!feed.historical||!feed.shadow)throw new Error('JSON fora do schema mínimo do feed FVT.');return feed;}
+  catch(error){if(error&&error.name==='AbortError')throw new Error('Tempo limite ao consultar data.json.');throw new Error(error&&error.message?error.message:'Falha de rede ao consultar data.json.');}
+  finally{clearTimeout(timer);}
+}
+async function refreshFeed() {
+  if(refreshInProgress)return;refreshInProgress=true;$('refreshBtn').disabled=true;setText('topStatus','Atualizando feed…');
+  try{const feed=await fetchFeed();lastSuccessfulFetch=true;renderFeed(feed,'fetch');if(!pollingStarted){pollingStarted=true;window.setInterval(refreshFeed,AUTO_REFRESH_MS);}}
+  catch(error){
+    if(lastSuccessfulFetch){setDynamicUnavailable(error.message);updateSnapshot(STATIC_FEED,'stale-error',error.message);}
+    else{if(STATIC_FEED){renderHistory(STATIC_FEED);renderCriteria(STATIC_FEED);renderAudit(STATIC_FEED);}setDynamicUnavailable(error.message);updateSnapshot(STATIC_FEED,'stale-error',error.message);}
+  }finally{$('refreshBtn').disabled=false;refreshInProgress=false;}
+}
+function boot() {
+  if(!STATIC_FEED){setDynamicUnavailable('HTML sem snapshot embutido e data.json não confirmado.');return;}
+  if(window.location.protocol==='http:'||window.location.protocol==='https:'){updateSnapshot(STATIC_FEED,'stale-error','Verificando feed buscável.');refreshFeed();}
+  else{renderFeed(STATIC_FEED,'file');setText('topStatus','Snapshot estático');updateSnapshot(STATIC_FEED,'file','');}
+}
+$('refreshBtn').addEventListener('click',function(){if(window.location.protocol==='http:'||window.location.protocol==='https:')refreshFeed();else{setText('topStatus','Snapshot estático');updateSnapshot(STATIC_FEED,'file','');}});
+boot();
 </script>
-</body></html>
+</body>
+</html>
