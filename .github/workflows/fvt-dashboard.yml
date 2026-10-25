@@ -6,14 +6,19 @@ on:
     paths:
       - "dashboard/**"
       - ".github/workflows/fvt-dashboard.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "dashboard/**"
+      - "tests/dashboard/**"
+      - ".github/workflows/fvt-dashboard.yml"
   schedule:
     - cron: "20,50 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
+  actions: read
 
 concurrency:
   group: fvt-dashboard-pages
@@ -30,6 +35,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Node.js for dashboard fixture tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run dashboard health, risk, and hash-chain tests
+        run: node --test tests/dashboard/core.test.cjs
+
       - name: Restore latest private shadow snapshot
         shell: bash
         run: |
@@ -41,32 +54,136 @@ jobs:
           fi
 
       - name: Build sanitized dashboard feed
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -Eeuo pipefail
           mkdir -p site
           cp dashboard/index.html site/index.html
           python - <<'PY'
-          import json, os
-          from datetime import datetime, timezone
+          import csv
+          import hashlib
+          import json
+          import os
+          import re
+          import subprocess
+          import urllib.error
+          import urllib.request
+          from datetime import datetime, timezone, timedelta
           from pathlib import Path
 
           root = Path(".")
-          source = root / "dashboard" / "data.json"
-          data = json.loads(source.read_text(encoding="utf-8"))
-          data["updated_at_utc"] = datetime.now(timezone.utc).isoformat()
+          data_path = root / "dashboard" / "data.json"
+          data = json.loads(data_path.read_text(encoding="utf-8"))
+          manifest_rel = "research/out/p6_mom_freeze_20261024T011825Z/manifest.json"
+          manifest_path = root / manifest_rel
+          expected_manifest_blob = "d9f6a40ef73dff0eae8ca37a8a8c63e70b6e071e"
+          actual_manifest_blob = subprocess.check_output(
+              ["git", "rev-parse", "HEAD:" + manifest_rel], text=True
+          ).strip()
+          if actual_manifest_blob != expected_manifest_blob:
+              raise SystemExit("Frozen P6-MOM manifest Git blob mismatch; dashboard build stopped.")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          if manifest.get("protocol") != "P6-MOM" or manifest.get("variant") != "MOM_TF240_LB96":
+              raise SystemExit("Frozen manifest protocol/variant differs; dashboard build stopped.")
+
+          pinned_manifest_sha = data.get("strategy", {}).get("manifest_sha256")
+          if not isinstance(pinned_manifest_sha, str) or len(pinned_manifest_sha) != 64:
+              raise SystemExit("The feed template has no registered manifest SHA-256.")
+          data["dashboard_version"] = "0.3.0"
+          strategy = data.setdefault("strategy", {})
+          strategy.update({
+              "protocol": manifest["protocol"],
+              "variant": manifest["variant"],
+              "signal_timeframe_minutes": manifest.get("config", {}).get("tf"),
+              "lookback": manifest.get("config", {}).get("lookback"),
+              "threshold": manifest.get("config", {}).get("thr"),
+              "risk_limit": manifest.get("risk_limit_drawdown_net"),
+              "winner_id": manifest.get("winner_id"),
+              "manifest_sha256": pinned_manifest_sha,
+              "execution": manifest.get("execution"),
+          })
+          historical = manifest.get("historical_selection_data")
+          if not isinstance(historical, dict):
+              raise SystemExit("Frozen manifest lacks historical_selection_data.")
+          if not isinstance(historical.get("winner_train"), dict) or not isinstance(historical.get("winner_val"), dict):
+              raise SystemExit("Frozen manifest lacks the registered train/validation results.")
+          data["historical"] = {
+              "source": manifest_rel,
+              "train": historical["winner_train"],
+              "validation": historical["winner_val"],
+              "test_block_untouched": historical.get("test_block_untouched"),
+          }
+          criteria = manifest.get("frozen_acceptance_criteria")
+          data["frozen_acceptance_criteria"] = criteria if isinstance(criteria, dict) else None
+          data["source_label"] = "Snapshot gerado pelo workflow FVT Dashboard a partir do branch de estado privado; CSVs brutos não são publicados."
+
+          def cron_from_workflow(path):
+              if not path.is_file():
+                  return None
+              in_schedule = False
+              for line in path.read_text(encoding="utf-8").splitlines():
+                  if re.match(r"^\s{2}schedule:\s*$", line):
+                      in_schedule = True
+                      continue
+                  if in_schedule and re.match(r"^\s{2}\w", line) and not re.match(r"^\s{4,}", line):
+                      break
+                  if in_schedule:
+                      match = re.search(r"cron:\s*['\"]([^'\"]+)['\"]", line)
+                      if match:
+                          return match.group(1)
+              return None
+
+          collector_cron = cron_from_workflow(root / ".github" / "workflows" / "p6-mom-cloud-live.yml")
+          dashboard_cron = cron_from_workflow(root / ".github" / "workflows" / "fvt-dashboard.yml")
+          data["health_schedule"] = {
+              "collector_cron": collector_cron,
+              "dashboard_cron": dashboard_cron,
+          }
+
+          server_time_ms = None
+          try:
+              request = urllib.request.Request(
+                  "https://api.binance.com/api/v3/time",
+                  headers={"Accept": "application/json", "User-Agent": "FVT-Dashboard/0.3"},
+              )
+              with urllib.request.urlopen(request, timeout=6) as response:
+                  server_time_ms = int(json.load(response)["serverTime"])
+          except Exception:
+              server_time_ms = None
+          now_ms = server_time_ms if isinstance(server_time_ms, int) else int(datetime.now(timezone.utc).timestamp() * 1000)
+          cutoff_ms = now_ms - int(timedelta(hours=48).total_seconds() * 1000)
+
           runtime = Path(os.environ.get("RUNNER_TEMP", "/tmp")) / "fvt-p6-runtime"
           session_rel = Path("data/shadow/p6_mom_mom_tf240_lb96_20261025T000000Z")
           session = runtime / session_rel
-          shadow = data["shadow"]
-          shadow["status"] = "awaiting"
-          shadow["status_label"] = "AGUARDANDO"
-          shadow["status_detail"] = "Nenhum checkpoint prospectivo sincronizado ainda."
-          shadow["events"] = []
+          shadow = data.setdefault("shadow", {})
+          shadow.update({
+              "status": "awaiting",
+              "status_label": "AGUARDANDO",
+              "status_detail": "Nenhum checkpoint prospectivo sincronizado ainda.",
+              "max_drawdown_net": None,
+              "breached": None,
+              "last_timestamp": None,
+              "state_updated_at_utc": None,
+              "position_state": None,
+              "entry_price": None,
+              "entry_time_utc": None,
+              "next_close_4h_utc": None,
+              "segments_count": None,
+              "candles_observed": None,
+              "risk_updated_at_utc": None,
+              "continuity": "Ainda não verificada",
+              "events": [],
+          })
+
           state_path = session / "state.json"
           risk_path = session / "risk_monitor.json"
           event_path = session / "events.jsonl"
           stop_path = session / "reports" / "scheduler_stop.json"
+          segment_dir = session / "segments"
+          segment_files = sorted(segment_dir.glob("*.csv")) if segment_dir.is_dir() else []
 
           if event_path.is_file():
               for line in event_path.read_text(encoding="utf-8").splitlines():
@@ -74,63 +191,172 @@ jobs:
                       try:
                           shadow["events"].append(json.loads(line))
                       except json.JSONDecodeError:
-                          shadow["events"].append({"event":"EVENT_PARSE_ERROR","detail":"Registro de evento ilegível"})
+                          shadow["events"].append({"event": "EVENT_PARSE_ERROR", "detail": "Registro de evento ilegível"})
           shadow["events"] = shadow["events"][-100:]
 
+          def parse_timestamp_ms(value):
+              if value is None or value == "":
+                  return None
+              if isinstance(value, (int, float)):
+                  number = int(value)
+                  return number * 1000 if abs(number) < 100000000000 else number
+              text = str(value).strip()
+              if text.isdigit():
+                  number = int(text)
+                  return number * 1000 if number < 100000000000 else number
+              try:
+                  parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+                  if parsed.tzinfo is None:
+                      parsed = parsed.replace(tzinfo=timezone.utc)
+                  return int(parsed.astimezone(timezone.utc).timestamp() * 1000)
+              except ValueError:
+                  return None
+
+          state = None
           if state_path.is_file():
               state = json.loads(state_path.read_text(encoding="utf-8"))
               shadow["last_timestamp"] = state.get("last_timestamp")
-              shadow["continuity"] = "Último segmento validado pelo coletor"
-              segment_dir = session / "segments"
-              files = sorted(segment_dir.glob("*.csv")) if segment_dir.is_dir() else []
-              shadow["segments_count"] = len(files)
-              rows = 0
-              for file in files:
-                  try:
-                      with file.open("r", encoding="utf-8-sig", errors="replace") as stream:
-                          rows += max(0, sum(1 for _ in stream) - 1)
-                  except OSError:
-                      pass
-              shadow["candles_observed"] = rows
               shadow["state_updated_at_utc"] = state.get("updated_at_utc")
-              age = None
-              try:
-                  stamp = datetime.fromisoformat(str(state.get("updated_at_utc")).replace("Z","+00:00"))
-                  age = max(0, (datetime.now(timezone.utc)-stamp.astimezone(timezone.utc)).total_seconds())
-              except (TypeError, ValueError):
-                  pass
+              shadow["continuity"] = "Último segmento validado pelo coletor"
+              raw_position = state.get("position")
+              if raw_position == 0:
+                  shadow["position_state"] = "fora"
+              elif raw_position == 1:
+                  shadow["position_state"] = "comprado"
+              shadow["segments_count"] = len(segment_files)
+              total_rows = 0
+              recent_timestamps = []
+              scan_ok = True
+              for csv_path in segment_files:
+                  try:
+                      with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
+                          reader = csv.DictReader(stream)
+                          for row in reader:
+                              total_rows += 1
+                              # Only timestamps from the last 48h contribute to this rolling health window.
+                              file_ts = parse_timestamp_ms(row.get("timestamp"))
+                              if file_ts is None:
+                                  scan_ok = False
+                              elif cutoff_ms <= file_ts <= now_ms:
+                                  recent_timestamps.append(file_ts)
+                  except (OSError, csv.Error):
+                      scan_ok = False
+              shadow["candles_observed"] = total_rows if scan_ok and segment_files else None
               if risk_path.is_file():
                   risk = json.loads(risk_path.read_text(encoding="utf-8"))
                   dd = risk.get("max_drawdown_net")
-                  shadow["max_drawdown_net"] = dd if isinstance(dd,(int,float)) else None
-                  shadow["breached"] = bool(risk.get("breached"))
+                  shadow["max_drawdown_net"] = dd if isinstance(dd, (int, float)) else None
+                  shadow["breached"] = risk.get("breached") if isinstance(risk.get("breached"), bool) else None
                   shadow["risk_updated_at_utc"] = risk.get("updated_at_utc")
-              terminal_events = {"PROTOCOL_STOP_SCHEDULER_GAP","PROTOCOL_STOP_INITIAL_SCHEDULER_GAP","RISK_LIMIT_BREACHED","FATAL_SESSION_STOP","COLLECTION_FAILURE","CLOUD_COLLECTOR_STOP"}
-              terminal = next((e for e in reversed(shadow["events"]) if e.get("event") in terminal_events), None)
-              if shadow["breached"]:
-                  shadow.update(status="risk_breach",status_label="RISCO ACIONADO",status_detail="Monitor registrou violação do limite aprovado; sessão não deve ser reiniciada automaticamente.",continuity="Parada por limite de risco")
-              elif terminal:
-                  shadow.update(status="protocol_stopped",status_label="INTERROMPIDA",status_detail=terminal.get("detail") or terminal.get("event"),continuity="Interrupção registrada; investigar antes de retomar")
-              elif age is None or age > 2700:
-                  shadow.update(status="protocol_stopped",status_label="SEM CONTINUIDADE",status_detail="O checkpoint ficou ausente ou desatualizado por mais de 45 minutos; não foi criado resultado prospectivo sintético.",continuity="Lacuna ou estado desatualizado")
               else:
-                  shadow.update(status="running",status_label="SESSÃO ATIVA",status_detail="Checkpoint recente sincronizado; observar apenas o limite de risco.",continuity="Estado atualizado dentro da tolerância")
+                  shadow["max_drawdown_net"] = None
+                  shadow["breached"] = None
+                  shadow["risk_updated_at_utc"] = None
+
+              terminal_events = {
+                  "PROTOCOL_STOP_SCHEDULER_GAP", "PROTOCOL_STOP_INITIAL_SCHEDULER_GAP",
+                  "RISK_LIMIT_BREACHED", "FATAL_SESSION_STOP", "COLLECTION_FAILURE",
+                  "CLOUD_COLLECTOR_STOP",
+              }
+              terminal = next((event for event in reversed(shadow["events"]) if event.get("event") in terminal_events), None)
+              try:
+                  state_updated = datetime.fromisoformat(str(state.get("updated_at_utc")).replace("Z", "+00:00"))
+                  if state_updated.tzinfo is None:
+                      state_updated = state_updated.replace(tzinfo=timezone.utc)
+                  state_age_seconds = max(0, (datetime.now(timezone.utc) - state_updated.astimezone(timezone.utc)).total_seconds())
+              except (TypeError, ValueError):
+                  state_age_seconds = None
+              if shadow["breached"] is True:
+                  shadow.update(status="risk_breach", status_label="RISCO ACIONADO", status_detail="Monitor registrou violação do limite aprovado; não retomar automaticamente.", continuity="Parada por limite de risco")
+              elif terminal:
+                  shadow.update(status="protocol_stopped", status_label="INTERROMPIDA", status_detail=terminal.get("detail") or terminal.get("event"), continuity="Interrupção registrada; investigar antes de retomar")
+              elif state_age_seconds is None or state_age_seconds > 2700:
+                  shadow.update(status="protocol_stopped", status_label="SEM CONTINUIDADE", status_detail="Checkpoint ausente/desatualizado por mais de 45 minutos; nenhuma métrica prospectiva foi sintetizada.", continuity="Lacuna ou estado desatualizado")
+              else:
+                  shadow.update(status="running", status_label="SESSÃO ATIVA", status_detail="Checkpoint recente sincronizado; telemetria restrita ao protocolo.", continuity="Estado atualizado dentro da tolerância")
           elif stop_path.is_file():
               stop = json.loads(stop_path.read_text(encoding="utf-8"))
-              shadow.update(status="protocol_stopped",status_label="INTERROMPIDA",status_detail=stop.get("detail") or stop.get("event"),continuity="A primeira coleta não gerou sessão contínua")
+              shadow.update(status="protocol_stopped", status_label="INTERROMPIDA", status_detail=stop.get("detail") or stop.get("event"), continuity="A sessão não contém checkpoint de estado")
               if not shadow["events"]:
                   shadow["events"].append(stop)
-          data["source_label"] = "Gerado automaticamente a partir do branch de estado privado; sem exposição de CSV bruto."
-          Path("site/data.json").write_text(json.dumps(data,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+
+          # Derive exact rolling 48h counts only from stored candle timestamps. A missing/invalid scan stays null.
+          recent_unique = sorted(set(recent_timestamps)) if state is not None and scan_ok and segment_files else []
+          if state is not None and scan_ok and segment_files:
+              gaps = 0
+              for index in range(1, len(recent_unique)):
+                  delta = recent_unique[index] - recent_unique[index - 1]
+                  if delta > 60000:
+                      gaps += max(0, int(delta // 60000) - 1)
+              collection_health = {
+                  "last_open_time": shadow.get("last_timestamp"),
+                  "candles_48h": len(recent_timestamps),
+                  "gaps_48h": gaps,
+                  "server_time_ms": server_time_ms,
+              }
+          else:
+              collection_health = {
+                  "last_open_time": shadow.get("last_timestamp"),
+                  "candles_48h": None,
+                  "gaps_48h": None,
+                  "server_time_ms": server_time_ms,
+              }
+          data["collection_health"] = collection_health
+
+          # Read workflow metadata without printing or storing the short-lived GitHub token.
+          collector_meta = None
+          token = os.environ.get("GH_TOKEN")
+          api_base = os.environ.get("GITHUB_API_URL", "https://api.github.com").rstrip("/")
+          repo_name = os.environ.get("GITHUB_REPOSITORY", "")
+          if token and repo_name:
+              try:
+                  request = urllib.request.Request(
+                      api_base + "/repos/" + repo_name + "/actions/workflows/p6-mom-cloud-live.yml/runs?per_page=20",
+                      headers={
+                          "Authorization": "Bearer " + token,
+                          "Accept": "application/vnd.github+json",
+                          "X-GitHub-Api-Version": "2022-11-28",
+                      },
+                  )
+                  with urllib.request.urlopen(request, timeout=8) as response:
+                      run_payload = json.load(response)
+                  runs = run_payload.get("workflow_runs", [])
+                  if runs:
+                      latest = runs[0]
+                      collector_meta = {
+                          "head_sha": latest.get("head_sha"),
+                          "run_id": latest.get("id"),
+                          "status": latest.get("status"),
+                          "conclusion": latest.get("conclusion"),
+                          "created_at": latest.get("created_at"),
+                          "run_started_at": latest.get("run_started_at"),
+                          "html_url": latest.get("html_url"),
+                      }
+              except Exception:
+                  collector_meta = None
+
+          data["audit"] = {
+              "panel_commit_sha": os.environ.get("GITHUB_SHA"),
+              "collector_last_run": collector_meta,
+          }
+          data["updated_at_utc"] = datetime.now(timezone.utc).isoformat()
+
+          # Save the feed and embed its current snapshot plus the tested core code in one HTML file.
+          Path("site/data.json").write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
           index_path = Path("site/index.html")
           html = index_path.read_text(encoding="utf-8")
-          marker = "<!-- FVT_RUNTIME_DATA -->"
-          if marker not in html:
-              raise SystemExit("Dashboard runtime-data marker is missing.")
+          data_marker = "<!-- FVT_RUNTIME_DATA -->"
+          core_marker = "<!-- FVT_CORE_LOGIC -->"
+          if data_marker not in html or core_marker not in html:
+              raise SystemExit("Dashboard build markers are missing.")
           payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<" + chr(92) + "/")
-          embedded = "<script>window.FVT_DASHBOARD_DATA = " + payload + ";</script>"
-          index_path.write_text(html.replace(marker, embedded, 1), encoding="utf-8")
-          print("Dashboard feed generated and embedded. Live performance returns are intentionally omitted.")
+          embedded_data = "<script>window.FVT_DASHBOARD_DATA = " + payload + ";</script>"
+          core_source = (root / "dashboard" / "core.js").read_text(encoding="utf-8")
+          embedded_core = "<script>\n" + core_source + "\n</script>"
+          html = html.replace(data_marker, embedded_data, 1)
+          html = html.replace(core_marker, embedded_core, 1)
+          index_path.write_text(html, encoding="utf-8")
+          print("Dashboard snapshot generated. Missing source fields remain null; no live performance metric is synthesized.")
           PY
 
       - name: Upload static dashboard as a private workflow artifact
@@ -143,9 +369,13 @@ jobs:
 
   deploy:
     name: Publish dashboard (opt-in; may expose the page publicly)
-    if: ${{ vars.ENABLE_PUBLIC_PAGES == 'true' }}
+    if: ${{ github.event_name != 'pull_request' && vars.ENABLE_PUBLIC_PAGES == 'true' }}
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
