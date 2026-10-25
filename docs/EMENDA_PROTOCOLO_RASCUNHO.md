@@ -14,8 +14,9 @@
 - **Commit do coletor informado no run:** [`b692272f862dc63f3691376191e024d1f8d0938e`](https://github.com/aquinoares/fvt-quant-research/commit/b692272f862dc63f3691376191e024d1f8d0938e).
 - **Run que produziu o snapshot de evidência do painel:** [FVT Dashboard #40148137316](https://github.com/aquinoares/fvt-quant-research/actions/runs/40148137316).
 - **Snapshot:** 2026-10-25 00:48:42.964385 UTC; 2026-10-24 21:48:42.964385 em Brasília.
-- **Commit do painel registrado na revisão:** `728554f917f0cffeb9db576b3be9af0804142813`.
+- **Commit do painel associado ao snapshot de evidência do run #40148137316:** [`728554f917f0cffeb9db576b3be9af0804142813`](https://github.com/aquinoares/fvt-quant-research/commit/728554f917f0cffeb9db576b3be9af0804142813).
 - **SHA-256 do manifesto congelado registrado no ledger:** `661EAA0326B7B4C201E7A897FF58CD45382FB10DDACFECF4F0A6F89DB0B76592`.
+- **Divergência de proveniência ainda não reconciliada:** o campo `window_start_authorized` no manifesto congelado está `false`, enquanto o registro `P6-MOM-START` no ledger está `true`. Os dois valores permanecem intocados; esta minuta não presume qual deve prevalecer.
 - **Estado no snapshot:** `protocol_stopped`; evento de parada registrado; candle/último timestamp, candles e lacunas nas últimas 48 h, posição, entrada, drawdown prospectivo e demais métricas da sessão não estão disponíveis no feed (campos nulos/ausentes).
 
 ### Declaração limitada às evidências persistidas
