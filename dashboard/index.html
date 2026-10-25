@@ -374,7 +374,7 @@ function renderLearning(feed){
  setText('learningBackfill',finite(l.pending_backfill_candles)?fmtInt(l.pending_backfill_candles)+' candles':'— · backfill não disponível.');
  setText('learningRunTime',l.latest_run_at_utc?fmtPair(l.latest_run_at_utc):'— · nenhuma execução confirmada.');
  setText('learningQualityReason',l.quality_report_reason||l.message||'EXPLORATÓRIO — NÃO É PROVA.');
- setText('learningReportSource','Fonte: '+(l.report_source||'learning/reports/latest.json')+' · EXPLORATÓRIO — NÃO É PROVA.');
+ setText('learningReportSource','Fonte: '+(l.report_source||'learning/reports/latest.json')+' · branch de estado: '+(l.state_branch||'learning-state')+' · EXPLORATÓRIO — NÃO É PROVA.');
  $('learningReportBtn').disabled!==true;
  $('learningReportBtn').disabled=l.report_available!==true;
  drawDailyGaps(l.daily_gaps);
