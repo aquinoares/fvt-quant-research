@@ -31,4 +31,4 @@ O repositório deve continuar privado até que o responsável execute Gitleaks l
 
 ## Skill do agente
 
-O workflow local de pesquisa pode ser invocado por Codex como trader-skill em .agents/skills/trader-skill/SKILL.md. Ele é uma adaptação instruccional de strategy-generate do HKUDS/Vibe-Trading, com atribuição e licença em .agents/skills/trader-skill/UPSTREAM.md. Ele não importa o runtime nem substitui os testes do projeto.
+O workflow local de pesquisa pode ser invocado por Codex como trader-skill em .agents/skills/trader-skill/SKILL.md. Ele é uma adaptação instrucional de strategy-generate do HKUDS/Vibe-Trading, com atribuição e licença em .agents/skills/trader-skill/UPSTREAM.md. Ele não importa o runtime nem substitui os testes do projeto.
