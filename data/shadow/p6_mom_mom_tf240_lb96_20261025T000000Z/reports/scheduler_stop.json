@@ -1,0 +1,5 @@
+{
+  "event": "PROTOCOL_STOP_INITIAL_SCHEDULER_GAP",
+  "at_utc": "2026-10-25T00:48:13.150235+00:00",
+  "detail": "First cloud collection would begin 2893 seconds after window start; no retrospective backfill was attempted."
+}
