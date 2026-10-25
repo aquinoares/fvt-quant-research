@@ -14,6 +14,15 @@ def test_pages_permissions_are_job_scoped_and_opt_in_is_unchanged():
     assert "actions: read" not in workflow.split("jobs:", 1)[0]
 
 
+def test_learning_tests_runs_node_and_python_with_read_only_permissions():
+    workflow = (ROOT / ".github" / "workflows" / "learning-tests.yml").read_text(encoding="utf-8")
+    assert '"tests/dashboard/**"' in workflow
+    assert 'run: node --test tests/dashboard/core.test.cjs' in workflow
+    assert 'run: python -m pytest -q learning/tests' in workflow
+    assert "permissions:\n      contents: read" in workflow
+    assert "contents: write" not in workflow
+
+
 def test_learning_collector_has_no_dependency_on_frozen_track():
     workflow = (ROOT / ".github" / "workflows" / "learning-collect.yml").read_text(encoding="utf-8")
     collector_source = (ROOT / "learning" / "collector" / "__init__.py").read_text(encoding="utf-8")
