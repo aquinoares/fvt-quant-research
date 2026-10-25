@@ -504,17 +504,10 @@ jobs:
               "panel_run": panel_run,
               "collector_last_run": collector_meta,
           }
-          # Trilha A is independent and strictly exploratory; data comes from versioned report files.
+          # Trilha A is independent and strictly exploratory; report metrics are validated from learning-state.
+          from learning.report_feed import read_quality_report
           learning = data.setdefault("learning", {})
           learning.setdefault("label", "EXPLORATÓRIO — NÃO É PROVA")
-          learning.setdefault("status", "awaiting")
-          learning.setdefault("coverage_percent", None)
-          learning.setdefault("coverage_minutes_present", None)
-          learning.setdefault("coverage_minutes_expected", None)
-          learning.setdefault("first_candle_open_time_utc", None)
-          learning.setdefault("daily_gaps", [])
-          learning.setdefault("report_available", False)
-          learning.setdefault("quality_report_reason", "Nenhum relatório versionado disponível ainda.")
           learning.setdefault("report_source", "learning/reports/latest.json")
           learning.setdefault("state_branch", "learning-state")
           learning.setdefault("experiment_count", None)
@@ -523,43 +516,19 @@ jobs:
           learning.setdefault("hypothesis_count_source", "learning/hypotheses.jsonl")
           learning.setdefault("backtest", None)
           learning.setdefault("backtest_source", "learning/experiments/latest_backtest.json")
+
           quality_path = root / "learning" / "reports" / "latest.json"
-          if quality_path.is_file():
-              try:
-                  quality = json.loads(quality_path.read_text(encoding="utf-8"))
-                  fields = {
-                      "label": quality.get("label", "EXPLORATÓRIO — NÃO É PROVA"),
-                      "status": quality.get("status", "unknown"),
-                      "symbol": quality.get("symbol", "BTCUSDT"),
-                      "interval": quality.get("interval", "1m"),
-                      "latest_run_at_utc": quality.get("run_at_utc"),
-                      "latest_candle_open_time_utc": quality.get("last_candle_open_time_utc"),
-                      "candle_count_1m": quality.get("candle_count"),
-                      "new_candles": quality.get("new_candles"),
-                      "gaps_found": quality.get("gaps_found"),
-                      "gaps_filled": quality.get("gaps_filled"),
-                      "gaps_remaining": quality.get("gaps_remaining"),
-                      "duplicates_removed": quality.get("duplicates_removed"),
-                      "age_last_candle_seconds": quality.get("age_last_candle_seconds"),
-                      "pending_backfill_candles": quality.get("pending_backfill_candles"),
-                      "coverage_percent": quality.get("coverage_percent"),
-                      "coverage_minutes_present": quality.get("coverage_minutes_present"),
-                      "coverage_minutes_expected": quality.get("coverage_minutes_expected"),
-                      "first_candle_open_time_utc": quality.get("first_candle_open_time_utc"),
-                      "daily_gaps": quality.get("daily_gaps") if isinstance(quality.get("daily_gaps"), list) else [],
-                      "message": quality.get("message", "Sem detalhe da última coleta."),
-                  }
-                  for key, value in fields.items():
-                      learning[key] = value
-                  learning["report_available"] = True
-                  learning["quality_report_reason"] = None
-                  run_id = quality.get("run_id")
-                  learning["latest_run_url"] = ("https://github.com/aquinoares/fvt-quant-research/actions/runs/" + str(run_id)) if run_id else None
-                  learning["latest_report_url"] = "https://github.com/aquinoares/fvt-quant-research/blob/learning-state/learning/reports/latest.md"
-                  Path("site/learning-report.json").write_text(json.dumps(quality, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-              except (OSError, json.JSONDecodeError):
-                  learning["report_available"] = False
-                  learning["quality_report_reason"] = "learning/reports/latest.json ilegível; métricas omitidas."
+          quality_result = read_quality_report(quality_path)
+          learning.update(quality_result["learning"])
+          learning["report_source"] = "learning/reports/latest.json"
+          learning["state_branch"] = "learning-state"
+          if quality_result["report"] is not None:
+              Path("site/learning-report.json").write_text(
+                  json.dumps(quality_result["report"], ensure_ascii=False, indent=2) + "\n",
+                  encoding="utf-8",
+              )
+          else:
+              Path("site/learning-report.json").unlink(missing_ok=True)
           registry_path = root / "learning" / "experiments" / "registry.json"
           if registry_path.is_file():
               try:
