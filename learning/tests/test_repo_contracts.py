@@ -46,9 +46,12 @@ def test_dashboard_restores_learning_state_and_links_to_dedicated_branch():
     assert 'rsync -a --delete "$state_dir/learning/data/" learning/data/' in workflow
     assert 'rsync -a --delete "$state_dir/learning/reports/" learning/reports/' in workflow
     assert 'cp "$state_dir/learning/experiments/latest_backtest.json" learning/experiments/latest_backtest.json' in workflow
-    assert 'blob/learning-state/learning/reports/latest.md' in workflow
+    report_helper = (ROOT / "learning" / "report_feed.py").read_text(encoding="utf-8")
+    assert 'blob/learning-state/learning/reports/latest.md' in report_helper
     assert feed["learning"]["state_branch"] == "learning-state"
-    assert feed["learning"]["latest_report_url"] == "https://github.com/aquinoares/fvt-quant-research/blob/learning-state/learning/reports/latest.md"
+    assert feed["learning"]["latest_report_url"] is None
+    assert feed["learning"]["candle_count_1m"] is None
+    assert "ausente na branch learning-state" in feed["learning"]["quality_report_reason"]
     assert "branch de estado:" in dashboard
 
 
