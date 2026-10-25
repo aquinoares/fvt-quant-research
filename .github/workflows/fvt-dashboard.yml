@@ -55,6 +55,23 @@ jobs:
             echo "Runtime branch not available yet; dashboard will show awaiting data."
           fi
 
+      - name: Restore latest public Trilha A state
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git fetch --depth=1 origin refs/heads/learning-state:refs/remotes/origin/learning-state
+          state_dir="$RUNNER_TEMP/fvt-learning-state"
+          git worktree add --detach "$state_dir" refs/remotes/origin/learning-state
+
+          mkdir -p learning/data learning/reports learning/experiments
+          rsync -a --delete "$state_dir/learning/data/" learning/data/
+          rsync -a --delete "$state_dir/learning/reports/" learning/reports/
+          if [[ -f "$state_dir/learning/experiments/latest_backtest.json" ]]; then
+            cp "$state_dir/learning/experiments/latest_backtest.json" learning/experiments/latest_backtest.json
+          else
+            rm -f learning/experiments/latest_backtest.json
+          fi
+
       - name: Build sanitized dashboard feed
         env:
           GH_TOKEN: ${{ github.token }}
@@ -499,6 +516,7 @@ jobs:
           learning.setdefault("report_available", False)
           learning.setdefault("quality_report_reason", "Nenhum relatório versionado disponível ainda.")
           learning.setdefault("report_source", "learning/reports/latest.json")
+          learning.setdefault("state_branch", "learning-state")
           learning.setdefault("experiment_count", None)
           learning.setdefault("experiment_count_source", "learning/experiments/registry.json")
           learning.setdefault("hypothesis_count", None)
@@ -537,7 +555,7 @@ jobs:
                   learning["quality_report_reason"] = None
                   run_id = quality.get("run_id")
                   learning["latest_run_url"] = ("https://github.com/aquinoares/fvt-quant-research/actions/runs/" + str(run_id)) if run_id else None
-                  learning["latest_report_url"] = "https://github.com/aquinoares/fvt-quant-research/blob/main/learning/reports/latest.md"
+                  learning["latest_report_url"] = "https://github.com/aquinoares/fvt-quant-research/blob/learning-state/learning/reports/latest.md"
                   Path("site/learning-report.json").write_text(json.dumps(quality, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
               except (OSError, json.JSONDecodeError):
                   learning["report_available"] = False
