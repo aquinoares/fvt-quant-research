@@ -1,0 +1,43 @@
+name: Learning Track Tests
+
+on:
+  push:
+    paths:
+      - "learning/**"
+      - "dashboard/**"
+      - ".github/workflows/learning-tests.yml"
+      - ".github/workflows/fvt-dashboard.yml"
+  pull_request:
+    paths:
+      - "learning/**"
+      - "dashboard/**"
+      - ".github/workflows/learning-tests.yml"
+      - ".github/workflows/fvt-dashboard.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: learning-track-tests
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Unit and regression tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check "pytest>=8,<9"
+      - name: Run collector, gap, duplicate, API-block and backtest fixtures
+        run: python -m pytest -q learning/tests
+      - name: Compile Python sources
+        run: python -m compileall -q learning
