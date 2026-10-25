@@ -19,7 +19,7 @@ python -m learning.collector --root learning --max-requests 10
 
 python -m learning.experiments.backtest --root learning
 
-O workflow cloud roda por agendamento horário (`13 * * * *`) ou por `workflow_dispatch`, sem gatilho push. O evento schedule é executado na branch padrão; antes da coleta, o workflow restaura o estado persistido da branch dedicada `learning-state`. Após a coleta, grava somente `learning/data/`, `learning/reports/` e `learning/experiments/latest_backtest.json` nessa branch, usando um worktree separado e destino explícito. Assim, o workflow não cria commits de estado em `main` e não toca na `p6-mom-runtime`. O painel restaura esses caminhos da `learning-state`; código, testes, registro de experimentos e hipóteses vêm da referência que está sendo construída. Consulte [docs/LEARNING_STATE_BRANCH.md](../docs/LEARNING_STATE_BRANCH.md).
+O workflow cloud roda por agendamento horário (`13 * * * *`) ou por `workflow_dispatch`, sem gatilho push. O evento schedule é executado na branch padrão; antes da coleta, o workflow restaura o estado persistido da branch dedicada `learning-state`. Após a coleta, grava somente `learning/data/`, `learning/reports/` e os relatórios gerados `learning/experiments/latest_backtest.json` e `learning/experiments/latest_backtest.md` nessa branch, usando um worktree separado e destino explícito. Assim, o workflow não cria commits de estado em `main` e não toca na `p6-mom-runtime`. O painel restaura esses caminhos da `learning-state`; código, testes, registro de experimentos e hipóteses vêm da referência que está sendo construída. Consulte [docs/LEARNING_STATE_BRANCH.md](../docs/LEARNING_STATE_BRANCH.md).
 
 ## Backtest didático
 
