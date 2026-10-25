@@ -62,10 +62,13 @@ def test_upstream_attribution_contains_project_link_and_mit_license_text():
 def test_state_branch_docs_and_upstream_license_are_complete():
     upstream = (ROOT / ".agents" / "skills" / "trader-skill" / "UPSTREAM.md").read_text(encoding="utf-8")
     state_doc = (ROOT / "docs" / "LEARNING_STATE_BRANCH.md").read_text(encoding="utf-8")
+    login_doc = (ROOT / "docs" / "LOGIN_DECISAO.md").read_text(encoding="utf-8")
     assert "The above copyright notice and this permission notice" in upstream
     assert 'THE SOFTWARE IS PROVIDED "AS IS"' in upstream
     assert "não cria commits em `main`" in state_doc
     assert "`p6-mom-runtime`" in state_doc
+    assert "snapshot inicial contém apenas este README de estado e placeholders" in state_doc
+    assert "A opção (a) foi escolhida: não ter login por enquanto." in login_doc
 
 
 
