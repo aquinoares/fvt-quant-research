@@ -21,11 +21,38 @@ def test_learning_collector_has_no_dependency_on_frozen_track():
     assert "p6-mom-runtime" not in workflow
     assert "p6-mom-cloud-live.yml" not in workflow
     assert "python -m learning.collector --root learning --max-requests 10" in workflow
-    assert 'git push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"' in workflow
+    assert "refs/heads/learning-state:refs/remotes/origin/learning-state" in workflow
+    assert 'git push origin "HEAD:refs/heads/learning-state"' in workflow
+    assert "GITHUB_REF_NAME" not in workflow
+    assert 'git -C "$state_dir" add -- learning/data/ learning/reports/ learning/experiments/' in workflow
+    assert 'rsync -a --delete "$state_dir/learning/data/" learning/data/' in workflow
+    assert 'rsync -a --delete "$state_dir/learning/reports/" learning/reports/' in workflow
     assert "permissions:\n      contents: write\n    runs-on:" in workflow
     assert "contents: write" not in workflow.split("jobs:", 1)[0]
     assert "hypotheses_ledger" not in collector_source
     assert "manifest.json" not in collector_source
+
+
+def test_dashboard_restores_learning_state_and_links_to_dedicated_branch():
+    workflow = (ROOT / ".github" / "workflows" / "fvt-dashboard.yml").read_text(encoding="utf-8")
+    dashboard = (ROOT / "dashboard" / "index.html").read_text(encoding="utf-8")
+    feed = __import__("json").loads((ROOT / "dashboard" / "data.json").read_text(encoding="utf-8"))
+    assert "refs/heads/learning-state:refs/remotes/origin/learning-state" in workflow
+    assert 'git worktree add --detach "$RUNNER_TEMP/fvt-learning-state" refs/remotes/origin/learning-state' in workflow
+    assert 'rsync -a --delete "$state_dir/learning/reports/" learning/reports/' in workflow
+    assert 'blob/learning-state/learning/reports/latest.md' in workflow
+    assert feed["learning"]["state_branch"] == "learning-state"
+    assert feed["learning"]["latest_report_url"] == "https://github.com/aquinoares/fvt-quant-research/blob/learning-state/learning/reports/latest.md"
+    assert "branch de estado:" in dashboard
+
+
+def test_upstream_attribution_contains_project_link_and_mit_license_text():
+    upstream = (ROOT / ".agents" / "skills" / "trader-skill" / "UPSTREAM.md").read_text(encoding="utf-8")
+    assert "HKUDS/Vibe-Trading" in upstream
+    assert "https://github.com/HKUDS/Vibe-Trading" in upstream
+    assert "MIT License" in upstream
+    assert "Permission is hereby granted, free of charge" in upstream
+    assert "THE SOFTWARE IS PROVIDED \"AS IS\"" in upstream
 
 
 def test_exploratory_language_is_explicit():
