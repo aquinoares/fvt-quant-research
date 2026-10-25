@@ -122,6 +122,88 @@
     };
   }
 
+  function nonnegativeInteger(value) {
+    return typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : null;
+  }
+
+  function evaluateIncidentTiming(incident) {
+    const source = incident && typeof incident === 'object' && !Array.isArray(incident) ? incident : {};
+    const toleranceSeconds = nonnegativeInteger(source.tolerance_seconds);
+    const delaySeconds = nonnegativeInteger(source.delay_seconds);
+    let exceedsTolerance = null;
+    let comparison = 'unknown';
+    if (toleranceSeconds !== null && delaySeconds !== null) {
+      exceedsTolerance = delaySeconds > toleranceSeconds;
+      comparison = exceedsTolerance ? 'exceeds' : 'within';
+    }
+    return {
+      toleranceSeconds: toleranceSeconds,
+      delaySeconds: delaySeconds,
+      exceedsTolerance: exceedsTolerance,
+      comparison: comparison,
+      toleranceReason: toleranceSeconds === null
+        ? 'Tolerância não informada no feed.'
+        : 'Tolerância lida do código existente do coletor e publicada no feed.',
+      delayReason: delaySeconds === null
+        ? 'Atraso não informado no feed.'
+        : 'Atraso recebido como valor estruturado no feed.'
+    };
+  }
+
+  function evaluateCollectorRun(lastRun, nowMs, cron) {
+    const now = isFiniteNumber(nowMs) ? nowMs : Date.now();
+    const run = lastRun && typeof lastRun === 'object' && !Array.isArray(lastRun) ? lastRun : {};
+    const createdAtMs = parseTimestamp(run.created_at);
+    const intervalMinutes = deriveIntervalMinutes(cron);
+    if (createdAtMs === null) {
+      return {
+        status: 'unknown',
+        ageMinutes: null,
+        stale: null,
+        createdAtMs: null,
+        intervalMinutes: intervalMinutes,
+        thresholdMinutes: intervalMinutes === null ? null : intervalMinutes * 1.5,
+        reason: 'audit.collector_last_run.created_at ausente ou inválido no feed.'
+      };
+    }
+    if (createdAtMs > now) {
+      return {
+        status: 'unknown',
+        ageMinutes: null,
+        stale: null,
+        createdAtMs: createdAtMs,
+        intervalMinutes: intervalMinutes,
+        thresholdMinutes: intervalMinutes === null ? null : intervalMinutes * 1.5,
+        reason: 'created_at da execução do coletor está no futuro em relação ao relógio atual.'
+      };
+    }
+    const ageMinutes = (now - createdAtMs) / 60000;
+    if (intervalMinutes === null || intervalMinutes <= 0) {
+      return {
+        status: 'unknown',
+        ageMinutes: ageMinutes,
+        stale: null,
+        createdAtMs: createdAtMs,
+        intervalMinutes: null,
+        thresholdMinutes: null,
+        reason: 'Não é possível avaliar a idade sem o cron real do coletor no feed.'
+      };
+    }
+    const thresholdMinutes = intervalMinutes * 1.5;
+    const stale = ageMinutes > thresholdMinutes;
+    return {
+      status: stale ? 'stale' : 'recent',
+      ageMinutes: ageMinutes,
+      stale: stale,
+      createdAtMs: createdAtMs,
+      intervalMinutes: intervalMinutes,
+      thresholdMinutes: thresholdMinutes,
+      reason: stale
+        ? 'A última execução passou de 1,5× o intervalo derivado do cron do coletor.'
+        : 'A última execução está dentro de 1,5× o intervalo derivado do cron do coletor.'
+    };
+  }
+
   function drawdownState(drawdown, breached) {
     if (breached === true) return { status: 'critical', reason: 'Protocolo exige interrupção; não retomar automaticamente.' };
     if (!isFiniteNumber(drawdown)) return { status: 'unknown', reason: 'O feed não contém um drawdown prospectivo numérico.' };
@@ -189,6 +271,8 @@
     deriveIntervalMinutes: deriveIntervalMinutes,
     classifyAge: classifyAge,
     evaluateHealth: evaluateHealth,
+    evaluateIncidentTiming: evaluateIncidentTiming,
+    evaluateCollectorRun: evaluateCollectorRun,
     drawdownState: drawdownState,
     numericField: numericField,
     verifyHashChain: verifyHashChain
