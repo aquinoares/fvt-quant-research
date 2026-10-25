@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { webcrypto } = require('node:crypto');
 const vm = require('node:vm');
-const Core = require('../../dashboard/core.js');
+const Core = require('../../dashboard/Core.js');
 
 const fixtureDir = path.join(__dirname, 'fixtures');
 const healthFixture = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'health-cases.json'), 'utf8'));
@@ -143,36 +143,36 @@ test('workflow lê tolerância sem escrever no coletor e não fixa 2700 no paine
 
 
 test('nota da melhor operação calcula o retorno composto das demais',()=>{
-  const value=core.computeOtherTradesReturn(0.2565241260433213,0.21946998037371812,4);
+  const value=Core.computeOtherTradesReturn(0.2565241260433213,0.21946998037371812,4);
   assert.ok(Math.abs(value - (-0.0295)) < 0.001);
-  assert.equal(core.computeOtherTradesReturn(null,0.219,4),null);
-  assert.equal(core.computeOtherTradesReturn(0.2,0.1,1),null);
+  assert.equal(Core.computeOtherTradesReturn(null,0.219,4),null);
+  assert.equal(Core.computeOtherTradesReturn(0.2,0.1,1),null);
 });
 
 test('buy-and-hold ausente continua desconhecido, não zero',()=>{
   const feed={historical:{}};
-  assert.equal(core.numericField(feed.historical,'buy_and_hold_net_return'),null);
-  assert.equal(core.computeCoveragePercentage(null,null),null);
+  assert.equal(Core.numericField(feed.historical,'buy_and_hold_net_return'),null);
+  assert.equal(Core.computeCoveragePercentage(null,null),null);
 });
 
 test('projeção de operações é aritmética e valida denominadores',()=>{
-  const projected=core.computeOperationsProjection(7,67.5,90);
+  const projected=Core.computeOperationsProjection(7,67.5,90);
   assert.ok(Math.abs(projected - (9.3333333333)) < 0.00001);
-  assert.equal(core.computeOperationsProjection(7,0,90),null);
+  assert.equal(Core.computeOperationsProjection(7,0,90),null);
 });
 
 test('cobertura de minutos exige denominador versionado',()=>{
-  assert.equal(core.computeCoveragePercentage(75,100),75);
-  assert.equal(core.computeCoveragePercentage(0,0),null);
-  assert.equal(core.computeCoveragePercentage(101,100),null);
+  assert.equal(Core.computeCoveragePercentage(75,100),75);
+  assert.equal(Core.computeCoveragePercentage(0,0),null);
+  assert.equal(Core.computeCoveragePercentage(101,100),null);
 });
 
 test('frescor distingue atual, antigo, erro e timestamp ausente',()=>{
   const now=Date.parse('2026-10-25T01:00:00Z');
-  assert.equal(core.freshnessStatus('2026-10-25T00:59:00Z',now,90,false).status,'current');
-  assert.equal(core.freshnessStatus('2026-10-24T20:00:00Z',now,90,false).status,'stale');
-  assert.equal(core.freshnessStatus('2026-10-25T00:59:00Z',now,90,true).status,'error');
-  assert.equal(core.freshnessStatus(null,now,90,false).status,'unknown');
+  assert.equal(Core.freshnessStatus('2026-10-25T00:59:00Z',now,90,false).status,'current');
+  assert.equal(Core.freshnessStatus('2026-10-24T20:00:00Z',now,90,false).status,'stale');
+  assert.equal(Core.freshnessStatus('2026-10-25T00:59:00Z',now,90,true).status,'error');
+  assert.equal(Core.freshnessStatus(null,now,90,false).status,'unknown');
 });
 
 test('timeline do incidente mantém fato e inferência como classificações separadas',()=>{

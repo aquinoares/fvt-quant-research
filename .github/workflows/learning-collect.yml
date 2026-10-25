@@ -16,8 +16,6 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 8
-    permissions:
-      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v7

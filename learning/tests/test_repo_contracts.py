@@ -5,11 +5,12 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def test_pages_permissions_are_job_scoped_and_opt_in_is_unchanged():
     workflow = (ROOT / ".github" / "workflows" / "fvt-dashboard.yml").read_text(encoding="utf-8")
-    assert "permissions:\n  contents: read\n\nconcurrency:" in workflow
-    assert "  build:\n    name: Build evidence-backed dashboard\n    permissions:\n      contents: read\n    runs-on:" in workflow
+    assert "permissions:\n  contents: none\n\nconcurrency:" in workflow
+    assert "  build:\n    name: Build evidence-backed dashboard\n    permissions:\n      contents: read\n      actions: read\n    runs-on:" in workflow
     assert "vars.ENABLE_PUBLIC_PAGES == 'true'" in workflow
     assert "pages: write\n      id-token: write" in workflow.split("  deploy:", 1)[1]
     assert "pages: write\n  id-token: write" not in workflow.split("jobs:", 1)[0]
+    assert "actions: read" not in workflow.split("jobs:", 1)[0]
 
 
 def test_learning_collector_has_no_dependency_on_frozen_track():
@@ -19,6 +20,9 @@ def test_learning_collector_has_no_dependency_on_frozen_track():
     assert "\n  push:" not in workflow
     assert "p6-mom-runtime" not in workflow
     assert "p6-mom-cloud-live.yml" not in workflow
+    assert "python -m learning.collector --root learning --max-requests 10" in workflow
+    assert "permissions:\n      contents: write\n    runs-on:" in workflow
+    assert "contents: write" not in workflow.split("jobs:", 1)[0]
     assert "hypotheses_ledger" not in collector_source
     assert "manifest.json" not in collector_source
 
