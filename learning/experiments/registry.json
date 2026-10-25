@@ -1,5 +1,0 @@
-{
-  "schema_version": 1,
-  "experiments": [],
-  "note": "Registro vazio por padrão; não contar o código do backtest como experimento executado."
-}

@@ -1,1 +1,0 @@
-"""Features matematicas isoladas e testaveis."""
