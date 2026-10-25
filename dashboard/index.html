@@ -19,7 +19,7 @@
 </header>
 <section class="hero" aria-labelledby="pageTitle">
 <div><div class="eyebrow">OBSERVAÇÃO · INTEGRIDADE · RISCO</div><h2 id="pageTitle">Acompanhar sem<br>inventar evidências.</h2><p>P6-MOM · MOM_TF240_LB96 · BTCUSDT spot long-only · sinal em candles de 4 horas. Modo somente sombra, leitura e auditoria; sem ordens reais e sem edição de parâmetros.</p></div>
-<div class="hero-meta"><strong>Janela prospectiva</strong><span>25 out 2026 · 00:00 UTC</span><br><span>até 23 jan 2027 · 00:00 UTC</span></div>
+<div class="hero-meta"><strong id="sessionWindow">Janela prospectiva</strong><span id="windowStart">— UTC</span><br><span id="windowEnd">— UTC</span></div>
 </section>
 <div id="snapshotBanner" class="snapshot" role="status" aria-live="polite">Lendo timestamp do feed…</div>
 <section id="collectionHealth" class="panel health red" aria-labelledby="healthTitle">
@@ -104,7 +104,7 @@ function safeGitHubUrl(v) { if(typeof v!=='string')return null; try{const u=new 
 function setLink(id, url, label) { const el=$(id);if(!el)return;el.replaceChildren();const safe=safeGitHubUrl(url);if(!safe){el.textContent=label||'—';return;}const a=document.createElement('a');a.href=safe;a.target='_blank';a.rel='noopener noreferrer';a.textContent=label||safe;el.appendChild(a); }
 function setDynamicUnavailable(reason) {
   setStateClass($('collectionHealth'),'red');$('topDot').className='dot red';setText('topStatus','Feed indisponível');setText('healthTitle','Sem confirmação do feed');setText('healthSummary','Não é seguro mostrar os últimos valores como atuais.');
-  ['healthCandleAge','healthCandleTime','healthFeedAge','healthFeedTime','candles48h','gaps48h','candleCount','positionValue','entryPrice','nextClose','lastCandleTime','entryTime','sessionUpdated','segmentCount','continuity','serverTime'].forEach(function(id){setText(id,'—');});
+  ['healthCandleAge','healthCandleTime','healthFeedAge','healthFeedTime','candles48h','gaps48h','candleCount','positionValue','entryPrice','nextClose','lastCandleTime','entryTime','sessionUpdated','segmentCount','continuity','serverTime','collectorCommit','collectorRun','panelCommit','sessionStatus'].forEach(function(id){setText(id,'—');});
   setText('candles48hReason','Feed indisponível; campo não confirmado.');setText('gaps48hReason','Feed indisponível; campo não confirmado.');setText('healthThresholds','Feed indisponível; limiares e idades não podem ser confirmados.');setText('healthError',reason||'Não foi possível consultar data.json.');$('healthError').hidden=false;
   setText('candleCountReason','Feed indisponível; contagem atual ocultada.');setText('positionReason','Feed indisponível; posição atual ocultada.');setText('entryReason','Feed indisponível; preço atual ocultado.');setText('nextCloseLocal','Feed indisponível; horário atual ocultado.');
   setText('sessionBadge','Feed indisponível');setText('sessionStatus','—');$('sessionError').hidden=false;setText('sessionError','Estado prospectivo ocultado após falha do feed.');
@@ -184,10 +184,11 @@ function renderCriteria(feed) {
   $('criteriaPending').hidden=pending.length===0;setText('criteriaPending',pending.join(' '));
 }
 function renderAudit(feed) {
-  const s=feed.strategy&&typeof feed.strategy==='object'?feed.strategy:{},a=feed.audit&&typeof feed.audit==='object'?feed.audit:{},c=a.collector_last_success&&typeof a.collector_last_success==='object'?a.collector_last_success:{};
+  const s=feed.strategy&&typeof feed.strategy==='object'?feed.strategy:{},a=feed.audit&&typeof feed.audit==='object'?feed.audit:{},c=a.collector_last_run&&typeof a.collector_last_run==='object'?a.collector_last_run:{};
+  setText('sessionWindow','Janela prospectiva');setText('windowStart',s.window_start_utc?fmtPair(s.window_start_utc):'— · início ausente no feed');setText('windowEnd',s.window_end_utc?fmtPair(s.window_end_utc):'— · fim ausente no feed');
   setText('auditProtocol',(s.protocol||'—')+' / '+(s.variant||'—'));setText('auditAsset',(s.symbol||'—')+' · '+(s.execution||'execução detalhada ausente no feed'));setText('auditRisk',finite(s.risk_limit)?fmtPct(s.risk_limit)+' · aviso −7%':'—');
-  const cs=typeof c.head_sha==='string'?c.head_sha:null;setLink('collectorCommit',cs?'https://github.com/aquinoares/fvt-quant-research/commit/'+cs:null,cs||'— · SHA do coletor ausente no feed');
-  if(c.html_url)setLink('collectorRun',c.html_url,'Execução #'+String(c.run_id||'—')+' · '+String(c.conclusion||''));else setText('collectorRun','— · Execução bem-sucedida do coletor não identificada.');
+  const cs=typeof c.head_sha==='string'?c.head_sha:null;setLink('collectorCommit',cs?'https://github.com/aquinoares/fvt-quant-research/commit/'+cs:null,cs||'— · SHA da última execução do coletor ausente no feed');
+  if(c.html_url)setLink('collectorRun',c.html_url,'Execução #'+String(c.run_id||'—')+' · '+String(c.status||'desconhecido')+(c.conclusion?' / '+String(c.conclusion):''));else setText('collectorRun','— · Metadados da última execução do coletor não disponíveis.');
   const ps=typeof a.panel_commit_sha==='string'?a.panel_commit_sha:null;setLink('panelCommit',ps?'https://github.com/aquinoares/fvt-quant-research/commit/'+ps:null,ps||'— · SHA do painel ausente no feed');
   setText('manifestSha',s.manifest_sha256||'— · O feed não contém SHA-256 do manifesto.');const server=feed.collection_health&&feed.collection_health.server_time_ms;
   setText('serverTime',server===null||server===undefined?'— · Horário do servidor ausente.':fmtPair(server));setText('feedSchema',feed.schema_version===undefined?'—':String(feed.schema_version)+' · dashboard '+String(feed.dashboard_version||'—'));
