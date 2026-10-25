@@ -18,7 +18,7 @@ A permissão `contents: write` permanece restrita ao job `collect`. O workflow n
 
 ## Como o painel lê os dados
 
-O workflow `.github/workflows/fvt-dashboard.yml` busca a branch `learning-state` e restaura somente os três caminhos de estado listados acima antes de montar o feed. O código, os testes, o registro de experimentos e o arquivo de hipóteses continuam vindo da referência de código que está sendo construída. O link do relatório de qualidade aponta para `learning-state`.
+O workflow `.github/workflows/fvt-dashboard.yml` busca a branch `learning-state` e restaura `learning/data/`, `learning/reports/` e `learning/experiments/latest_backtest.json` antes de montar o feed. O arquivo de texto `learning/experiments/latest_backtest.md` também é persistido na branch de estado para consulta humana, mas não é necessário para gerar o feed. O código, os testes, o registro de experimentos e o arquivo de hipóteses continuam vindo da referência de código que está sendo construída. O link do relatório de qualidade aponta para `learning-state`.
 
 A Trilha A continua rotulada **EXPLORATÓRIO — NÃO É PROVA** e permanece independente da Trilha B. A branch de estado destina-se a candles públicos e relatórios de qualidade; não deve receber credenciais, dados pessoais, estado de sessão da Trilha B, manifesto congelado ou ledger operacional.
 
