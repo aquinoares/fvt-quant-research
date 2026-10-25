@@ -21,6 +21,7 @@ def test_learning_collector_has_no_dependency_on_frozen_track():
     assert "p6-mom-runtime" not in workflow
     assert "p6-mom-cloud-live.yml" not in workflow
     assert "python -m learning.collector --root learning --max-requests 10" in workflow
+    assert 'git push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"' in workflow
     assert "permissions:\n      contents: write\n    runs-on:" in workflow
     assert "contents: write" not in workflow.split("jobs:", 1)[0]
     assert "hypotheses_ledger" not in collector_source
