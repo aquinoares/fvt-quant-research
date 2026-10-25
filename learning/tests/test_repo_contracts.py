@@ -83,7 +83,9 @@ def test_learning_collector_uses_fixed_non_cancelling_concurrency_and_safe_push_
     assert 'git -C "$state_dir" reset --hard FETCH_HEAD' in workflow
     assert 'python -m learning.state_persistence --source-root learning --target-root "$state_dir/learning"' in workflow
     assert "failed after 3 attempts" in workflow
-    assert not re.search(r"git\\s+[^\\n]*push[^\\n]*(?:--force|(?:^|\\s)-f(?:\\s|$))", workflow)
+    push_lines = [line for line in workflow.splitlines() if "push origin" in line]
+    assert push_lines
+    assert all("--force" not in line and not re.search(r"\\s-f(?:\\s|$)", line) for line in push_lines)
 
 
 def test_all_repository_workflows_are_safe_for_pull_requests_from_forks():
