@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { webcrypto } = require('node:crypto');
 const vm = require('node:vm');
-const Core = require('../../dashboard/Core.js');
+const Core = require('../../dashboard/core.js');
 
 const fixtureDir = path.join(__dirname, 'fixtures');
 const healthFixture = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'health-cases.json'), 'utf8'));
