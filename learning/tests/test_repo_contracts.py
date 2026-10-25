@@ -22,7 +22,7 @@ def test_learning_collector_has_no_dependency_on_frozen_track():
     assert "p6-mom-cloud-live.yml" not in workflow
     assert "python -m learning.collector --root learning --max-requests 10" in workflow
     assert "refs/heads/learning-state:refs/remotes/origin/learning-state" in workflow
-    assert 'git push origin "HEAD:refs/heads/learning-state"' in workflow
+    assert 'git -C "$state_dir" push origin "HEAD:refs/heads/learning-state"' in workflow
     assert "GITHUB_REF_NAME" not in workflow
     assert 'git -C "$state_dir" add -- learning/data/ learning/reports/ learning/experiments/' in workflow
     assert 'rsync -a --delete "$state_dir/learning/data/" learning/data/' in workflow
