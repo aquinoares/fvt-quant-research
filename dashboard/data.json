@@ -111,7 +111,7 @@
     "daily_gaps": [],
     "message": "Aguardando a primeira coleta pública; métricas não inferidas.",
     "report_available": false,
-    "quality_report_reason": "Nenhum relatório versionado disponível ainda.",
+    "quality_report_reason": "Nenhum relatório versionado disponível na branch learning-state ainda.",
     "report_source": "learning/reports/latest.json",
     "experiment_count": null,
     "experiment_count_source": "learning/experiments/registry.json",
@@ -120,7 +120,8 @@
     "backtest": null,
     "backtest_source": "learning/experiments/latest_backtest.json",
     "latest_run_url": null,
-    "latest_report_url": "https://github.com/aquinoares/fvt-quant-research/blob/main/learning/reports/latest.md"
+    "latest_report_url": "https://github.com/aquinoares/fvt-quant-research/blob/learning-state/learning/reports/latest.md",
+    "state_branch": "learning-state"
   },
   "operations_projection": {
     "minimum_complete_trades": 10,
