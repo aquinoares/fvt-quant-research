@@ -35,7 +35,7 @@ a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline}.shel
  <div class="heroaside"><strong id="windowStatus">Janela prospectiva</strong><span id="lastUpdate">Estado ainda não sincronizado</span></div>
 </section>
 <div class="warning"><span>⚠</span><p><b>Separação obrigatória de evidências.</b> Os números históricos abaixo são de treino/validação e não representam resultado prospectivo. O monitoramento prospectivo está restrito ao risco e à continuidade dos dados; retornos correntes não serão inventados ou inferidos.</p></div>
-<nav class="nav" aria-label="Seções do painel"><button class="active" data-view="overview">Visão geral</button><button data-view="strategy">Estratégia</button><button data-view="intelligence">Inteligência</button><button data-view="audit">Protocolo & dados</button></nav>
+<nav class="nav" aria-label="Seções do painel"><button class="active" data-view="overview">Visão geral</button><button data-view="strategy">Estratégia</button><button data-view="intelligence">Inteligência</button><button data-view="audit">Protocolo & dados</button><button data-view="learning">Aprendizado</button></nav>
 <main>
 <section class="view active" id="view-overview">
  <div class="metrics">
@@ -74,6 +74,32 @@ a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline}.shel
  <article class="panel"><div class="sectiontag">Política de segurança</div><h3 style="margin-top:7px">Shadow only</h3><div class="insight"><div class="kind">Regra de risco</div><h4>Interromper ao atingir o drawdown autorizado</h4><p>O limite de −10% é um gatilho operacional; a interface não negocia, não alavanca e não promete lucro.</p></div><div class="insight"><div class="kind">Regra de dados</div><h4>Não preencher lacunas retroativamente</h4><p>Uma lacuna operacional encerra a sessão para investigação. Os candles históricos não substituem uma observação contínua.</p></div></article></div>
  <article class="panel"><div class="sectiontag">Diagnóstico da nuvem</div><h3 style="margin:7px 0 12px">Sincronização & execução</h3><div class="statustable"><div class="statusrow"><span>Última atualização do feed</span><strong id="feedTimestamp">Não disponível</strong></div><div class="statusrow"><span>Estado do coletor</span><strong id="collectorState">Ainda não confirmado</strong></div><div class="statusrow"><span>Branch de estado</span><strong>p6-mom-runtime</strong></div></div><p class="hint" style="margin-top:14px">Ver o log detalhado no <a href="https://github.com/aquinoares/fvt-quant-research/actions/workflows/p6-mom-cloud.yml" target="_blank" rel="noopener">GitHub Actions ↗</a>.</p></article>
 </section>
+<section class="view" id="view-learning">
+ <div class="warning"><span>i</span><p><b>EXPLORATÓRIO — NÃO É PROVA.</b> A Trilha A usa somente candles públicos da Binance para aprender e testar hipóteses. Ela é independente da Trilha B; seus dados e métricas não validam nem alteram a estratégia congelada.</p></div>
+ <article class="panel">
+  <div class="panelhead"><div><div class="sectiontag">Trilha A · coleta pública</div><h3>Qualidade dos dados BTCUSDT</h3><div class="hint">Candles de 1 minuto com backfill, deduplicação e agregação local em 4 horas UTC</div></div><span class="chip" id="learningStatus">AGUARDANDO PRIMEIRA COLETA</span></div>
+  <div class="metrics">
+   <article class="metric"><div class="label">Candles 1m guardados</div><div class="value cyan" id="learningCandleCount">0</div><div class="sub">Chave única: símbolo + intervalo + abertura</div></article>
+   <article class="metric"><div class="label">Novos nesta execução</div><div class="value green" id="learningNewCandles">0</div><div class="sub">Inclui backfill preenchido</div></article>
+   <article class="metric"><div class="label">Idade do último candle</div><div class="value amber" id="learningCandleAge">—</div><div class="sub">Somente candles fechados</div></article>
+   <article class="metric"><div class="label">Backfill pendente</div><div class="value" id="learningBackfill">—</div><div class="sub">Estimativa de candles até o último fechamento</div></article>
+  </div>
+  <div class="grid2">
+   <article class="panel"><div class="sectiontag">Integridade</div><h3 style="margin:7px 0 10px">Lacunas e duplicatas</h3><div class="statustable">
+    <div class="statusrow"><span>Lacunas encontradas</span><strong id="learningGaps">0</strong></div>
+    <div class="statusrow"><span>Lacunas completamente preenchidas</span><strong id="learningFilled">0</strong></div>
+    <div class="statusrow"><span>Duplicatas removidas/ignoradas</span><strong id="learningDuplicates">0</strong></div>
+    <div class="statusrow"><span>Último candle fechado (UTC)</span><strong id="learningLastCandle">Não recebido</strong></div>
+   </div></article>
+   <article class="panel"><div class="sectiontag">Execução</div><h3 style="margin:7px 0 10px">Última coleta</h3><div class="statustable">
+    <div class="statusrow"><span>Executada em (UTC)</span><strong id="learningRun">Ainda não executada</strong></div>
+    <div class="statusrow"><span>Fonte</span><strong>API pública Binance · sem chaves</strong></div>
+    <div class="statusrow"><span>Mensagem da qualidade</span><strong id="learningMessage">Aguardando a primeira coleta.</strong></div>
+   </div><div class="chips"><a class="chip" id="learningReportLink" href="https://github.com/aquinoares/fvt-quant-research/blob/main/learning/reports/latest.md" target="_blank" rel="noopener">Relatório de qualidade ↗</a><a class="chip" id="learningActionsLink" href="https://github.com/aquinoares/fvt-quant-research/actions/workflows/learning-collect.yml" target="_blank" rel="noopener">Execução no GitHub Actions ↗</a></div></article>
+  </div>
+ </article>
+ <article class="panel" style="margin-top:15px"><div class="sectiontag">Método</div><h3 style="margin:7px 0 8px">Pesquisa separada e reproduzível</h3><p class="hint">O coletor consulta apenas endpoints públicos, pagina com <code>startTime</code>, descarta candles ainda abertos, persiste dados por mês e limita requisições por execução. O backtest didático usa divisão cronológica treino/validação e custo explícito de 30 bps por ida e volta; amostras pequenas e risco de sobreajuste são sempre sinalizados.</p><p class="hint">A Trilha B continua parada — decisão pendente do responsável. A coleta exploratória não reinicia a sessão, não reconcilia o incidente e não escolhe nem assina emendas.</p></article>
+</section>
 </main>
 <footer class="footer"><span>FVT Quant Research · painel de observação · sem ordens reais</span><div class="links"><a href="https://github.com/aquinoares/fvt-quant-research" target="_blank" rel="noopener">Repositório</a><a href="https://github.com/aquinoares/fvt-quant-research/actions" target="_blank" rel="noopener">Execuções cloud</a><span id="footerVersion">painel v0.1</span></div></footer>
 </div>
@@ -85,6 +111,31 @@ const fmtNum=n=>Number(n||0).toLocaleString('pt-BR');
 const fmtTime=s=>{if(!s)return 'Não disponível';const d=new Date(s);return Number.isNaN(d.getTime())?String(s):d.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short',timeZone:'UTC'})+' UTC'};
 let data={};
 function text(id,value){$(id).textContent=value==null?'—':String(value)}
+function fmtAge(seconds){
+ if(seconds===null||seconds===undefined||!Number.isFinite(Number(seconds)))return '—';
+ let n=Math.max(0,Math.floor(Number(seconds)));
+ if(n<60)return n+' s';
+ if(n<3600)return Math.floor(n/60)+' min';
+ if(n<86400)return Math.floor(n/3600)+' h '+Math.floor((n%3600)/60)+' min';
+ return Math.floor(n/86400)+' d '+Math.floor((n%86400)/3600)+' h';
+}
+function renderLearning(d){
+ const l=d.learning||{};
+ const labels={ok:'COLETA ATUALIZADA',backfill_pending:'BACKFILL EM ANDAMENTO',warning:'ATENÇÃO À QUALIDADE',empty_api:'API SEM DADOS',blocked:'API BLOQUEADA',api_error:'ERRO DE API',awaiting:'AGUARDANDO PRIMEIRA COLETA',unknown:'ESTADO DESCONHECIDO'};
+ text('learningStatus',labels[l.status]||String(l.status||labels.awaiting).toUpperCase());
+ text('learningCandleCount',fmtNum(l.candle_count_1m||0));
+ text('learningNewCandles',fmtNum(l.new_candles||0));
+ text('learningCandleAge',fmtAge(l.age_last_candle_seconds));
+ text('learningBackfill',fmtNum(l.pending_backfill_candles||0)+' cand.');
+ text('learningGaps',fmtNum(l.gaps_found||0)+' encontradas · '+fmtNum(l.gaps_remaining||0)+' pendentes');
+ text('learningFilled',fmtNum(l.gaps_filled||0));
+ text('learningDuplicates',fmtNum(l.duplicates_removed||0));
+ text('learningLastCandle',l.latest_candle_open_time_utc||'Não recebido');
+ text('learningRun',fmtTime(l.latest_run_at_utc));
+ text('learningMessage',l.message||'Aguardando a primeira coleta.');
+ $('learningReportLink').href=l.latest_report_url||'https://github.com/aquinoares/fvt-quant-research/blob/main/learning/reports/latest.md';
+ $('learningActionsLink').href=l.latest_run_url||'https://github.com/aquinoares/fvt-quant-research/actions/workflows/learning-collect.yml';
+}
 function makeInsights(d){
  const items=[];
  const hist=d.historical||{};
@@ -92,7 +143,7 @@ function makeInsights(d){
  items.push({kind:'PROTOCOLO',title:'Não confundir histórico com evidência prospectiva',body:'Retornos de +21,95% no treino e +6,47% na validação são históricos. Durante a janela sombra, este painel não publica retorno corrente nem P&L porque o protocolo operacional limita a telemetria a risco e continuidade.'});
  const shadow=d.shadow||{};
  if(shadow.status==='risk_breach')items.unshift({kind:'RISCO · CRÍTICO',title:'Limite de drawdown ultrapassado',body:'A sessão foi sinalizada como interrompida pelo monitor de risco. Não retomar nem alterar parâmetros automaticamente.'});
- else if(shadow.status==='protocol_stopped')items.unshift({kind:'PROTOCOLO · PARADA',title:'A coleta foi interrompida por uma condição operacional',body:shadow.stop_reason||'Verifique o evento de interrupção antes de qualquer nova autorização.'});
+ else if(shadow.status==='protocol_stopped')items.unshift({kind:'PROTOCOLO · PARADA',title:shadow.scheduler_notice?'Trilha B parada — decisão pendente do responsável':'A coleta foi interrompida por uma condição operacional',body:shadow.scheduler_notice||shadow.stop_reason||'Verifique o evento de interrupção antes de qualquer nova autorização.'});
  else if(Number.isFinite(Number(shadow.max_drawdown_net))){
   const dd=Number(shadow.max_drawdown_net),lim=Number(d.strategy?.risk_limit??-0.1);
   const remaining=Math.max(0,Math.abs(lim)-Math.abs(Math.min(0,dd)));
@@ -112,13 +163,14 @@ function render(d){
  text('candleCount',fmtNum(sh.candles_observed||0));text('segmentCount',(sh.segments_count||0)+' segmentos persistidos');
  text('sessionBadge',sh.status_label||'AGUARDANDO');text('lastCandle',sh.last_timestamp||'Nenhum recebido');
  text('continuity',sh.continuity||'Ainda não verificada');
- text('strategyStage',sh.status==='running'?'Sombra em andamento':sh.status==='risk_breach'?'Interrompida por risco':sh.status==='protocol_stopped'?'Parada pelo protocolo':'Aguardando coleta');
+ text('strategyStage',sh.scheduler_notice?'Trilha B parada — decisão pendente do responsável':sh.status==='running'?'Sombra em andamento':sh.status==='risk_breach'?'Interrompida por risco':sh.status==='protocol_stopped'?'Parada pelo protocolo':'Aguardando coleta');
  text('dataSource',data.source_label||'Feed ainda não confirmado');
  text('feedTimestamp',fmtTime(data.updated_at_utc));text('lastUpdate',data.updated_at_utc?'Sincronizado em '+fmtTime(data.updated_at_utc):'Estado ainda não sincronizado');
- text('collectorState',sh.status_detail||'Ainda não confirmado');
+ text('collectorState',sh.scheduler_notice||sh.status_detail||'Ainda não confirmado');
+ renderLearning(data);
  text('windowStatus',sh.status==='risk_breach'?'Risco acionado':sh.status==='protocol_stopped'?'Sessão interrompida':sh.status==='running'?'Coleta ativa':'Janela prospectiva');
- const healthy=sh.status==='running';$('liveDot').style.background=sh.status==='risk_breach'||sh.status==='protocol_stopped'?'var(--red)':healthy?'var(--green)':'var(--amber)';
- text('connectionLabel',healthy?'Estado cloud sincronizado':sh.status==='risk_breach'?'Risco acionado':sh.status==='protocol_stopped'?'Protocolo interrompido':'Sem telemetria confirmada');
+ const healthy=sh.status==='running';$('liveDot').style.background=sh.status==='risk_breach'||(sh.status==='protocol_stopped'&&!sh.scheduler_notice)?'var(--red)':sh.scheduler_notice?'var(--amber)':healthy?'var(--green)':'var(--amber)';
+ text('connectionLabel',healthy?'Estado cloud sincronizado':sh.scheduler_notice?'Trilha B parada (esperado)':sh.status==='risk_breach'?'Risco acionado':sh.status==='protocol_stopped'?'Protocolo interrompido':'Sem telemetria confirmada');
  $('insights').innerHTML=makeInsights(data);
  const events=Array.isArray(sh.events)?sh.events:[];text('eventCount',events.length+' evento(s)');
  $('events').innerHTML=events.length?events.slice(-12).reverse().map(e=>'<div class="statusrow"><span>'+esc(fmtTime(e.at_utc))+'</span><strong>'+esc(e.event||'Evento')+'<br><span class="hint">'+esc(e.detail||'')+'</span></strong></div>').join(''):'<div class="empty">Nenhum evento foi sincronizado ainda. Erros de execução também aparecem no GitHub Actions.</div>';
