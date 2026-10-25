@@ -1,6 +1,6 @@
-# Decisão pendente: login e proteção do painel
+# Decisão: opção A — sem login por enquanto
 
-**Nenhum login foi implementado.** Esta nota documenta as opções para decisão posterior do responsável.
+**Opção A escolhida pelo responsável: manter o painel sem login por enquanto.** Nenhum código de autenticação foi implementado. O painel permanece assumidamente público e somente de leitura.
 
 ## Limite fundamental do site estático público
 
@@ -22,6 +22,6 @@ Exige um provedor de identidade e uma camada confiável no servidor ou middlewar
 
 Antes de escolher um plano gratuito, verificar os limites atuais de usuários ativos, requisições/API, projetos e ambientes, autenticação por e-mail/SMS, custom domains, MFA, funções server-side/edge, logs e retenção, suporte, quotas e regras de suspensão. Os limites variam e devem ser confirmados nas páginas oficiais do serviço escolhido, não presumidos.
 
-## Ponto de parada
+## Decisão registrada
 
-O responsável deve escolher explicitamente (a), (b) ou (c). Até essa escolha, manter o painel sem login e não adicionar código de autenticação.
+A opção (a) foi escolhida: não ter login por enquanto. As opções (b) e (c) ficam adiadas e só devem ser reconsideradas mediante nova decisão explícita. Antes de versionar novos resultados, revisar o checklist de publicação; não tratar uma interface estática como controle de acesso.
