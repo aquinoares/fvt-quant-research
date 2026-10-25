@@ -40,7 +40,8 @@ def test_dashboard_restores_learning_state_and_links_to_dedicated_branch():
     dashboard = (ROOT / "dashboard" / "index.html").read_text(encoding="utf-8")
     feed = __import__("json").loads((ROOT / "dashboard" / "data.json").read_text(encoding="utf-8"))
     assert "refs/heads/learning-state:refs/remotes/origin/learning-state" in workflow
-    assert 'git worktree add --detach "$RUNNER_TEMP/fvt-learning-state" refs/remotes/origin/learning-state' in workflow
+    assert 'state_dir="$RUNNER_TEMP/fvt-learning-state"' in workflow
+    assert 'git worktree add --detach "$state_dir" refs/remotes/origin/learning-state' in workflow
     assert 'rsync -a --delete "$state_dir/learning/data/" learning/data/' in workflow
     assert 'rsync -a --delete "$state_dir/learning/reports/" learning/reports/' in workflow
     assert 'cp "$state_dir/learning/experiments/latest_backtest.json" learning/experiments/latest_backtest.json' in workflow
