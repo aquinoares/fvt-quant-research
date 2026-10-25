@@ -42,6 +42,8 @@ def test_dashboard_restores_learning_state_and_links_to_dedicated_branch():
     assert 'rsync -a --delete "$state_dir/learning/data/" learning/data/' in workflow
     assert 'rsync -a --delete "$state_dir/learning/reports/" learning/reports/' in workflow
     assert 'cp "$state_dir/learning/experiments/latest_backtest.json" learning/experiments/latest_backtest.json' in workflow
+    assert 'cp "$state_dir/learning/experiments/latest_backtest.md" learning/experiments/latest_backtest.md' in workflow
+    assert 'cp learning/experiments/latest_backtest.md "$state_dir/learning/experiments/latest_backtest.md"' in (ROOT / ".github" / "workflows" / "learning-collect.yml").read_text(encoding="utf-8")
     assert 'blob/learning-state/learning/reports/latest.md' in workflow
     assert feed["learning"]["state_branch"] == "learning-state"
     assert feed["learning"]["latest_report_url"] == "https://github.com/aquinoares/fvt-quant-research/blob/learning-state/learning/reports/latest.md"
@@ -54,13 +56,13 @@ def test_upstream_attribution_contains_project_link_and_mit_license_text():
     assert "https://github.com/HKUDS/Vibe-Trading" in upstream
     assert "MIT License" in upstream
     assert "Permission is hereby granted, free of charge" in upstream
-    assert "THE SOFTWARE IS PROVIDED \"AS IS\"" in upstream
+    assert 'THE SOFTWARE IS PROVIDED "AS IS"' in upstream
 
 def test_state_branch_docs_and_upstream_license_are_complete():
     upstream = (ROOT / ".agents" / "skills" / "trader-skill" / "UPSTREAM.md").read_text(encoding="utf-8")
     state_doc = (ROOT / "docs" / "LEARNING_STATE_BRANCH.md").read_text(encoding="utf-8")
     assert "The above copyright notice and this permission notice" in upstream
-    assert "THE SOFTWARE IS PROVIDED \\"AS IS\\"" in upstream
+    assert 'THE SOFTWARE IS PROVIDED "AS IS"' in upstream
     assert "não cria commits em `main`" in state_doc
     assert "`p6-mom-runtime`" in state_doc
 
