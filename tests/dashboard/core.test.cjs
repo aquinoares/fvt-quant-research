@@ -212,6 +212,31 @@ test('Trilha A daily gap quality summary is source-backed and report download is
 });
 
 
+const learningReportViewCases = require('./fixtures/learning-report-view-cases.json');
+for (const fixture of learningReportViewCases.cases) {
+  test('aba Aprendizado: ' + fixture.name, function () {
+    const view = Core.learningReportView(fixture.learning);
+    assert.equal(view.available, fixture.expectedAvailable);
+    assert.equal(view.candleCount, fixture.expectedCount);
+    assert.equal(view.coveragePercent, fixture.expectedCoverage);
+    if (fixture.reasonIncludes) assert.ok(view.reason.includes(fixture.reasonIncludes));
+    else assert.equal(view.reason, null);
+    if (!fixture.expectedAvailable) {
+      assert.deepEqual(view.dailyGaps, []);
+      assert.ok(view.reason && view.reason.length > 0, 'o traço deve vir acompanhado de motivo');
+    }
+  });
+}
+
+test('HTML da aba Aprendizado renderiza traço com motivo para relatório inválido e preserva números válidos', function () {
+  assert.match(dashboardHtml, /learningReportView\(l\)/);
+  assert.match(dashboardHtml, /report\.candleCount===null\?'—':fmtInt\(report\.candleCount\)/);
+  assert.match(dashboardHtml, /report\.coveragePercent/);
+  assert.match(dashboardHtml, /report\.available\?\(l\.message/);
+  assert.match(dashboardHtml, /report\.reason/);
+  assert.match(dashboardHtml, /learningReportBtn'\)\.disabled=!report\.available/);
+});
+
 test('limite de frescor do painel deriva do cron versionado e não usa minutos fixos',()=>{
   assert.equal(Core.deriveIntervalMinutes('20,50 * * * *'),30);
   assert.equal(Core.deriveIntervalMinutes(null),null);
