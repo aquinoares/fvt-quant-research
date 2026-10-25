@@ -5,6 +5,7 @@ on:
     - cron: "13 * * * *"
   workflow_dispatch:
 
+# One state writer at a time; queued runs are not cancelled.
 concurrency:
   group: learning-public-candle-collector
   cancel-in-progress: false
@@ -34,16 +35,13 @@ jobs:
           mkdir -p learning/data learning/reports learning/experiments
           rsync -a --delete "$state_dir/learning/data/" learning/data/
           rsync -a --delete "$state_dir/learning/reports/" learning/reports/
-          if [[ -f "$state_dir/learning/experiments/latest_backtest.json" ]]; then
-            cp "$state_dir/learning/experiments/latest_backtest.json" learning/experiments/latest_backtest.json
-          else
-            rm -f learning/experiments/latest_backtest.json
-          fi
-          if [[ -f "$state_dir/learning/experiments/latest_backtest.md" ]]; then
-            cp "$state_dir/learning/experiments/latest_backtest.md" learning/experiments/latest_backtest.md
-          else
-            rm -f learning/experiments/latest_backtest.md
-          fi
+          for report in latest_backtest.json latest_backtest.md; do
+            if [[ -f "$state_dir/learning/experiments/$report" ]]; then
+              cp "$state_dir/learning/experiments/$report" "learning/experiments/$report"
+            else
+              rm -f "learning/experiments/$report"
+            fi
+          done
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -61,31 +59,47 @@ jobs:
           backtest_status=$?
           set -e
 
-          # Copy generated state into a worktree based on learning-state, never the
-          # schedule's default branch. Only data, reports, and generated backtest
-          # output are staged; source code/configuration is not copied from this run.
+          # Commit only generated public Trilha A state in the dedicated worktree.
+          # The helper unions CSV partitions by (symbol, interval, open_time_ms),
+          # preserving newer rows already present on learning-state.
           state_dir="$RUNNER_TEMP/learning-state"
-          rsync -a --delete learning/data/ "$state_dir/learning/data/"
-          rsync -a --delete learning/reports/ "$state_dir/learning/reports/"
-          if [[ -f learning/experiments/latest_backtest.json ]]; then
-            cp learning/experiments/latest_backtest.json "$state_dir/learning/experiments/latest_backtest.json"
-          else
-            rm -f "$state_dir/learning/experiments/latest_backtest.json"
-          fi
-          if [[ -f learning/experiments/latest_backtest.md ]]; then
-            cp learning/experiments/latest_backtest.md "$state_dir/learning/experiments/latest_backtest.md"
-          else
-            rm -f "$state_dir/learning/experiments/latest_backtest.md"
-          fi
-
           git -C "$state_dir" config user.name "github-actions[bot]"
           git -C "$state_dir" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git -C "$state_dir" add -- learning/data/ learning/reports/ learning/experiments/
-          if git -C "$state_dir" diff --cached --quiet; then
-            echo "No learning-state files changed; no commit created."
-          else
-            git -C "$state_dir" commit -m "learning: persist public collector state"
-            git -C "$state_dir" push origin "HEAD:refs/heads/learning-state"
+
+          push_succeeded=0
+          for attempt in 1 2 3; do
+            python -m learning.state_persistence --source-root learning --target-root "$state_dir/learning"
+            git -C "$state_dir" add -- learning/data/ learning/reports/ learning/experiments/
+
+            if git -C "$state_dir" diff --cached --quiet; then
+              echo "No new Trilha A state changes; current learning-state already contains the generated state."
+              push_succeeded=1
+              break
+            fi
+
+            git -C "$state_dir" commit -m "learning: persist public collector state (attempt $attempt)"
+            if git -C "$state_dir" push origin "HEAD:refs/heads/learning-state"; then
+              echo "Trilha A state persisted to learning-state on attempt $attempt."
+              push_succeeded=1
+              break
+            fi
+
+            if [[ "$attempt" -eq 3 ]]; then
+              echo "::error:: Push to learning-state failed after 3 attempts. The generated Trilha A state was not confirmed as persisted."
+              exit 1
+            fi
+
+            echo "::warning:: Push to learning-state failed on attempt $attempt; fetching the latest state and reapplying generated artifacts before retry."
+            if ! git -C "$state_dir" fetch --depth=1 origin refs/heads/learning-state; then
+              echo "::error:: Could not fetch the latest learning-state after a failed push; aborting without force push."
+              exit 1
+            fi
+            git -C "$state_dir" reset --hard FETCH_HEAD
+          done
+
+          if [[ "$push_succeeded" -ne 1 ]]; then
+            echo "::error:: Could not persist Trilha A state to learning-state after 3 attempts."
+            exit 1
           fi
 
           if [ "$collect_status" -ne 0 ]; then
