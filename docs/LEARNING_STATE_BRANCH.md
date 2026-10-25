@@ -14,7 +14,9 @@ A branch `learning-state` foi criada separadamente para esse estado. Seu snapsho
 4. Copia para um worktree baseado em `learning-state` somente os resultados gerados: `learning/data/`, `learning/reports/` e os resultados gerados `learning/experiments/latest_backtest.json` e `learning/experiments/latest_backtest.md`.
 5. Faz commit/push explícito para `HEAD:refs/heads/learning-state`. Se não houver mudanças, não cria commit.
 
-A permissão `contents: write` permanece restrita ao job `collect`. O workflow não possui gatilho `push`, para evitar que os commits de estado gerem uma cadeia de novas execuções.
+A permissão `contents: write` permanece restrita ao job `collect`. O workflow usa o grupo fixo `learning-public-candle-collector` com `cancel-in-progress: false` e não possui gatilho `push`, para serializar escritores sem criar uma cadeia de novas execuções.
+
+Se um push falhar, o job faz fetch da branch atual, reposiciona o worktree nesse head e reaplica os artefatos gerados antes de tentar novamente. Os CSVs são unidos pela chave `(symbol, interval, open_time_ms)` preservando linhas já existentes no estado remoto em caso de conflito; relatórios arquivados são preservados e o `latest.json` é escolhido pelo horário de execução. Há no máximo três tentativas de push, sem force push. Se não for possível confirmar a persistência, o workflow falha com uma mensagem explícita.
 
 ## Como o painel lê os dados
 
