@@ -89,9 +89,21 @@ jobs:
           if manifest.get("protocol") != "P6-MOM" or manifest.get("variant") != "MOM_TF240_LB96":
               raise SystemExit("Frozen manifest protocol/variant differs; dashboard build stopped.")
 
-          pinned_manifest_sha = data.get("strategy", {}).get("manifest_sha256")
-          if not isinstance(pinned_manifest_sha, str) or len(pinned_manifest_sha) != 64:
-              raise SystemExit("The feed template has no registered manifest SHA-256.")
+          ledger_path = root / "memory" / "hypotheses_ledger.jsonl"
+          ledger_records = [
+              json.loads(line)
+              for line in ledger_path.read_text(encoding="utf-8").splitlines()
+              if line.strip()
+          ]
+          start_records = [item for item in ledger_records if item.get("id") == "P6-MOM-START"]
+          if len(start_records) != 1:
+              raise SystemExit("Expected exactly one P6-MOM-START record for dashboard manifest provenance.")
+          start_record = start_records[0]
+          if start_record.get("frozen_manifest") != manifest_rel:
+              raise SystemExit("Frozen manifest path in the start ledger does not match the build.")
+          registered_manifest_sha = start_record.get("frozen_manifest_sha256")
+          if not isinstance(registered_manifest_sha, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", registered_manifest_sha):
+              raise SystemExit("The start ledger has no valid registered frozen manifest SHA-256.")
           data["dashboard_version"] = "0.3.0"
           strategy = data.setdefault("strategy", {})
           strategy.update({
@@ -102,7 +114,7 @@ jobs:
               "threshold": manifest.get("config", {}).get("thr"),
               "risk_limit": manifest.get("risk_limit_drawdown_net"),
               "winner_id": manifest.get("winner_id"),
-              "manifest_sha256": pinned_manifest_sha,
+              "manifest_sha256": registered_manifest_sha.upper(),
               "execution": manifest.get("execution"),
           })
           historical = manifest.get("historical_selection_data")
