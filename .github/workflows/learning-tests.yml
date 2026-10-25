@@ -5,12 +5,16 @@ on:
     paths:
       - "learning/**"
       - "dashboard/**"
+      - ".agents/skills/**"
+      - "README.md"
       - ".github/workflows/learning-tests.yml"
       - ".github/workflows/fvt-dashboard.yml"
   pull_request:
     paths:
       - "learning/**"
       - "dashboard/**"
+      - ".agents/skills/**"
+      - "README.md"
       - ".github/workflows/learning-tests.yml"
       - ".github/workflows/fvt-dashboard.yml"
 
