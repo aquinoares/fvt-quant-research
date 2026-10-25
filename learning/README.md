@@ -28,3 +28,7 @@ O exemplo usa uma regra SMA-20 fixa sobre candles agregados em 4h, divisão temp
 ## Segurança e operação
 
 O repositório deve continuar privado até que o responsável execute Gitleaks localmente e avalie o conteúdo histórico/IP. Esta mudança não muda a visibilidade. Não despache o coletor até a revisão e a decisão operacional do responsável. Nenhum workflow desabilitado é reativado por esta implementação.
+
+## Skill do agente
+
+O workflow local de pesquisa pode ser invocado por Codex como trader-skill em .agents/skills/trader-skill/SKILL.md. Ele é uma adaptação instruccional de strategy-generate do HKUDS/Vibe-Trading, com atribuição e licença em .agents/skills/trader-skill/UPSTREAM.md. Ele não importa o runtime nem substitui os testes do projeto.
