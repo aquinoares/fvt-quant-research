@@ -13,7 +13,11 @@
     "risk_limit": -0.1,
     "window_start_utc": "2026-10-25T00:00:00Z",
     "window_end_utc": "2027-01-23T00:00:00Z",
-    "costs": { "fee_bps_per_side": 10, "slippage_bps_per_side": 5, "stress_round_trip_bps": 60 },
+    "costs": {
+      "fee_bps_per_side": 10,
+      "slippage_bps_per_side": 5,
+      "stress_round_trip_bps": 60
+    },
     "winner_id": "722a0dd140",
     "manifest_sha256": "661EAA0326B7B4C201E7A897FF58CD45382FB10DDACFECF4F0A6F89DB0B76592"
   },
@@ -49,5 +53,24 @@
     "candles_observed": 0,
     "continuity": "Ainda não verificada",
     "events": []
+  },
+  "learning": {
+    "label": "EXPLORATÓRIO — NÃO É PROVA",
+    "status": "awaiting",
+    "symbol": "BTCUSDT",
+    "interval": "1m",
+    "latest_run_at_utc": null,
+    "latest_candle_open_time_utc": null,
+    "candle_count_1m": 0,
+    "new_candles": 0,
+    "gaps_found": 0,
+    "gaps_filled": 0,
+    "gaps_remaining": 0,
+    "duplicates_removed": 0,
+    "age_last_candle_seconds": null,
+    "pending_backfill_candles": 0,
+    "message": "Aguardando a primeira coleta pública. Nenhum resultado exploratório foi inferido.",
+    "latest_run_url": null,
+    "latest_report_url": "https://github.com/aquinoares/fvt-quant-research/blob/main/learning/reports/latest.md"
   }
 }
