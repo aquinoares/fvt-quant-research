@@ -11,7 +11,7 @@ A branch `learning-state` foi criada separadamente para esse estado. A alteraç�
 1. O workflow é acionado por cron ou manualmente e faz checkout do código da referência do evento.
 2. Antes da coleta, ele busca `learning-state` e restaura dali os dados e relatórios anteriores, para que o backfill continue em execuções subsequentes.
 3. Executa o coletor público e o backtest educativo na cópia de trabalho efêmera do runner.
-4. Copia para um worktree baseado em `learning-state` somente os resultados gerados: `learning/data/`, `learning/reports/` e `learning/experiments/latest_backtest.json`.
+4. Copia para um worktree baseado em `learning-state` somente os resultados gerados: `learning/data/`, `learning/reports/` e os resultados gerados `learning/experiments/latest_backtest.json` e `learning/experiments/latest_backtest.md`.
 5. Faz commit/push explícito para `HEAD:refs/heads/learning-state`. Se não houver mudanças, não cria commit.
 
 A permissão `contents: write` permanece restrita ao job `collect`. O workflow não possui gatilho `push`, para evitar que os commits de estado gerem uma cadeia de novas execuções.
