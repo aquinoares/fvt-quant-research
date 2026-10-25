@@ -1,0 +1,164 @@
+import csv
+from pathlib import Path
+
+import pytest
+
+from learning import collector
+
+MIN = collector.MINUTE_MS
+NOW = 1_704_067_200_000  # 2024-01-01T00:00:00Z
+
+
+def raw_kline(open_ms, close_ms=None, close="1.5"):
+    if close_ms is None:
+        close_ms = open_ms + MIN - 1
+    return [open_ms, "1.0", "2.0", "0.5", close, "10.0", close_ms, "15.0", 5, "4.0", "6.0", "0"]
+
+
+def row(open_ms, interval="1m", open_price="1.0", high="2.0", low="0.5", close="1.5"):
+    duration = collector.HOUR4_MS if interval == "4h" else MIN
+    return {
+        "symbol": "BTCUSDT", "interval": interval,
+        "open_time_ms": str(open_ms), "open_time_utc": collector.ms_to_iso(open_ms),
+        "open": open_price, "high": high, "low": low, "close": close, "volume": "10.0",
+        "close_time_ms": str(open_ms + duration - 1),
+        "close_time_utc": collector.ms_to_iso(open_ms + duration - 1),
+        "quote_volume": "15.0", "trade_count": "5", "taker_buy_base_volume": "4.0",
+        "taker_buy_quote_volume": "6.0",
+    }
+
+
+def write_partition(root: Path, timestamps, duplicate_first=False):
+    folder = root / "data" / "BTCUSDT_1m"
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / "2024-01.csv"
+    records = [row(ts) for ts in timestamps]
+    if duplicate_first and records:
+        records.insert(1, dict(records[0]))
+    with path.open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.DictWriter(stream, fieldnames=collector.COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(records)
+    return path
+
+
+def fake_fetcher(rows):
+    def fetch(start_ms, end_ms, limit):
+        return [r for r in rows if start_ms <= int(r[0]) <= end_ms][:limit]
+    return fetch
+
+
+def test_fills_internal_gap_and_backfills_tail(tmp_path):
+    t0 = NOW - 5 * MIN
+    write_partition(tmp_path, [t0, t0 + 2 * MIN])
+    source = [raw_kline(t0 + i * MIN) for i in (1, 3, 4)]
+    report = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fake_fetcher(source),
+        max_requests=10, seed_utc=collector.ms_to_iso(t0),
+    )
+    assert report["gaps_found"] == 1
+    assert report["gaps_filled"] == 1
+    assert report["gaps_remaining"] == 0
+    assert report["new_candles"] == 3
+    assert report["candle_count"] == 5
+    assert report["status"] == "ok"
+    assert (tmp_path / "reports" / "latest.md").is_file()
+
+
+def test_persisted_duplicates_are_removed(tmp_path):
+    t0 = NOW - MIN
+    path = write_partition(tmp_path, [t0], duplicate_first=True)
+    report = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fake_fetcher([]),
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    with path.open(encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert len(rows) == 1
+    assert report["duplicates_removed"] == 1
+    assert report["candle_count"] == 1
+
+
+def test_request_budget_leaves_large_backfill_pending(tmp_path):
+    seed = collector.parse_utc_ms(collector.DEFAULT_SEED_UTC)
+    page_rows = [raw_kline(seed + i * MIN) for i in range(collector.API_LIMIT)]
+    calls = []
+
+    def fetch(start, end, limit):
+        calls.append((start, end, limit))
+        return [r for r in page_rows if start <= r[0] <= end][:limit]
+
+    report = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fetch, max_requests=2,
+        seed_utc=collector.DEFAULT_SEED_UTC,
+    )
+    assert report["requests_used"] <= 2
+    assert len(calls) <= 2
+    assert report["pending_backfill_candles"] > 0
+    assert report["status"] == "backfill_pending"
+
+
+def test_open_candle_is_discarded():
+    current_open = (NOW // MIN) * MIN
+    assert collector.normalize_kline(raw_kline(current_open, current_open + MIN - 1), NOW) is None
+
+
+def test_empty_api_is_recorded_without_inventing_data(tmp_path):
+    report = collector.collect(tmp_path, now_ms=NOW, fetcher=fake_fetcher([]))
+    assert report["status"] == "empty_api"
+    assert report["candle_count"] == 0
+    assert report["last_candle_open_time_utc"] is None
+    assert "nenhum dado foi inventado" in report["message"]
+
+
+@pytest.mark.parametrize("status_code", [403, 451])
+def test_http_geoblock_is_reported_clearly(tmp_path, status_code):
+    def blocked(_start, _end, _limit):
+        raise collector.APIError(status_code, f"HTTP {status_code}")
+
+    report = collector.collect(tmp_path, now_ms=NOW, fetcher=blocked)
+    assert report["status"] == "blocked"
+    assert report["api_http_status"] == status_code
+    assert "bloqueio geográfico/regional" in report["message"]
+    assert report["candle_count"] == 0
+    assert (tmp_path / "reports" / "latest.json").is_file()
+
+
+def test_4h_aggregation_is_aligned_and_requires_240_contiguous_minutes(tmp_path):
+    bucket = NOW - collector.HOUR4_MS
+    folder = tmp_path / "data" / "BTCUSDT_1m"
+    folder.mkdir(parents=True)
+    path = folder / "2023-12.csv"
+    records = [row(bucket + i * MIN) for i in range(240)]
+    with path.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=collector.COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(records)
+    count = collector.aggregate_4h(tmp_path / "data", now_ms=NOW)
+    fourh = list((tmp_path / "data" / "BTCUSDT_4h").glob("*.csv"))
+    assert count == 1 and len(fourh) == 1
+    with fourh[0].open(encoding="utf-8", newline="") as stream:
+        result = list(csv.DictReader(stream))
+    assert int(result[0]["open_time_ms"]) == bucket
+    assert result[0]["interval"] == "4h"
+    assert int(result[0]["close_time_ms"]) == bucket + collector.HOUR4_MS - 1
+
+    fourh[0].unlink()
+    incomplete = [r for i, r in enumerate(records) if i != 123]
+    with path.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=collector.COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(incomplete)
+    assert collector.aggregate_4h(tmp_path / "data", now_ms=NOW) == 0
+    assert not fourh[0].exists()
+
+
+def test_collection_is_idempotent_for_duplicate_api_rows(tmp_path):
+    t0 = NOW - 2 * MIN
+    first, second = raw_kline(t0), raw_kline(t0 + MIN)
+    def fetch(start, end, limit):
+        return [r for r in [first, first, second] if start <= r[0] <= end]
+    report = collector.collect(tmp_path, now_ms=NOW, fetcher=fetch, seed_utc=collector.ms_to_iso(t0))
+    assert report["new_candles"] == 2
+    assert report["duplicates_removed"] == 1
+    assert report["candle_count"] == 2
