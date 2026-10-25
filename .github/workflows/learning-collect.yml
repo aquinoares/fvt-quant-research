@@ -46,7 +46,7 @@ jobs:
             echo "No learning/ files changed; no commit created."
           else
             git commit -m "learning: collect public BTCUSDT candles"
-            git push origin HEAD
+            git push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
           fi
 
           if [ "$collect_status" -ne 0 ]; then
