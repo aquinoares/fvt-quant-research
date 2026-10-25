@@ -17,6 +17,10 @@ O skill de projeto para Codex e agentes compatíveis fica em `.agents/skills/tra
 
 A skill é apenas instrução de agente: não instala Vibe-Trading, não conecta corretoras, não envia ordens reais e não autoriza alterar a Trilha B congelada.
 
+## Persistência da Trilha A
+
+O workflow agendado executa o código da branch padrão, mas persiste candles públicos e relatórios gerados na branch dedicada [`learning-state`](https://github.com/aquinoares/fvt-quant-research/tree/learning-state), não em `main`. O painel lê os dados e relatórios dessa branch. O processo não toca na `p6-mom-runtime`. Consulte [docs/LEARNING_STATE_BRANCH.md](docs/LEARNING_STATE_BRANCH.md) para o fluxo e os caminhos exatos.
+
 ## Ambiente
 
 Requer Python 3.11 ou superior.
