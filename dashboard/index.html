@@ -321,7 +321,7 @@ function renderTrackRibbon(feed){
  setText('trackBStatus',bText);
  const a=learning.status||'awaiting';
  const labels={ok:'coletando',backfill_pending:'coletando · backfill pendente',warning:'coletando · atenção à qualidade',blocked:'bloqueada pela API pública',api_error:'erro de coleta',empty_api:'API sem dados',awaiting:'aguardando primeira coleta',unknown:'estado desconhecido'};
- setText('trackAStatus','Trilha A: '+(learning.report_available===true?'coletando':'aguardando dados')+' — EXPLORATÓRIO — NÃO É PROVA'+(a==='backfill_pending'?' · backfill pendente':''));
+ setText('trackAStatus','Trilha A: '+(labels[a]||String(a))+' — EXPLORATÓRIO — NÃO É PROVA');
 }
 function drawDailyGaps(items){
  const svg=$('dailyGapsChart');svg.replaceChildren();

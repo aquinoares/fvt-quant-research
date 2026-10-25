@@ -175,21 +175,26 @@ test('frescor distingue atual, antigo, erro e timestamp ausente',()=>{
   assert.equal(Core.freshnessStatus(null,now,90,false).status,'unknown');
 });
 
-test('timeline do incidente mantém fato e inferência como classificações separadas',()=>{
-  const fixture=require('./fixtures/incident-timing-cases.json');
-  assert.equal(fixture.cases[0].expectedDelay,2893);
-  assert.ok(fixture.cases.some(x=>x.name==='tolerância ausente'&&x.expectedComparison==='unknown'));
-  const timeline=[
-    {at_utc:'2026-10-25T00:15:00Z',classification:'inferência do diagnóstico'},
-    {at_utc:'2026-10-25T00:48:13.150235Z',classification:'fato registrado'}
-  ];
-  assert.equal(timeline[0].classification,'inferência do diagnóstico');
-  assert.equal(timeline[1].classification,'fato registrado');
+test('timeline do incidente versiona os cinco eventos e separa fato de inferência',()=>{
+  const incident=require('./fixtures/incident-timeline.json');
+  assert.equal(incident.events.length,5);
+  assert.deepEqual(incident.events.map(x=>x.at_utc),[
+    '2026-10-25T00:00:00Z',
+    '2026-10-25T00:15:00Z',
+    '2026-10-25T00:47:50Z',
+    '2026-10-25T00:48:13.150235Z',
+    '2026-10-25T00:48:14Z'
+  ]);
+  assert.equal(incident.events[1].classification,'inferência do diagnóstico');
+  assert.ok(incident.events.filter(x=>x.event!=='TICK_NO_RUN').every(x=>x.classification==='fato registrado'));
+  const timing=require('./fixtures/incident-timing-cases.json');
+  assert.ok(timing.cases.some(x=>x.name==='tolerância ausente'&&x.expectedComparison==='unknown'));
 });
 
 test('HTML limpa dados após erro, evita innerHTML com dados e não inclui login nem e-mail',()=>{
   const html=require('fs').readFileSync(require('path').join(__dirname,'../../dashboard/index.html'),'utf8');
   assert.match(html,/Feed indisponível/);
+  assert.match(html,/valor anterior ocultado/);
   assert.doesNotMatch(html,/\.innerHTML\s*=/);
   assert.doesNotMatch(html,/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
   assert.doesNotMatch(html,/login\s+(?:visual|de usuário)/i);

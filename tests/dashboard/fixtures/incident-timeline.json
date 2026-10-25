@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "evidence_note": "Os horários/ocorrências vêm dos documentos versionados e do run do GitHub Actions; o tick sem run é achado do diagnóstico, não evento do coletor.",
+  "events": [
+    {
+      "at_utc": "2026-10-25T00:00:00Z",
+      "event": "WINDOW_START",
+      "label": "Início da janela",
+      "classification": "fato registrado",
+      "source_path": "docs/EMENDA_PROTOCOLO_RASCUNHO.md"
+    },
+    {
+      "at_utc": "2026-10-25T00:15:00Z",
+      "event": "TICK_NO_RUN",
+      "label": "Tick sem run registrado",
+      "classification": "inferência do diagnóstico",
+      "detail": "Achado do diagnóstico; não é evento persistido do coletor.",
+      "source_path": "docs/DECISAO_TRILHAS_RASCUNHO.md"
+    },
+    {
+      "at_utc": "2026-10-25T00:47:50Z",
+      "event": "COLLECTOR_RUN",
+      "label": "Run do coletor iniciou",
+      "classification": "fato registrado",
+      "run_id": 40148089650,
+      "source_url": "https://github.com/aquinoares/fvt-quant-research/actions/runs/40148089650"
+    },
+    {
+      "at_utc": "2026-10-25T00:48:13.150235Z",
+      "event": "PROTOCOL_STOP_INITIAL_SCHEDULER_GAP",
+      "label": "PROTOCOL_STOP",
+      "classification": "fato registrado",
+      "source_path": "docs/EMENDA_PROTOCOLO_RASCUNHO.md"
+    },
+    {
+      "at_utc": "2026-10-25T00:48:14Z",
+      "event": "WORKFLOW_DISABLED",
+      "label": "Workflow desabilitado",
+      "classification": "fato registrado",
+      "source_path": "docs/DECISAO_TRILHAS_RASCUNHO.md"
+    }
+  ]
+}
