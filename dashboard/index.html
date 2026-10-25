@@ -212,11 +212,24 @@ function updateFreshness(feed,mode){
  if(lastFetchError){setText('freshnessText','Erro: feed indisponível · métricas ocultadas');badge.classList.remove('stale');badge.classList.add('error');return;}
  const stamp=feed&&feed.updated_at_utc?window.FVTCore.parseTimestamp(feed.updated_at_utc):null;
  if(stamp===null){setText('freshnessText','Atualização: — · updated_at_utc ausente/inválido no feed');badge.classList.remove('error');badge.classList.add('stale');return;}
- const age=Date.now()-stamp;
+ const now=Date.now(),age=now-stamp;
  if(age<0){setText('freshnessText','Erro: timestamp do feed no futuro · métricas devem ser investigadas');badge.classList.add('error');badge.classList.remove('stale');return;}
  const ageText='Atualizado '+fmtAgeMinutes(age);
- if(age>90*60000){setText('freshnessText','Dados antigos · '+ageText+' · origem '+(mode==='fetch'?'feed consultado':'snapshot'));badge.classList.add('stale');badge.classList.remove('error');}
- else{setText('freshnessText',ageText+' · '+(mode==='fetch'?'consulta concluída':'snapshot estático'));badge.classList.remove('stale','error');}
+ const schedule=feed&&feed.health_schedule&&typeof feed.health_schedule==='object'?feed.health_schedule:{};
+ const interval=window.FVTCore.deriveIntervalMinutes(schedule.dashboard_cron);
+ if(interval===null){
+  setText('freshnessText',ageText+' · frescor não validado: health_schedule.dashboard_cron ausente/inválido no feed · '+(mode==='fetch'?'feed consultado':'snapshot'));
+  badge.classList.add('stale');badge.classList.remove('error');return;
+ }
+ const limitMinutes=interval*1.5;
+ const status=window.FVTCore.freshnessStatus(feed.updated_at_utc,now,limitMinutes,false);
+ if(status.status==='stale'){
+  setText('freshnessText','Dados antigos · '+ageText+' · limite '+limitMinutes.toLocaleString('pt-BR')+' min derivado de health_schedule.dashboard_cron ('+schedule.dashboard_cron+')');
+  badge.classList.add('stale');badge.classList.remove('error');
+ }else{
+  setText('freshnessText',ageText+' · limite '+limitMinutes.toLocaleString('pt-BR')+' min derivado de health_schedule.dashboard_cron ('+schedule.dashboard_cron+') · '+(mode==='fetch'?'feed consultado':'snapshot estático'));
+  badge.classList.remove('stale','error');
+ }
 }
 function tickFreshness(){if(lastFetchError){updateFreshness(null,'error');return;}if(currentFeed)updateFreshness(currentFeed,'fetch');}
 function updateSnapshot(feed, mode, detail) {

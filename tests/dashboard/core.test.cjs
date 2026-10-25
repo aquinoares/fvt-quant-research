@@ -210,3 +210,13 @@ test('Trilha A daily gap quality summary is source-backed and report download is
   assert.match(html,/dailyGapsChart/);
   assert.match(html,/learningReportBtn/);
 });
+
+
+test('limite de frescor do painel deriva do cron versionado e não usa minutos fixos',()=>{
+  assert.equal(Core.deriveIntervalMinutes('20,50 * * * *'),30);
+  assert.equal(Core.deriveIntervalMinutes(null),null);
+  assert.equal(Core.deriveIntervalMinutes('not-a-cron'),null);
+  assert.match(dashboardHtml,/deriveIntervalMinutes\(schedule\.dashboard_cron\)/);
+  assert.doesNotMatch(dashboardHtml,/90\*60000/);
+  assert.match(dashboardHtml,/health_schedule\.dashboard_cron/);
+});
