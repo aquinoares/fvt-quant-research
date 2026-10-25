@@ -10,6 +10,8 @@ const Core = require('../../dashboard/core.js');
 const fixtureDir = path.join(__dirname, 'fixtures');
 const healthFixture = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'health-cases.json'), 'utf8'));
 const brokenChainFixture = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'broken-hash-chain.json'), 'utf8'));
+const drawdownFixture = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'drawdown-cases.json'), 'utf8'));
+const dashboardHtml = fs.readFileSync(path.join(__dirname, '../../dashboard/index.html'), 'utf8');
 const nowMs = Date.parse(healthFixture.now_utc);
 
 test('deriva 30 minutos dos dois crons reais e rejeita cron desconhecido', function () {
@@ -26,7 +28,8 @@ for (const fixture of healthFixture.cases) {
       health_schedule: Object.prototype.hasOwnProperty.call(fixture, 'health_schedule')
         ? fixture.health_schedule : healthFixture.health_schedule,
       collection_health: fixture.collection_health,
-      shadow: fixture.shadow
+      shadow: fixture.shadow,
+      audit: fixture.audit
     };
     assert.equal(Core.evaluateHealth(feed, nowMs).status, fixture.expected);
   });
@@ -50,17 +53,13 @@ test('campo numérico ausente não vira zero; zero real é preservado', function
   assert.equal(Core.numericField({ candles_observed: 0 }, 'candles_observed'), 0);
 });
 
-test('drawdown -6% é normal', function () {
-  assert.equal(Core.drawdownState(-0.06, false).status, 'normal');
-});
-test('drawdown -7% aciona aviso', function () {
-  assert.equal(Core.drawdownState(-0.07, false).status, 'warning');
-});
-test('drawdown -10% é crítico e exige interrupção', function () {
-  const state = Core.drawdownState(-0.10, false);
-  assert.equal(state.status, 'critical');
-  assert.match(state.reason, /não retomar automaticamente/i);
-});
+for (const fixture of drawdownFixture.cases) {
+  test('drawdown fixture: ' + fixture.name, function () {
+    const state = Core.drawdownState(fixture.drawdown, fixture.breached);
+    assert.equal(state.status, fixture.expected);
+    if (fixture.expected === 'critical') assert.match(state.reason, /não retomar automaticamente/i);
+  });
+}
 test('drawdown ausente permanece desconhecido, nunca 0%', function () {
   assert.equal(Core.drawdownState(null, false).status, 'unknown');
   assert.match(Core.drawdownState(null, false).reason, /não contém/i);
@@ -77,4 +76,14 @@ test('cadeia SHA-256 declarada mas quebrada é marcada quebrada', async function
   const result = await Core.verifyHashChain(brokenChainFixture.signal_timeline, webcrypto.subtle);
   assert.equal(result.status, 'broken');
   assert.match(result.reason, /Hash divergente/i);
+});
+
+test('painel destaca incidente, pendência humana e origem de auditoria', function () {
+  assert.match(dashboardHtml, /id="incidentBanner"/);
+  assert.match(dashboardHtml, /Workflow verde não significa sessão válida/i);
+  assert.match(dashboardHtml, /não retomar automaticamente/i);
+  assert.match(dashboardHtml, /decisão pendente do responsável/i);
+  assert.match(dashboardHtml, /Timeline não verificada/i);
+  assert.match(dashboardHtml, /não disponível no manifesto congelado/i);
+  assert.match(dashboardHtml, /id="panelRun"/);
 });
