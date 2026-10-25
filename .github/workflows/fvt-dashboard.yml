@@ -56,6 +56,7 @@ jobs:
       - name: Build sanitized dashboard feed
         env:
           GH_TOKEN: ${{ github.token }}
+          PANEL_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -290,7 +291,7 @@ jobs:
                       gaps += max(0, int(delta // 60000) - 1)
               collection_health = {
                   "last_open_time": shadow.get("last_timestamp"),
-                  "candles_48h": len(recent_timestamps),
+                  "candles_48h": len(recent_unique),
                   "gaps_48h": gaps,
                   "server_time_ms": server_time_ms,
               }
@@ -336,7 +337,7 @@ jobs:
                   collector_meta = None
 
           data["audit"] = {
-              "panel_commit_sha": os.environ.get("GITHUB_SHA"),
+              "panel_commit_sha": os.environ.get("PANEL_COMMIT_SHA"),
               "collector_last_run": collector_meta,
           }
           data["updated_at_utc"] = datetime.now(timezone.utc).isoformat()
