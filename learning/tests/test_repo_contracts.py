@@ -4,11 +4,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_pages_permissions_are_job_scoped_and_opt_in_is_unchanged():
+def test_pages_permissions_are_job_scoped_and_public_deploy_skips_pull_requests():
     workflow = (ROOT / ".github" / "workflows" / "fvt-dashboard.yml").read_text(encoding="utf-8")
     assert "permissions:\n  contents: none\n\nconcurrency:" in workflow
     assert "  build:\n    name: Build evidence-backed dashboard\n    permissions:\n      contents: read\n      actions: read\n    runs-on:" in workflow
-    assert "vars.ENABLE_PUBLIC_PAGES == 'true'" in workflow
+    assert "vars.ENABLE_PUBLIC_PAGES" not in workflow
+    assert workflow.count("if: ${{ github.event_name != 'pull_request' }}") == 2
+    assert "Upload GitHub Pages artifact for public dashboard" in workflow
+    assert "name: Publish live-signal dashboard to GitHub Pages" in workflow
     assert "pages: write\n      id-token: write" in workflow.split("  deploy:", 1)[1]
     assert "pages: write\n  id-token: write" not in workflow.split("jobs:", 1)[0]
     assert "actions: read" not in workflow.split("jobs:", 1)[0]
