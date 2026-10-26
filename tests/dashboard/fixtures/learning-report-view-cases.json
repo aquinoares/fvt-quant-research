@@ -1,0 +1,89 @@
+{
+  "cases": [
+    {
+      "name": "branch sem relatório",
+      "learning": {
+        "report_available": false,
+        "quality_report_reason": "Relatório de qualidade ausente na branch learning-state; métricas não disponíveis.",
+        "candle_count_1m": null,
+        "coverage_percent": null,
+        "coverage_minutes_present": null,
+        "coverage_minutes_expected": null,
+        "new_candles": null,
+        "gaps_found": null,
+        "gaps_filled": null,
+        "gaps_remaining": null,
+        "duplicates_removed": null,
+        "age_last_candle_seconds": null,
+        "pending_backfill_candles": null,
+        "daily_gaps": []
+      },
+      "expectedAvailable": false,
+      "expectedCount": null,
+      "expectedCoverage": null,
+      "reasonIncludes": "ausente na branch learning-state"
+    },
+    {
+      "name": "relatório válido",
+      "learning": {
+        "report_available": true,
+        "quality_report_reason": null,
+        "candle_count_1m": 12345,
+        "coverage_percent": 99.5,
+        "coverage_minutes_present": 12345,
+        "coverage_minutes_expected": 12360,
+        "first_candle_open_time_utc": "2026-01-01T00:00:00Z",
+        "new_candles": 60,
+        "gaps_found": 2,
+        "gaps_filled": 2,
+        "gaps_remaining": 0,
+        "duplicates_removed": 1,
+        "age_last_candle_seconds": 45,
+        "pending_backfill_candles": 0,
+        "daily_gaps": [
+          {
+            "date_utc": "2026-10-24",
+            "missing_minutes": 15
+          }
+        ],
+        "message": "Fixture sintética de teste."
+      },
+      "expectedAvailable": true,
+      "expectedCount": 12345,
+      "expectedCoverage": 99.5,
+      "reasonIncludes": null
+    },
+    {
+      "name": "relatório corrompido",
+      "learning": {
+        "report_available": false,
+        "quality_report_reason": "Relatório de qualidade corrompido em learning-state (JSON inválido); métricas omitidas.",
+        "candle_count_1m": null,
+        "coverage_percent": null,
+        "coverage_minutes_present": null,
+        "coverage_minutes_expected": null,
+        "daily_gaps": []
+      },
+      "expectedAvailable": false,
+      "expectedCount": null,
+      "expectedCoverage": null,
+      "reasonIncludes": "corrompido"
+    },
+    {
+      "name": "relatório vazio",
+      "learning": {
+        "report_available": false,
+        "quality_report_reason": "Relatório de qualidade vazio na branch learning-state (learning/reports/latest.json); métricas omitidas.",
+        "candle_count_1m": null,
+        "coverage_percent": null,
+        "coverage_minutes_present": null,
+        "coverage_minutes_expected": null,
+        "daily_gaps": []
+      },
+      "expectedAvailable": false,
+      "expectedCount": null,
+      "expectedCoverage": null,
+      "reasonIncludes": "vazio"
+    }
+  ]
+}

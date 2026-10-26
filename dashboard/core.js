@@ -266,6 +266,77 @@
     return { status: 'verified', reason: 'Cadeia verificada com SHA-256 conforme a especificação documentada no feed.' };
   }
 
+  function computeOtherTradesReturn(bestNetTrade,totalNetReturn,trades) {
+    if (!isFiniteNumber(bestNetTrade) || !isFiniteNumber(totalNetReturn) || !isFiniteNumber(trades) ||
+        bestNetTrade <= -1 || totalNetReturn <= -1 || trades <= 1) return null;
+    const value = (1 + totalNetReturn) / (1 + bestNetTrade) - 1;
+    return Number.isFinite(value) ? value : null;
+  }
+
+  function computeOperationsProjection(referenceTrades,referenceDays,targetDays) {
+    if (!isFiniteNumber(referenceTrades) || !isFiniteNumber(referenceDays) || !isFiniteNumber(targetDays) ||
+        referenceTrades < 0 || referenceDays <= 0 || targetDays < 0) return null;
+    const value = referenceTrades / referenceDays * targetDays;
+    return Number.isFinite(value) ? value : null;
+  }
+
+  function computeCoveragePercentage(minutesPresent,minutesExpected) {
+    if (!isFiniteNumber(minutesPresent) || !isFiniteNumber(minutesExpected) ||
+        minutesPresent < 0 || minutesExpected <= 0 || minutesPresent > minutesExpected) return null;
+    return minutesPresent / minutesExpected * 100;
+  }
+
+  function learningReportView(learning) {
+    const source = learning && typeof learning === 'object' && !Array.isArray(learning) ? learning : {};
+    const available = source.report_available === true;
+    const reason = available ? null : (
+      typeof source.quality_report_reason === 'string' && source.quality_report_reason.trim()
+        ? source.quality_report_reason
+        : 'Relatório de qualidade ausente na branch learning-state; métricas não disponíveis.'
+    );
+    function metric(key, integerOnly) {
+      const value = source[key];
+      if (!available || !isFiniteNumber(value) || value < 0 || (integerOnly && !Number.isInteger(value))) return null;
+      if (key === 'coverage_percent' && value > 100) return null;
+      return value;
+    }
+    return {
+      available: available,
+      reason: reason,
+      candleCount: metric('candle_count_1m', true),
+      newCandles: metric('new_candles', true),
+      gapsFound: metric('gaps_found', true),
+      gapsFilled: metric('gaps_filled', true),
+      gapsRemaining: metric('gaps_remaining', true),
+      duplicatesRemoved: metric('duplicates_removed', true),
+      ageLastCandleSeconds: metric('age_last_candle_seconds', true),
+      pendingBackfillCandles: metric('pending_backfill_candles', true),
+      coveragePercent: metric('coverage_percent', false),
+      coverageMinutesPresent: metric('coverage_minutes_present', true),
+      coverageMinutesExpected: metric('coverage_minutes_expected', true),
+      firstCandleOpenTimeUtc: available && typeof source.first_candle_open_time_utc === 'string' && source.first_candle_open_time_utc.trim()
+        ? source.first_candle_open_time_utc : null,
+      latestCandleOpenTimeUtc: available && typeof source.latest_candle_open_time_utc === 'string' && source.latest_candle_open_time_utc.trim()
+        ? source.latest_candle_open_time_utc : null,
+      latestRunAtUtc: available && typeof source.latest_run_at_utc === 'string' && source.latest_run_at_utc.trim()
+        ? source.latest_run_at_utc : null,
+      dailyGaps: available && Array.isArray(source.daily_gaps) ? source.daily_gaps : [],
+      message: available && typeof source.message === 'string' ? source.message : reason
+    };
+  }
+
+  function freshnessStatus(updatedAt,nowMs,staleAfterMinutes,hasError) {
+    if (hasError) return {status:'error',ageMinutes:null,reason:'Consulta do feed falhou; métricas anteriores devem ser ocultadas.'};
+    const timestamp = parseTimestamp(updatedAt);
+    if (timestamp === null || !isFiniteNumber(nowMs) || !isFiniteNumber(staleAfterMinutes) || staleAfterMinutes < 0) {
+      return {status:'unknown',ageMinutes:null,reason:'Timestamp de atualização ausente ou inválido.'};
+    }
+    const ageMinutes=(nowMs-timestamp)/60000;
+    if (ageMinutes < 0) return {status:'error',ageMinutes:null,reason:'Timestamp do feed está no futuro.'};
+    if (ageMinutes > staleAfterMinutes) return {status:'stale',ageMinutes:ageMinutes,reason:'Feed antigo; não há confirmação de atualização recente.'};
+    return {status:'current',ageMinutes:ageMinutes,reason:'Timestamp dentro do limite de frescor.'};
+  }
+
   return {
     parseTimestamp: parseTimestamp,
     deriveIntervalMinutes: deriveIntervalMinutes,
@@ -275,6 +346,11 @@
     evaluateCollectorRun: evaluateCollectorRun,
     drawdownState: drawdownState,
     numericField: numericField,
-    verifyHashChain: verifyHashChain
+    verifyHashChain: verifyHashChain,
+    computeOtherTradesReturn: computeOtherTradesReturn,
+    computeOperationsProjection: computeOperationsProjection,
+    computeCoveragePercentage: computeCoveragePercentage,
+    learningReportView: learningReportView,
+    freshnessStatus: freshnessStatus
   };
 });

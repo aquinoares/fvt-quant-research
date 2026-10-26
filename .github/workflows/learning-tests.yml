@@ -1,0 +1,54 @@
+name: Learning Track Tests
+
+on:
+  push:
+    paths:
+      - "learning/**"
+      - "dashboard/**"
+      - "tests/dashboard/**"
+      - ".agents/skills/**"
+      - "README.md"
+      - ".github/workflows/learning-tests.yml"
+      - ".github/workflows/fvt-dashboard.yml"
+      - ".github/workflows/dashboard-audit-tests.yml"
+  pull_request:
+    paths:
+      - "learning/**"
+      - "dashboard/**"
+      - "tests/dashboard/**"
+      - ".agents/skills/**"
+      - "README.md"
+      - ".github/workflows/learning-tests.yml"
+      - ".github/workflows/fvt-dashboard.yml"
+      - ".github/workflows/dashboard-audit-tests.yml"
+
+concurrency:
+  group: learning-track-tests
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Dashboard and learning unit/regression tests
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run dashboard health, learning-report fixtures, freshness, incident and privacy tests
+        run: node --test tests/dashboard/core.test.cjs
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check "pytest>=8,<9"
+      - name: Run collector, CSV state retry, report-feed and backtest fixtures
+        run: python -m pytest -q learning/tests
+      - name: Compile Python sources
+        run: python -m compileall -q learning

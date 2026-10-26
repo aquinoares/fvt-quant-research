@@ -140,3 +140,108 @@ test('workflow lê tolerância sem escrever no coletor e não fixa 2700 no paine
   assert.match(dashboardHtml, /coletor sem execução recente — verificar Actions/);
   assert.match(dashboardHtml, /c\.head_branch==='main'/);
 });
+
+
+test('nota da melhor operação calcula o retorno composto das demais',()=>{
+  const value=Core.computeOtherTradesReturn(0.2565241260433213,0.21946998037371812,4);
+  assert.ok(Math.abs(value - (-0.0295)) < 0.001);
+  assert.equal(Core.computeOtherTradesReturn(null,0.219,4),null);
+  assert.equal(Core.computeOtherTradesReturn(0.2,0.1,1),null);
+});
+
+test('buy-and-hold ausente continua desconhecido, não zero',()=>{
+  const feed={historical:{}};
+  assert.equal(Core.numericField(feed.historical,'buy_and_hold_net_return'),null);
+  assert.equal(Core.computeCoveragePercentage(null,null),null);
+});
+
+test('projeção de operações é aritmética e valida denominadores',()=>{
+  const projected=Core.computeOperationsProjection(7,67.5,90);
+  assert.ok(Math.abs(projected - (9.3333333333)) < 0.00001);
+  assert.equal(Core.computeOperationsProjection(7,0,90),null);
+});
+
+test('cobertura de minutos exige denominador versionado',()=>{
+  assert.equal(Core.computeCoveragePercentage(75,100),75);
+  assert.equal(Core.computeCoveragePercentage(0,0),null);
+  assert.equal(Core.computeCoveragePercentage(101,100),null);
+});
+
+test('frescor distingue atual, antigo, erro e timestamp ausente',()=>{
+  const now=Date.parse('2026-10-25T01:00:00Z');
+  assert.equal(Core.freshnessStatus('2026-10-25T00:59:00Z',now,90,false).status,'current');
+  assert.equal(Core.freshnessStatus('2026-10-24T20:00:00Z',now,90,false).status,'stale');
+  assert.equal(Core.freshnessStatus('2026-10-25T00:59:00Z',now,90,true).status,'error');
+  assert.equal(Core.freshnessStatus(null,now,90,false).status,'unknown');
+});
+
+test('timeline do incidente versiona os cinco eventos e separa fato de inferência',()=>{
+  const incident=require('./fixtures/incident-timeline.json');
+  assert.equal(incident.events.length,5);
+  assert.deepEqual(incident.events.map(x=>x.at_utc),[
+    '2026-10-25T00:00:00Z',
+    '2026-10-25T00:15:00Z',
+    '2026-10-25T00:47:50Z',
+    '2026-10-25T00:48:13.150235Z',
+    '2026-10-25T00:48:14Z'
+  ]);
+  assert.equal(incident.events[1].classification,'inferência do diagnóstico');
+  assert.ok(incident.events.filter(x=>x.event!=='TICK_NO_RUN').every(x=>x.classification==='fato registrado'));
+  const timing=require('./fixtures/incident-timing-cases.json');
+  assert.ok(timing.cases.some(x=>x.name==='tolerância ausente'&&x.expectedComparison==='unknown'));
+});
+
+test('HTML limpa dados após erro, evita innerHTML com dados e não inclui login nem e-mail',()=>{
+  const html=require('fs').readFileSync(require('path').join(__dirname,'../../dashboard/index.html'),'utf8');
+  assert.match(html,/Feed indisponível/);
+  assert.match(html,/valor anterior ocultado/);
+  assert.doesNotMatch(html,/\.innerHTML\s*=/);
+  assert.doesNotMatch(html,/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  assert.doesNotMatch(html,/login\s+(?:visual|de usuário)/i);
+  assert.match(html,/id="learning"/);
+  assert.match(html,/id="decisions"/);
+});
+
+test('Trilha A daily gap quality summary is source-backed and report download is disabled without report',()=>{
+  const html=require('fs').readFileSync(require('path').join(__dirname,'../../dashboard/index.html'),'utf8');
+  assert.match(html,/learning\/reports\/latest\.json/);
+  assert.match(html,/learning\/experiments\/registry\.json/);
+  assert.match(html,/learning\/hypotheses\.jsonl/);
+  assert.match(html,/dailyGapsChart/);
+  assert.match(html,/learningReportBtn/);
+});
+
+
+const learningReportViewCases = require('./fixtures/learning-report-view-cases.json');
+for (const fixture of learningReportViewCases.cases) {
+  test('aba Aprendizado: ' + fixture.name, function () {
+    const view = Core.learningReportView(fixture.learning);
+    assert.equal(view.available, fixture.expectedAvailable);
+    assert.equal(view.candleCount, fixture.expectedCount);
+    assert.equal(view.coveragePercent, fixture.expectedCoverage);
+    if (fixture.reasonIncludes) assert.ok(view.reason.includes(fixture.reasonIncludes));
+    else assert.equal(view.reason, null);
+    if (!fixture.expectedAvailable) {
+      assert.deepEqual(view.dailyGaps, []);
+      assert.ok(view.reason && view.reason.length > 0, 'o traço deve vir acompanhado de motivo');
+    }
+  });
+}
+
+test('HTML da aba Aprendizado renderiza traço com motivo para relatório inválido e preserva números válidos', function () {
+  assert.match(dashboardHtml, /learningReportView\(l\)/);
+  assert.match(dashboardHtml, /report\.candleCount===null\?'—':fmtInt\(report\.candleCount\)/);
+  assert.match(dashboardHtml, /report\.coveragePercent/);
+  assert.match(dashboardHtml, /report\.available\?\(l\.message/);
+  assert.match(dashboardHtml, /report\.reason/);
+  assert.match(dashboardHtml, /learningReportBtn'\)\.disabled=!report\.available/);
+});
+
+test('limite de frescor do painel deriva do cron versionado e não usa minutos fixos',()=>{
+  assert.equal(Core.deriveIntervalMinutes('20,50 * * * *'),30);
+  assert.equal(Core.deriveIntervalMinutes(null),null);
+  assert.equal(Core.deriveIntervalMinutes('not-a-cron'),null);
+  assert.match(dashboardHtml,/deriveIntervalMinutes\(schedule\.dashboard_cron\)/);
+  assert.doesNotMatch(dashboardHtml,/90\*60000/);
+  assert.match(dashboardHtml,/health_schedule\.dashboard_cron/);
+});

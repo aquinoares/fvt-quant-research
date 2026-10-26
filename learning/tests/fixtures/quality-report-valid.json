@@ -1,0 +1,43 @@
+{
+  "label": "EXPLORATÓRIO — NÃO É PROVA",
+  "schema_version": 1,
+  "run_id": "40220123456",
+  "run_at_utc": "2026-10-25T13:00:00Z",
+  "run_at_epoch_ms": 1792933200000,
+  "status": "ok",
+  "message": "Fixture sintética de teste; não representa coleta real.",
+  "symbol": "BTCUSDT",
+  "interval": "1m",
+  "endpoint": "https://data-api.binance.vision/api/v3/klines",
+  "uses_public_endpoint_only": true,
+  "new_candles": 60,
+  "candle_count": 12345,
+  "first_candle_open_time_utc": "2026-01-01T00:00:00Z",
+  "coverage_percent": 99.5,
+  "coverage_minutes_present": 12345,
+  "coverage_minutes_expected": 12360,
+  "daily_gaps": [
+    {
+      "date_utc": "2026-10-24",
+      "missing_minutes": 15
+    }
+  ],
+  "gaps_found": 2,
+  "missing_minutes_before": 15,
+  "gaps_filled": 2,
+  "gap_candles_filled": 15,
+  "gaps_remaining": 0,
+  "missing_minutes_after": 0,
+  "duplicates_removed": 1,
+  "invalid_rows_removed": 0,
+  "last_candle_open_time_utc": "2026-10-25T12:59:00Z",
+  "age_last_candle_seconds": 45,
+  "pending_backfill_candles": 0,
+  "requests_used": 1,
+  "max_requests": 10,
+  "empty_pages": 0,
+  "api_rows_received": 60,
+  "api_http_status": null,
+  "queued_ranges_remaining": 0,
+  "four_hour_candles_aggregated": 1
+}

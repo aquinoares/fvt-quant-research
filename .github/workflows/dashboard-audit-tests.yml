@@ -1,0 +1,46 @@
+name: Dashboard and learning regression tests
+
+on:
+  push:
+    paths:
+      - "dashboard/**"
+      - "learning/**"
+      - "tests/dashboard/**"
+      - ".github/workflows/dashboard-audit-tests.yml"
+  pull_request:
+    paths:
+      - "dashboard/**"
+      - "learning/**"
+      - "tests/dashboard/**"
+      - ".github/workflows/dashboard-audit-tests.yml"
+
+concurrency:
+  group: dashboard-learning-audit-tests
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Dashboard and Trilha A tests
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run dashboard health, history, incident, freshness and privacy fixtures
+        run: node --test tests/dashboard/core.test.cjs
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install pytest
+        run: python -m pip install --disable-pip-version-check "pytest>=8,<9"
+      - name: Run learning collector, backtest and registry tests
+        run: python -m pytest -q learning/tests
+      - name: Compile learning sources
+        run: python -m compileall -q learning

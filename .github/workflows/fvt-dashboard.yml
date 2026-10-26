@@ -17,8 +17,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  actions: read
+  contents: none
 
 concurrency:
   group: fvt-dashboard-pages
@@ -27,6 +26,9 @@ concurrency:
 jobs:
   build:
     name: Build evidence-backed dashboard
+    permissions:
+      contents: read
+      actions: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -53,6 +55,23 @@ jobs:
             echo "Runtime branch not available yet; dashboard will show awaiting data."
           fi
 
+      - name: Restore latest public Trilha A state
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git fetch --depth=1 origin refs/heads/learning-state:refs/remotes/origin/learning-state
+          state_dir="$RUNNER_TEMP/fvt-learning-state"
+          git worktree add --detach "$state_dir" refs/remotes/origin/learning-state
+
+          mkdir -p learning/data learning/reports learning/experiments
+          rsync -a --delete "$state_dir/learning/data/" learning/data/
+          rsync -a --delete "$state_dir/learning/reports/" learning/reports/
+          if [[ -f "$state_dir/learning/experiments/latest_backtest.json" ]]; then
+            cp "$state_dir/learning/experiments/latest_backtest.json" learning/experiments/latest_backtest.json
+          else
+            rm -f learning/experiments/latest_backtest.json
+          fi
+
       - name: Build sanitized dashboard feed
         env:
           GH_TOKEN: ${{ github.token }}
@@ -65,6 +84,7 @@ jobs:
           python - <<'PY'
           import csv
           import hashlib
+          import math
           import json
           import os
           import re
@@ -128,9 +148,59 @@ jobs:
               "validation": historical["winner_val"],
               "test_block_untouched": historical.get("test_block_untouched"),
           }
+          # Read-only historical comparators from a versioned strategy-search artifact.
+          best_config_rel = "research/out/strategy_search_20261023T035848Z/best_config.json"
+          best_config_path = root / best_config_rel
+          history = data["historical"]
+          history["best_config_source"] = best_config_rel
+          history["best_net_trade"] = None
+          history["buy_and_hold"] = None
+          history["buy_and_hold_source"] = best_config_rel
+          history["buy_and_hold_note"] = "não recalculado neste painel"
+          history["buy_and_hold_reason"] = "Arquivo versionado inacessível ou campos numéricos ausentes; pendência explícita."
+          projection = data.setdefault("operations_projection", {})
+          projection.update({
+              "minimum_complete_trades": None,
+              "reference_trades": None,
+              "reference_days": None,
+              "target_days": 90,
+              "source": best_config_rel,
+              "projection_note": "projeção aritmética, não é observação prospectiva",
+              "minimum_source": manifest_rel,
+          })
+          minimum_spec = (manifest.get("frozen_acceptance_criteria") or {}).get("min_complete_trades")
+          minimum_match = re.search(r"\d+", str(minimum_spec)) if minimum_spec is not None else None
+          projection["minimum_complete_trades"] = int(minimum_match.group(0)) if minimum_match else None
+          def finite_number(value):
+              return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+          if best_config_path.is_file():
+              try:
+                  best_config = json.loads(best_config_path.read_text(encoding="utf-8"))
+                  winner_train = best_config.get("winner_train") or {}
+                  winner_val = best_config.get("winner_val") or {}
+                  bh = best_config.get("buy_and_hold_net") or {}
+                  best_trade = winner_train.get("best_net_trade")
+                  bh_train, bh_val = bh.get("train"), bh.get("val")
+                  if finite_number(best_trade):
+                      history["best_net_trade"] = best_trade
+                  if finite_number(bh_train) and finite_number(bh_val):
+                      history["buy_and_hold"] = {"train": bh_train, "validation": bh_val}
+                      history["buy_and_hold_reason"] = None
+                  total_trades = winner_train.get("trades")
+                  val_trades = winner_val.get("trades")
+                  dev_rows = best_config.get("dev_rows")
+                  if (isinstance(total_trades, int) and not isinstance(total_trades, bool)
+                      and isinstance(val_trades, int) and not isinstance(val_trades, bool)
+                      and finite_number(dev_rows) and dev_rows > 0):
+                      projection["reference_trades"] = total_trades + val_trades
+                      projection["reference_days"] = dev_rows / 1440
+              except (OSError, json.JSONDecodeError, TypeError, ValueError):
+                  history["buy_and_hold_reason"] = "Arquivo best_config.json ilegível; valores ocultados."
+          else:
+              history["buy_and_hold_reason"] = "research/out/strategy_search_20261023T035848Z/best_config.json não acessível no build."
           criteria = manifest.get("frozen_acceptance_criteria")
           data["frozen_acceptance_criteria"] = criteria if isinstance(criteria, dict) else None
-          data["source_label"] = "Snapshot gerado pelo workflow FVT Dashboard a partir do branch de estado privado; CSVs brutos não são publicados."
+          data["source_label"] = "Snapshot gerado pelo workflow FVT Dashboard a partir do branch de estado; CSVs brutos não são publicados."
 
           def cron_from_workflow(path):
               if not path.is_file():
@@ -320,6 +390,8 @@ jobs:
                   shadow.update(status="risk_breach", status_label="RISCO ACIONADO", status_detail="Monitor registrou violação do limite aprovado; não retomar automaticamente.", continuity="Parada por limite de risco")
               elif terminal:
                   shadow.update(status="protocol_stopped", status_label="INTERROMPIDA", status_detail=terminal.get("detail") or terminal.get("event"), continuity="Interrupção registrada; investigar antes de retomar")
+                  if terminal.get("event") == "PROTOCOL_STOP_INITIAL_SCHEDULER_GAP":
+                      shadow["scheduler_notice"] = "agendamento desabilitado após parada de protocolo (esperado)"
               elif state_age_seconds is None or incident_tolerance_seconds is None or state_age_seconds > incident_tolerance_seconds:
                   if incident_tolerance_seconds is None:
                       stop_detail = "Tolerância do código existente do coletor não pôde ser lida sem ambiguidade; continuidade não confirmada e nenhuma métrica prospectiva foi sintetizada."
@@ -432,6 +504,63 @@ jobs:
               "panel_run": panel_run,
               "collector_last_run": collector_meta,
           }
+          # Trilha A is independent and strictly exploratory; report metrics are validated from learning-state.
+          from learning.report_feed import read_quality_report
+          learning = data.setdefault("learning", {})
+          learning.setdefault("label", "EXPLORATÓRIO — NÃO É PROVA")
+          learning.setdefault("report_source", "learning/reports/latest.json")
+          learning.setdefault("state_branch", "learning-state")
+          learning.setdefault("experiment_count", None)
+          learning.setdefault("experiment_count_source", "learning/experiments/registry.json")
+          learning.setdefault("hypothesis_count", None)
+          learning.setdefault("hypothesis_count_source", "learning/hypotheses.jsonl")
+          learning.setdefault("backtest", None)
+          learning.setdefault("backtest_source", "learning/experiments/latest_backtest.json")
+
+          quality_path = root / "learning" / "reports" / "latest.json"
+          quality_result = read_quality_report(quality_path)
+          learning.update(quality_result["learning"])
+          learning["report_source"] = "learning/reports/latest.json"
+          learning["state_branch"] = "learning-state"
+          if quality_result["report"] is not None:
+              Path("site/learning-report.json").write_text(
+                  json.dumps(quality_result["report"], ensure_ascii=False, indent=2) + "\n",
+                  encoding="utf-8",
+              )
+          else:
+              Path("site/learning-report.json").unlink(missing_ok=True)
+          registry_path = root / "learning" / "experiments" / "registry.json"
+          if registry_path.is_file():
+              try:
+                  registry = json.loads(registry_path.read_text(encoding="utf-8"))
+                  experiments = registry.get("experiments")
+                  learning["experiment_count"] = len(experiments) if isinstance(experiments, list) else None
+              except (OSError, json.JSONDecodeError):
+                  learning["experiment_count"] = None
+          hypothesis_path = root / "learning" / "hypotheses.jsonl"
+          if hypothesis_path.is_file():
+              try:
+                  learning["hypothesis_count"] = sum(1 for line in hypothesis_path.read_text(encoding="utf-8").splitlines() if line.strip())
+              except OSError:
+                  learning["hypothesis_count"] = None
+          backtest_path = root / "learning" / "experiments" / "latest_backtest.json"
+          if backtest_path.is_file():
+              try:
+                  learning["backtest"] = json.loads(backtest_path.read_text(encoding="utf-8"))
+              except (OSError, json.JSONDecodeError):
+                  learning["backtest"] = None
+          # The status is a versioned feed field, not inferred from prose in the draft document.
+          data.setdefault("decision", {"amendment_status": "rascunho — sem efeito", "source": "docs/EMENDA_PROTOCOLO_RASCUNHO.md"})
+          data.setdefault("incident_timeline", {
+              "source": "docs/EMENDA_PROTOCOLO_RASCUNHO.md; docs/DECISAO_TRILHAS_RASCUNHO.md; GitHub Actions run metadata",
+              "records": [
+                  {"at_utc":"2026-10-25T00:00:00Z","event":"WINDOW_START","label":"Início da janela","classification":"fato registrado","detail":"Início original da janela UTC, conforme a minuta versionada.","source_path":"docs/EMENDA_PROTOCOLO_RASCUNHO.md","source_url":"https://github.com/aquinoares/fvt-quant-research/blob/main/docs/EMENDA_PROTOCOLO_RASCUNHO.md"},
+                  {"at_utc":"2026-10-25T00:15:00Z","event":"TICK_NO_RUN","label":"Tick de 00:15Z sem run registrado","classification":"inferência do diagnóstico","detail":"Achado do diagnóstico; não é evento persistido do coletor.","source_path":"docs/DECISAO_TRILHAS_RASCUNHO.md","source_url":"https://github.com/aquinoares/fvt-quant-research/blob/main/docs/DECISAO_TRILHAS_RASCUNHO.md"},
+                  {"at_utc":"2026-10-25T00:47:50Z","event":"COLLECTOR_RUN","label":"Run do coletor iniciado","classification":"fato registrado","detail":"GitHub Actions run #40148089650; sucesso do workflow não valida a sessão.","source_path":"GitHub Actions run #40148089650","source_url":"https://github.com/aquinoares/fvt-quant-research/actions/runs/40148089650","run_id":40148089650},
+                  {"at_utc":"2026-10-25T00:48:13.150235Z","event":"PROTOCOL_STOP_INITIAL_SCHEDULER_GAP","label":"PROTOCOL_STOP","classification":"fato registrado","detail":"Evento de parada registrado na documentação de incidente.","source_path":"docs/EMENDA_PROTOCOLO_RASCUNHO.md","source_url":"https://github.com/aquinoares/fvt-quant-research/blob/main/docs/EMENDA_PROTOCOLO_RASCUNHO.md"},
+                  {"at_utc":"2026-10-25T00:48:14Z","event":"WORKFLOW_DISABLED","label":"Workflow desabilitado","classification":"fato registrado","detail":"Horário de desabilitação conforme o registro versionado.","source_path":"docs/DECISAO_TRILHAS_RASCUNHO.md","source_url":"https://github.com/aquinoares/fvt-quant-research/blob/main/docs/DECISAO_TRILHAS_RASCUNHO.md"}
+              ]
+          })
           data["updated_at_utc"] = datetime.now(timezone.utc).isoformat()
 
           # Save the feed and embed its current snapshot plus the tested core code in one HTML file.
@@ -472,7 +601,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       pages: write
       id-token: write
     environment:

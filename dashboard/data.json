@@ -41,7 +41,13 @@
       "exposure_fraction": 0.4182536498040063
     },
     "minimum_complete_trades": 10,
-    "test_block_untouched": true
+    "test_block_untouched": true,
+    "best_net_trade": null,
+    "best_net_trade_source": "research/out/strategy_search_20261023T035848Z/best_config.json",
+    "buy_and_hold": null,
+    "buy_and_hold_source": "research/out/strategy_search_20261023T035848Z/best_config.json",
+    "buy_and_hold_note": "não recalculado neste painel",
+    "buy_and_hold_reason": "Aguardando fonte versionada acessível ao build."
   },
   "shadow": {
     "status": "awaiting",
@@ -82,5 +88,99 @@
     "collector_last_run": null,
     "panel_run": null
   },
-  "frozen_acceptance_criteria": null
+  "frozen_acceptance_criteria": null,
+  "learning": {
+    "label": "EXPLORATÓRIO — NÃO É PROVA",
+    "status": "awaiting",
+    "symbol": "BTCUSDT",
+    "interval": "1m",
+    "latest_run_at_utc": null,
+    "latest_candle_open_time_utc": null,
+    "candle_count_1m": null,
+    "new_candles": null,
+    "gaps_found": null,
+    "gaps_filled": null,
+    "gaps_remaining": null,
+    "duplicates_removed": null,
+    "age_last_candle_seconds": null,
+    "pending_backfill_candles": null,
+    "coverage_percent": null,
+    "coverage_minutes_present": null,
+    "coverage_minutes_expected": null,
+    "first_candle_open_time_utc": null,
+    "daily_gaps": [],
+    "message": "Aguardando a primeira coleta pública; métricas não inferidas.",
+    "report_available": false,
+    "quality_report_reason": "Relatório de qualidade ausente na branch learning-state (learning/reports/latest.json); métricas não disponíveis.",
+    "report_source": "learning/reports/latest.json",
+    "experiment_count": null,
+    "experiment_count_source": "learning/experiments/registry.json",
+    "hypothesis_count": null,
+    "hypothesis_count_source": "learning/hypotheses.jsonl",
+    "backtest": null,
+    "backtest_source": "learning/experiments/latest_backtest.json",
+    "latest_run_url": null,
+    "latest_report_url": null,
+    "state_branch": "learning-state"
+  },
+  "operations_projection": {
+    "minimum_complete_trades": 10,
+    "reference_trades": null,
+    "reference_days": null,
+    "target_days": 90,
+    "source": "research/out/strategy_search_20261023T035848Z/best_config.json",
+    "projection_note": "projeção aritmética, não é observação prospectiva",
+    "minimum_source": "research/out/p6_mom_freeze_20261024T011825Z/manifest.json"
+  },
+  "decision": {
+    "amendment_status": "rascunho — sem efeito",
+    "source": "docs/EMENDA_PROTOCOLO_RASCUNHO.md"
+  },
+  "incident_timeline": {
+    "source": "documentos versionados e metadados registrados",
+    "records": [
+      {
+        "at_utc": "2026-10-25T00:00:00Z",
+        "event": "WINDOW_START",
+        "label": "Início da janela",
+        "classification": "fato registrado",
+        "source_path": "docs/EMENDA_PROTOCOLO_RASCUNHO.md",
+        "source_url": "https://github.com/aquinoares/fvt-quant-research/blob/main/docs/EMENDA_PROTOCOLO_RASCUNHO.md"
+      },
+      {
+        "at_utc": "2026-10-25T00:15:00Z",
+        "event": "TICK_NO_RUN",
+        "label": "Tick de 00:15Z sem run registrado",
+        "classification": "inferência do diagnóstico",
+        "detail": "Achado do diagnóstico; não é evento persistido do coletor.",
+        "source_path": "docs/DECISAO_TRILHAS_RASCUNHO.md",
+        "source_url": "https://github.com/aquinoares/fvt-quant-research/blob/main/docs/DECISAO_TRILHAS_RASCUNHO.md"
+      },
+      {
+        "at_utc": "2026-10-25T00:47:50Z",
+        "event": "COLLECTOR_RUN",
+        "label": "Run do coletor iniciado",
+        "classification": "fato registrado",
+        "source_path": "GitHub Actions run #40148089650",
+        "source_url": "https://github.com/aquinoares/fvt-quant-research/actions/runs/40148089650",
+        "run_id": 40148089650
+      },
+      {
+        "at_utc": "2026-10-25T00:48:13.150235Z",
+        "event": "PROTOCOL_STOP_INITIAL_SCHEDULER_GAP",
+        "label": "PROTOCOL_STOP",
+        "classification": "fato registrado",
+        "source_path": "docs/EMENDA_PROTOCOLO_RASCUNHO.md",
+        "source_url": "https://github.com/aquinoares/fvt-quant-research/blob/main/docs/EMENDA_PROTOCOLO_RASCUNHO.md"
+      },
+      {
+        "at_utc": "2026-10-25T00:48:14Z",
+        "event": "WORKFLOW_DISABLED",
+        "label": "Workflow desabilitado",
+        "classification": "fato registrado",
+        "source_path": "docs/DECISAO_TRILHAS_RASCUNHO.md",
+        "source_url": "https://github.com/aquinoares/fvt-quant-research/blob/main/docs/DECISAO_TRILHAS_RASCUNHO.md"
+      }
+    ]
+  }
 }

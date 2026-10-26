@@ -35,7 +35,7 @@ body{background:radial-gradient(ellipse at 80% -12%,#dcecf4 0,transparent 36%),v
 .health-icon{background:#edf3f6}
 }
 
-</style>
+.track-ribbon{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 13px;margin:-8px 0 16px;border:1px solid #35505c;border-radius:11px;background:#08131cf2;backdrop-filter:blur(12px);font-size:11px}.track-ribbon span{padding:4px 8px;border-radius:7px;background:#111f29}.track-ribbon strong{color:var(--cyan);font-variant-numeric:tabular-nums}.track-ribbon.error{border-color:#8a3840}.track-ribbon.stale{border-color:#735c2c}.daily-bar{fill:var(--cyan)}.daily-axis{stroke:#415361;stroke-width:1}.daily-label{fill:var(--muted);font-size:10px}@media(max-width:650px){.track-ribbon{position:static}.track-ribbon span,.track-ribbon strong{width:100%}}</style>
 </head>
 <body>
 <div class="app">
@@ -43,6 +43,11 @@ body{background:radial-gradient(ellipse at 80% -12%,#dcecf4 0,transparent 36%),v
 <div class="brand"><div class="mark" aria-hidden="true">F</div><div><div class="eyebrow">FVT · QUANT RESEARCH</div><h1>Painel de observação <span class="muted">v0.3</span></h1></div></div>
 <div class="actions"><span class="pill"><span id="topDot" class="dot red" aria-hidden="true"></span><span id="topStatus" role="status" aria-live="polite">Carregando snapshot…</span></span><button class="btn" id="refreshBtn" type="button">↻ Atualizar feed</button></div>
 </header>
+<div id="trackRibbon" class="track-ribbon" role="status" aria-live="polite">
+ <span id="trackBStatus">Trilha B: parada — decisão pendente do responsável</span>
+ <span id="trackAStatus">Trilha A: aguardando coleta · EXPLORATÓRIO — NÃO É PROVA</span>
+ <strong id="freshnessText">Carregando feed…</strong>
+</div>
 <section class="hero" aria-labelledby="pageTitle">
 <div><div class="eyebrow">OBSERVAÇÃO · INTEGRIDADE · RISCO</div><h2 id="pageTitle">Acompanhar sem<br>inventar evidências.</h2><p>P6-MOM · MOM_TF240_LB96 · BTCUSDT spot long-only · sinal em candles de 4 horas. Modo somente sombra, leitura e auditoria; sem ordens reais e sem edição de parâmetros.</p></div>
 <div class="hero-meta"><strong id="sessionWindow">Janela prospectiva</strong><span id="windowStart">— UTC</span><br><span id="windowEnd">— UTC</span></div>
@@ -64,7 +69,7 @@ body{background:radial-gradient(ellipse at 80% -12%,#dcecf4 0,transparent 36%),v
 </div>
 <p id="healthThresholds" class="health-note">Limites de frescor serão derivados dos crons registrados no feed.</p><p id="healthError" class="health-note error" hidden></p>
 </section>
-<nav class="section-nav" aria-label="Navegação do painel"><a href="#session">Sessão sombra</a><a href="#incidents">Registro de incidentes</a><a href="#history">Evidência histórica</a><a href="#criteria">Critérios definidos</a><a href="#audit">Auditoria</a></nav>
+<nav class="section-nav" aria-label="Navegação do painel"><a href="#session">Sessão sombra</a><a href="#incidents">Registro de incidentes</a><a href="#history">Evidência histórica</a><a href="#criteria">Critérios definidos</a><a href="#audit">Auditoria</a><a href="#learning">Trilha A · Aprendizado</a><a href="#decisions">Decisões</a></nav>
 <div class="warning" role="note"><span aria-hidden="true">⚠</span><p><strong>Histórico não é resultado prospectivo.</strong> A amostra histórica é pequena: <strong id="sampleNotice">—</strong> operações nos blocos de treino e validação. Esses dados não demonstram robustez nem garantem desempenho futuro. A janela prospectiva permanece separada; somente valores entregues pelo feed são exibidos.</p></div>
 <section id="session" class="section" aria-labelledby="sessionHeading">
 <div class="section-heading"><div><h3 id="sessionHeading">Sessão sombra</h3><p>Estado da sessão somente quando incluído no feed gerado pelo workflow.</p></div><span id="sessionBadge" class="tag">Aguardando feed</span></div>
@@ -86,11 +91,19 @@ body{background:radial-gradient(ellipse at 80% -12%,#dcecf4 0,transparent 36%),v
 <section id="history" class="section" aria-labelledby="historyHeading">
 <article class="panel"><div class="section-heading"><div><h3 id="historyHeading">Evidência histórica · separada da sessão prospectiva</h3><p>Somente valores agregados vindos do feed, originados do manifesto congelado.</p></div><span class="tag">Histórico · não é previsão</span></div>
 <div class="history-card">
-<div class="history-block"><div class="small-label">Treino histórico</div><div id="trainReturn" class="history-number value-green">—</div><div class="muted">Retorno líquido total registrado.</div><div class="history-stats"><div class="history-stat"><span>Operações completas</span><strong id="trainTrades">—</strong></div><div class="history-stat"><span>Drawdown máximo</span><strong id="trainDrawdown">—</strong></div><div class="history-stat"><span>Taxa de acerto líquida</span><strong id="trainWinRate">—</strong></div><div class="history-stat"><span>Exposição</span><strong id="trainExposure">—</strong></div></div><div class="muted">Profit factor líquido: <strong id="trainPF">—</strong> <span class="pf-inline">métrica secundária; amostra pequena</span></div></div>
+<div class="history-block"><div class="small-label">Treino histórico</div><div id="trainReturn" class="history-number value-green">—</div><div class="muted">Retorno líquido total registrado.</div><div id="tradeDecomposition" class="notice">Melhor operação e contribuição das demais: aguardando fonte versionada.</div><div class="history-stats"><div class="history-stat"><span>Operações completas</span><strong id="trainTrades">—</strong></div><div class="history-stat"><span>Drawdown máximo</span><strong id="trainDrawdown">—</strong></div><div class="history-stat"><span>Taxa de acerto líquida</span><strong id="trainWinRate">—</strong></div><div class="history-stat"><span>Exposição</span><strong id="trainExposure">—</strong></div></div><div class="muted">Profit factor líquido: <strong id="trainPF">—</strong> <span class="pf-inline">métrica secundária; amostra pequena</span></div></div>
 <div class="history-block"><div class="small-label">Validação histórica</div><div id="validationReturn" class="history-number value-green">—</div><div class="muted">Retorno líquido total registrado.</div><div class="history-stats"><div class="history-stat"><span>Operações completas</span><strong id="validationTrades">—</strong></div><div class="history-stat"><span>Drawdown máximo</span><strong id="validationDrawdown">—</strong></div><div class="history-stat"><span>Taxa de acerto líquida</span><strong id="validationWinRate">—</strong></div><div class="history-stat"><span>Exposição</span><strong id="validationExposure">—</strong></div></div><div class="muted">Profit factor líquido: <strong id="validationPF">—</strong> <span class="pf-inline">métrica secundária; amostra pequena</span></div></div>
 </div>
 <div class="warning" role="note" style="margin-top:14px;margin-bottom:0"><span aria-hidden="true">⚠</span><p><strong>Amostra pequena: <span id="historySampleNotice">—</span> operações no total.</strong> A evidência do feed tem somente poucos registros agregados; não se deve concluir robustez com sete operações históricas.</p></div>
-<div class="notice" id="individualTradesNote">Verificando se existem operações individuais…</div><div class="notice" id="buyHoldNote">Verificando comparação buy-and-hold…</div></article>
+<div class="notice" id="individualTradesNote">Verificando se existem operações individuais…</div><div class="notice" id="buyHoldNote">Buy-and-hold: — · aguardando fonte versionada.</div>
+<div class="grid-2" style="margin-top:12px">
+ <div class="history-block"><div class="small-label">Buy-and-hold · treino</div><div id="buyHoldTrainValue" class="history-number">—</div><p id="buyHoldTrainReason" class="muted">Fonte pendente.</p></div>
+ <div class="history-block"><div class="small-label">Buy-and-hold · validação</div><div id="buyHoldValValue" class="history-number">—</div><p id="buyHoldValReason" class="muted">Fonte pendente.</p></div>
+</div>
+<div class="grid-2" style="margin-top:12px">
+ <div class="history-block"><div class="small-label">Operações necessárias</div><div id="operationsMinimum" class="history-number">—</div><p id="operationsMinimumReason" class="muted">Mínimo congelado; fonte pendente.</p></div>
+ <div class="history-block"><div class="small-label">Projeção aritmética · 90 dias</div><div id="operationsProjection" class="history-number">—</div><p id="operationsProjectionReason" class="muted">Projeção aritmética, não é observação prospectiva.</p></div>
+</div></article>
 </section>
 <section id="criteria" class="section" aria-labelledby="criteriaHeading">
 <article class="panel"><div class="section-heading"><div><h3 id="criteriaHeading">Critérios pré-definidos no manifesto</h3><p>Texto copiado do manifesto congelado pelo workflow; não é veredito antecipado.</p></div><span class="tag">Fonte: manifesto</span></div>
@@ -118,6 +131,43 @@ body{background:radial-gradient(ellipse at 80% -12%,#dcecf4 0,transparent 36%),v
 </div>
 <div id="collectorRunWarning" class="warning" role="status" hidden><span aria-hidden="true">⚠</span><p><strong id="collectorRunWarningText">coletor sem execução recente — verificar Actions</strong><span id="collectorRunWarningDetail" class="reason"></span></p></div><div class="notice">O SHA é exibido como commit da main somente quando o metadado da execução confirma head_branch=main. O run do painel identifica a execução que gerou este snapshot. A idade do coletor é separada do estado da sessão; workflow verde não significa sessão válida. Campos sem fonte permanecem “—” com o motivo.</div></article>
 </section>
+<section id="learning" class="section" aria-labelledby="learningHeading">
+ <article class="panel">
+  <div class="section-heading"><div><h3 id="learningHeading">Trilha A — Aprendizado</h3><p>EXPLORATÓRIO — NÃO É PROVA. Esta trilha é independente da P6-MOM / Trilha B.</p></div><span id="learningStatus" class="tag">Aguardando coleta</span></div>
+  <div class="grid-4">
+   <div class="panel metric"><div class="metric-label">Candles BTCUSDT · 1m</div><div id="learningCandleCount" class="metric-value">—</div><div id="learningCandleReason" class="metric-sub">Relatório de qualidade ausente.</div></div>
+   <div class="panel metric"><div class="metric-label">Cobertura desde o primeiro candle</div><div id="learningCoverage" class="metric-value">—</div><div id="learningCoverageReason" class="metric-sub">Sem dados de cobertura.</div></div>
+   <div class="panel metric"><div class="metric-label">Primeiro candle UTC</div><div id="learningFirstDate" class="metric-value">—</div><div id="learningFirstDateReason" class="metric-sub">Sem data versionada.</div></div>
+   <div class="panel metric"><div class="metric-label">Variantes/experimentos registrados</div><div id="experimentCount" class="metric-value">—</div><div id="experimentCountReason" class="metric-sub">Registro versionado ausente.</div></div>
+  </div>
+  <div class="notice">Quanto mais variantes testadas, maior a chance de um resultado bom ser sorte. O contador usa apenas learning/experiments/registry.json; não conta automaticamente o código do backtest.</div>
+  <div class="grid-2" style="margin-top:14px">
+   <div class="panel"><h4>Lacunas por dia (UTC)</h4><p id="dailyGapsSummary" class="muted">— · relatório de qualidade não disponível.</p><svg id="dailyGapsChart" viewBox="0 0 600 190" role="img" aria-label="Gráfico de minutos ausentes por dia UTC" style="width:100%;min-height:130px"></svg><p id="dailyGapsSource" class="muted">Fonte: learning/reports/latest.json · EXPLORATÓRIO — NÃO É PROVA.</p></div>
+   <div class="panel"><h4>Integridade da última coleta</h4><div class="keyvals">
+    <div class="kv"><span class="k">Novos nesta execução</span><span class="v" id="learningNewCandles">—</span></div>
+    <div class="kv"><span class="k">Lacunas encontradas / preenchidas / pendentes</span><span class="v" id="learningGapCounts">—</span></div>
+    <div class="kv"><span class="k">Duplicatas removidas</span><span class="v" id="learningDuplicates">—</span></div>
+    <div class="kv"><span class="k">Idade do último candle</span><span class="v" id="learningAge">—</span></div>
+    <div class="kv"><span class="k">Backfill pendente</span><span class="v" id="learningBackfill">—</span></div>
+    <div class="kv"><span class="k">Executado em UTC</span><span class="v" id="learningRunTime">—</span></div>
+   </div><p id="learningQualityReason" class="notice">Sem relatório de qualidade versionado; números ficam indisponíveis.</p><button id="learningReportBtn" class="btn" type="button" disabled>Baixar relatório de qualidade (JSON)</button><p id="learningReportSource" class="muted">Fonte esperada: learning/reports/latest.json</p></div>
+  </div>
+  <div class="panel" style="margin-top:14px"><div class="section-heading"><div><h4>Backtest SMA-20 · didático, não conclusivo</h4><p>EXPLORATÓRIO — NÃO É PROVA · fonte: learning/experiments/latest_backtest.json</p></div><span class="tag">30 bps por operação completa</span></div>
+   <div class="table-wrap"><table><thead><tr><th>Bloco</th><th>Retorno líquido</th><th>Buy-and-hold</th><th>Operações</th><th>Exposição (barras)</th></tr></thead><tbody>
+    <tr><td>Treino (70%)</td><td id="backtestTrainReturn">—</td><td id="backtestTrainBH">—</td><td id="backtestTrainTrades">—</td><td id="backtestTrainExposure">—</td></tr>
+    <tr><td>Validação (30%)</td><td id="backtestValReturn">—</td><td id="backtestValBH">—</td><td id="backtestValTrades">—</td><td id="backtestValExposure">—</td></tr>
+   </tbody></table></div>
+   <p id="backtestWarnings" class="notice">Sem backtest versionado. Nenhum resultado será estimado pelo painel.</p>
+  </div>
+  <div class="notice"><strong>Hipóteses Trilha A:</strong> <span id="hypothesisCount">—</span> registros em <code>learning/hypotheses.jsonl</code>. Arquivo inicial vazio; o painel não escreve hipóteses automaticamente.</div>
+ </article>
+</section>
+<section id="decisions" class="section" aria-labelledby="decisionsHeading">
+ <article class="panel"><div class="section-heading"><div><h3 id="decisionsHeading">Decisões e cronologia do incidente</h3><p>Eventos documentados e inferências são rotulados separadamente; o painel não escolhe nem assina emendas.</p></div><span class="tag">Trilha B parada</span></div>
+  <div class="history-block"><div class="small-label">Status da emenda</div><div id="amendmentStatus" class="history-number">rascunho — sem efeito</div><p id="amendmentSource" class="muted">Fonte do status: campo decision.amendment_status do feed; se ausente, rascunho — sem efeito.</p></div>
+  <div id="incidentTimeline" class="timeline" style="margin-top:14px"><div class="empty">Carregando cronologia versionada…</div></div>
+ </article>
+</section>
 <footer class="footer"><div><div>FVT Quant Research · Painel de observação v0.3 · somente leitura</div><div class="footer-hash" id="footerSnapshot">Snapshot: ainda não carregado.</div><div class="footer-hash" id="footerCommit">Commit do painel/feed: —</div><div class="footer-hash" id="footerManifest">Manifesto SHA-256 informado pelo feed: —</div><div id="lastRefresh">Atualização: —</div></div><div class="footer-links"><a href="https://github.com/aquinoares/fvt-quant-research" target="_blank" rel="noopener noreferrer">Repositório GitHub</a><a href="https://github.com/aquinoares/fvt-quant-research/actions" target="_blank" rel="noopener noreferrer">Execuções GitHub Actions</a><a href="https://github.com/aquinoares/fvt-quant-research/actions/workflows/p6-mom-cloud-live.yml" target="_blank" rel="noopener noreferrer">Workflow do coletor</a><a href="https://github.com/aquinoares/fvt-quant-research/actions/workflows/fvt-dashboard.yml" target="_blank" rel="noopener noreferrer">Workflow do painel</a></div></footer>
 </div>
 <!-- FVT_RUNTIME_DATA -->
@@ -127,7 +177,7 @@ body{background:radial-gradient(ellipse at 80% -12%,#dcecf4 0,transparent 36%),v
 const $ = function (id) { return document.getElementById(id); };
 const STATIC_FEED = window.FVT_DASHBOARD_DATA && typeof window.FVT_DASHBOARD_DATA === 'object' ? window.FVT_DASHBOARD_DATA : null;
 const REQUEST_TIMEOUT_MS = 10000, AUTO_REFRESH_MS = 60000;
-let refreshInProgress = false, lastSuccessfulFetch = false, pollingStarted = false;
+let refreshInProgress = false, lastSuccessfulFetch = false, pollingStarted = false, currentFeed = null, lastFetchError = null;
 function setText(id, value) { const el = $(id); if (el) el.textContent = value === null || value === undefined || value === '' ? '—' : String(value); }
 function clearText(container, text) { container.replaceChildren(); const n = document.createElement('div'); n.className = 'empty'; n.textContent = text; container.appendChild(n); }
 function finite(v) { return typeof v === 'number' && Number.isFinite(v); }
@@ -138,9 +188,16 @@ function fmtTime(v, zone) { const ms = window.FVTCore.parseTimestamp(v); if(ms==
 function fmtPair(v) { const ms=window.FVTCore.parseTimestamp(v); return ms===null?'—':fmtTime(ms,'UTC')+' UTC · '+fmtTime(ms,'America/Sao_Paulo')+' Brasília'; }
 function fmtAge(v) { return !finite(v)||v<0?'idade indisponível':v<1?'há menos de 1 min':'há '+Math.floor(v)+' min'; }
 function setStateClass(el, state) { el.classList.remove('green','yellow','red'); if(['green','yellow','red'].includes(state))el.classList.add(state); }
-function safeGitHubUrl(v) { if(typeof v!=='string')return null; try{const u=new URL(v);return u.protocol==='https:'&&u.hostname==='github.com'?u.href:null;}catch(_){return null;} }
+function safeGitHubUrl(v) { if(typeof v!=='string')return null; try{const u=new URL(v);if(u.protocol!=='https:'||u.hostname!=='github.com'||u.username||u.password)return null;const allowed='/aquinoares/fvt-quant-research';if(!(u.pathname===allowed||u.pathname.startsWith(allowed+'/')))return null;if(/\/(tree|branches?|compare)\//i.test(u.pathname))return null;return u.href;}catch(_){return null;} }
 function setLink(id, url, label) { const el=$(id);if(!el)return;el.replaceChildren();const safe=safeGitHubUrl(url);if(!safe){el.textContent=label||'—';return;}const a=document.createElement('a');a.href=safe;a.target='_blank';a.rel='noopener noreferrer';a.textContent=label||safe;el.appendChild(a); }
 function setDynamicUnavailable(reason) {
+  lastFetchError=reason||'Falha de consulta do feed.';
+  currentFeed=null;
+  setText('freshnessText','Erro: feed indisponível · métricas ocultadas');setText('trackBStatus','Trilha B: — estado não confirmado após erro de feed');setText('trackAStatus','Trilha A: — estado não confirmado após erro de feed · EXPLORATÓRIO — NÃO É PROVA');
+  $('trackRibbon').classList.add('error');$('trackRibbon').classList.remove('stale');
+  ['trainReturn','validationReturn','trainTrades','validationTrades','trainDrawdown','validationDrawdown','trainWinRate','validationWinRate','trainExposure','validationExposure','trainPF','validationPF','sampleNotice','historySampleNotice','tradeDecomposition','buyHoldTrainValue','buyHoldValValue','operationsMinimum','operationsProjection','buyHoldNote','buyHoldTrainReason','buyHoldValReason','operationsMinimumReason','operationsProjectionReason','criteriaSelection','criteriaSource'].forEach(function(id){setText(id,'— · feed indisponível; valor anterior ocultado.');});
+  ['learningCandleCount','learningCoverage','learningFirstDate','experimentCount','learningNewCandles','learningGapCounts','learningDuplicates','learningAge','learningBackfill','learningRunTime','learningQualityReason','learningReportSource','dailyGapsSummary','backtestTrainReturn','backtestTrainBH','backtestTrainTrades','backtestTrainExposure','backtestValReturn','backtestValBH','backtestValTrades','backtestValExposure','backtestWarnings','hypothesisCount','amendmentStatus','amendmentSource'].forEach(function(id){setText(id,'— · feed indisponível; valor anterior ocultado.');});
+  $('learningReportBtn').disabled=true;$('learningReportBtn').onclick=null;$('dailyGapsChart').replaceChildren();$('incidentTimeline').replaceChildren();clearText($('incidentTimeline'),'Feed indisponível; cronologia não verificada.');
   setStateClass($('collectionHealth'),'red');$('topDot').className='dot red';setText('topStatus','Feed indisponível');setText('healthTitle','Sem confirmação do feed');setText('healthSummary','Não é seguro mostrar os últimos valores como atuais.');
   ['healthCandleAge','healthCandleTime','healthFeedAge','healthFeedTime','candles48h','gaps48h','candleCount','positionValue','entryPrice','nextClose','lastCandleTime','entryTime','sessionUpdated','segmentCount','continuity','serverTime','collectorCommit','collectorRun','panelCommit','sessionStatus'].forEach(function(id){setText(id,'—');});
   setText('candles48hReason','Feed indisponível; campo não confirmado.');setText('gaps48hReason','Feed indisponível; campo não confirmado.');setText('healthThresholds','Feed indisponível; limiares e idades não podem ser confirmados.');setText('healthError',reason||'Não foi possível consultar data.json.');$('healthError').hidden=false;
@@ -150,6 +207,31 @@ function setDynamicUnavailable(reason) {
   $('timeline').replaceChildren();clearText($('timeline'),'Timeline ocultada porque a consulta atual do feed falhou.');setText('timelineBadge','Indisponível');setText('timelineStatus','A imutabilidade não foi verificada.');setText('timelineError','Feed indisponível; timeline não verificada.');$('timelineError').hidden=false;
   setText('lastRefresh','Falha na consulta. Valores prospectivos anteriores foram apagados.');
 }
+function updateFreshness(feed,mode){
+ const badge=$('trackRibbon');
+ if(lastFetchError){setText('freshnessText','Erro: feed indisponível · métricas ocultadas');badge.classList.remove('stale');badge.classList.add('error');return;}
+ const stamp=feed&&feed.updated_at_utc?window.FVTCore.parseTimestamp(feed.updated_at_utc):null;
+ if(stamp===null){setText('freshnessText','Atualização: — · updated_at_utc ausente/inválido no feed');badge.classList.remove('error');badge.classList.add('stale');return;}
+ const now=Date.now(),age=now-stamp;
+ if(age<0){setText('freshnessText','Erro: timestamp do feed no futuro · métricas devem ser investigadas');badge.classList.add('error');badge.classList.remove('stale');return;}
+ const ageText='Atualizado '+fmtAgeMinutes(age);
+ const schedule=feed&&feed.health_schedule&&typeof feed.health_schedule==='object'?feed.health_schedule:{};
+ const interval=window.FVTCore.deriveIntervalMinutes(schedule.dashboard_cron);
+ if(interval===null){
+  setText('freshnessText',ageText+' · frescor não validado: health_schedule.dashboard_cron ausente/inválido no feed · '+(mode==='fetch'?'feed consultado':'snapshot'));
+  badge.classList.add('stale');badge.classList.remove('error');return;
+ }
+ const limitMinutes=interval*1.5;
+ const status=window.FVTCore.freshnessStatus(feed.updated_at_utc,now,limitMinutes,false);
+ if(status.status==='stale'){
+  setText('freshnessText','Dados antigos · '+ageText+' · limite '+limitMinutes.toLocaleString('pt-BR')+' min derivado de health_schedule.dashboard_cron ('+schedule.dashboard_cron+')');
+  badge.classList.add('stale');badge.classList.remove('error');
+ }else{
+  setText('freshnessText',ageText+' · limite '+limitMinutes.toLocaleString('pt-BR')+' min derivado de health_schedule.dashboard_cron ('+schedule.dashboard_cron+') · '+(mode==='fetch'?'feed consultado':'snapshot estático'));
+  badge.classList.remove('stale','error');
+ }
+}
+function tickFreshness(){if(lastFetchError){updateFreshness(null,'error');return;}if(currentFeed)updateFreshness(currentFeed,'fetch');}
 function updateSnapshot(feed, mode, detail) {
   const stamp=feed&&feed.updated_at_utc?feed.updated_at_utc:null, ms=window.FVTCore.parseTimestamp(stamp);
   if(ms===null){setText('snapshotBanner','Snapshot sem updated_at_utc válido; sua idade não pode ser confirmada.');$('snapshotBanner').classList.add('warn');return;}
@@ -211,9 +293,131 @@ function renderHistory(feed) {
     ['Período','Sinal UTC','Ação','Preço','Resultado'].forEach(function(label){const th=document.createElement('th');th.textContent=label;hr.appendChild(th);});thead.appendChild(hr);table.appendChild(thead);const tbody=document.createElement('tbody');
     individual.forEach(function(trade){const row=document.createElement('tr');[trade.period,trade.at_utc,trade.action,trade.price,trade.net_return].forEach(function(value){const td=document.createElement('td');td.textContent=value===null||value===undefined?'—':String(value);row.appendChild(td);});tbody.appendChild(row);});table.appendChild(tbody);wrapper.appendChild(table);$('individualTradesNote').replaceChildren(wrapper);
   }
-  const bh=h.buy_and_hold;
-  setText('buyHoldNote',bh&&typeof bh==='object'?'Comparação buy-and-hold presente no feed: treino '+fmtPct(bh.train)+' · validação '+fmtPct(bh.validation)+'.':'Buy-and-hold: não disponível no manifesto congelado. Não será importado de outra fonte.');
+  setText('buyHoldNote',h.buy_and_hold&&typeof h.buy_and_hold==='object'?'Buy-and-hold histórico: treino '+fmtPct(h.buy_and_hold.train)+' · validação '+fmtPct(h.buy_and_hold.validation)+'. Fonte: research/out/strategy_search_20261023T035848Z/best_config.json; não recalculado neste painel.':(h.buy_and_hold_reason||'Buy-and-hold: — · fonte versionada não acessível.'));
+
+  const bestTrade=window.FVTCore.numericField(h,'best_net_trade');
+  const totalReturn=window.FVTCore.numericField(t,'net_total_return');
+  const tradeCount=window.FVTCore.numericField(t,'trades');
+  if(bestTrade!==null&&totalReturn!==null&&bestTrade>-1&&tradeCount!==null&&tradeCount>1){
+    const otherTrades=(1+totalReturn)/(1+bestTrade)-1;
+    setText('tradeDecomposition','Melhor operação: '+fmtPct(bestTrade)+'; retorno total do treino: '+fmtPct(totalReturn)+'. As demais operações, compostas: '+fmtPct(otherTrades)+'. Fonte: research/out/strategy_search_20261023T035848Z/best_config.json; cálculo no painel.');
+  }else setText('tradeDecomposition','— · best_net_trade, net_total_return ou trades ausentes/inválidos no feed; decomposição não calculada.');
+  const bh=h.buy_and_hold&&typeof h.buy_and_hold==='object'?h.buy_and_hold:null;
+  setText('buyHoldTrainValue',bh?fmtPct(bh.train):'—');
+  setText('buyHoldValValue',bh?fmtPct(bh.validation):'—');
+  setText('buyHoldTrainReason',bh?'Fonte: research/out/strategy_search_20261023T035848Z/best_config.json · não recalculado neste painel.':(h.buy_and_hold_reason||'— · buy_and_hold.train ausente da fonte versionada.'));
+  setText('buyHoldValReason',bh?'Fonte: research/out/strategy_search_20261023T035848Z/best_config.json · não recalculado neste painel.':(h.buy_and_hold_reason||'— · buy_and_hold.val ausente da fonte versionada.'));
+  const projection=feed.operations_projection&&typeof feed.operations_projection==='object'?feed.operations_projection:{};
+  const minimum=window.FVTCore.numericField(projection,'minimum_complete_trades');
+  const refs=window.FVTCore.numericField(projection,'reference_trades'),days=window.FVTCore.numericField(projection,'reference_days'),target=window.FVTCore.numericField(projection,'target_days');
+  setText('operationsMinimum',minimum===null?'—':fmtInt(minimum)+' operações completas');
+  setText('operationsMinimumReason',minimum===null?'— · mínimo não consta nos campos do feed.':'Fonte congelada: research/out/p6_mom_freeze_20261024T011825Z/manifest.json.');
+  const estimate=window.FVTCore.computeOperationsProjection(refs,days,target);
+  setText('operationsProjection',estimate===null?'—':estimate.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' operações');
+  setText('operationsProjectionReason',estimate===null?'— · trades/days/target_days ausentes na fonte versionada.':'Fonte: research/out/strategy_search_20261023T035848Z/best_config.json · '+fmtInt(refs)+' operações / '+days.toLocaleString('pt-BR')+' dias históricos; projeção aritmética, não é observação prospectiva.');
 }
+
+function fmtAgeMinutes(ms){
+ if(!finite(ms)||ms<0)return '—';
+ const n=Math.floor(ms/60000);
+ if(n<1)return 'há menos de 1 min';
+ if(n<60)return 'há '+n+' min';
+ const h=Math.floor(n/60),m=n%60;
+ return 'há '+h+' h '+m+' min';
+}
+function renderTrackRibbon(feed){
+ const shadow=feed.shadow&&typeof feed.shadow==='object'?feed.shadow:{},learning=feed.learning&&typeof feed.learning==='object'?feed.learning:{};
+ const b=shadow.status;
+ let bText='Trilha B: — status sem confirmação no campo shadow.status';
+ if(b==='protocol_stopped'||b==='risk_breach')bText='Trilha B: parada — decisão pendente do responsável';
+ else if(b==='running')bText='Trilha B: status running no feed — verificar condições de segurança';
+ setText('trackBStatus',bText);
+ const a=learning.status||'awaiting';
+ const labels={ok:'coletando',backfill_pending:'coletando · backfill pendente',warning:'coletando · atenção à qualidade',blocked:'bloqueada pela API pública',api_error:'erro de coleta',empty_api:'API sem dados',awaiting:'aguardando primeira coleta',unknown:'estado desconhecido'};
+ setText('trackAStatus','Trilha A: '+(labels[a]||String(a))+' — EXPLORATÓRIO — NÃO É PROVA');
+}
+function drawDailyGaps(items){
+ const svg=$('dailyGapsChart');svg.replaceChildren();
+ const NS='http://www.w3.org/2000/svg';
+ if(!Array.isArray(items)||items.length===0){
+  const t=document.createElementNS(NS,'text');t.setAttribute('x','12');t.setAttribute('y','28');t.setAttribute('class','daily-label');t.textContent='— · nenhum dado diário de lacunas no relatório.';svg.appendChild(t);return;
+ }
+ const valid=items.filter(x=>x&&typeof x.date_utc==='string'&&finite(x.missing_minutes)&&x.missing_minutes>=0).slice(-30);
+ if(!valid.length){const t=document.createElementNS(NS,'text');t.setAttribute('x','12');t.setAttribute('y','28');t.setAttribute('class','daily-label');t.textContent='— · registros diários ausentes/inválidos.';svg.appendChild(t);return;}
+ const max=Math.max(1,...valid.map(x=>x.missing_minutes));
+ const pad={left:34,right:10,top:12,bottom:38},width=600-pad.left-pad.right,height=190-pad.top-pad.bottom,barWidth=Math.max(3,width/valid.length*.62);
+ const axis=document.createElementNS(NS,'line');axis.setAttribute('x1',String(pad.left));axis.setAttribute('x2',String(pad.left+width));axis.setAttribute('y1',String(pad.top+height));axis.setAttribute('y2',String(pad.top+height));axis.setAttribute('class','daily-axis');svg.appendChild(axis);
+ valid.forEach((item,i)=>{
+  const slot=width/valid.length,x=pad.left+i*slot+(slot-barWidth)/2,h=item.missing_minutes/max*height;
+  const rect=document.createElementNS(NS,'rect');rect.setAttribute('x',String(x));rect.setAttribute('y',String(pad.top+height-h));rect.setAttribute('width',String(barWidth));rect.setAttribute('height',String(Math.max(item.missing_minutes?1:0,h)));rect.setAttribute('class','daily-bar');rect.setAttribute('aria-label',item.date_utc+': '+item.missing_minutes+' minutos ausentes');svg.appendChild(rect);
+  if(valid.length<=10||i===0||i===valid.length-1||i%Math.ceil(valid.length/6)===0){const label=document.createElementNS(NS,'text');label.setAttribute('x',String(pad.left+i*slot+slot/2));label.setAttribute('y',String(pad.top+height+16));label.setAttribute('text-anchor','middle');label.setAttribute('class','daily-label');label.textContent=item.date_utc.slice(5);svg.appendChild(label);}
+ });
+ const maxLabel=document.createElementNS(NS,'text');maxLabel.setAttribute('x','4');maxLabel.setAttribute('y','13');maxLabel.setAttribute('class','daily-label');maxLabel.textContent=fmtInt(max);svg.appendChild(maxLabel);
+}
+function renderLearning(feed){
+  const l=feed.learning&&typeof feed.learning==='object'?feed.learning:{},label=l.label||'EXPLORATÓRIO — NÃO É PROVA';
+  const report=window.FVTCore.learningReportView(l);
+  const statusLabels={ok:'COLETA ATUALIZADA',backfill_pending:'BACKFILL PENDENTE',warning:'ATENÇÃO À QUALIDADE',blocked:'API BLOQUEADA',api_error:'ERRO DE API',empty_api:'API SEM DADOS',awaiting:'AGUARDANDO PRIMEIRA COLETA',unknown:'ESTADO DESCONHECIDO'};
+  setText('learningStatus',(statusLabels[l.status]||String(l.status||'awaiting').toUpperCase())+' · '+label);
+  setText('learningCandleCount',report.candleCount===null?'—':fmtInt(report.candleCount));
+  setText('learningCandleReason',report.candleCount===null?report.reason:'Fonte: '+(l.report_source||'learning/reports/latest.json'));
+  const coverage=report.coveragePercent;
+  setText('learningCoverage',coverage===null?'—':coverage.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%');
+  setText('learningCoverageReason',coverage===null?(report.available?'— · cobertura numérica não consta no relatório validado.':report.reason):'Cobertura desde o primeiro candle; '+(report.coverageMinutesPresent===null?'—':fmtInt(report.coverageMinutesPresent))+' / '+(report.coverageMinutesExpected===null?'—':fmtInt(report.coverageMinutesExpected))+' minutos. Fonte: '+(l.report_source||'learning/reports/latest.json'));
+  setText('learningFirstDate',report.firstCandleOpenTimeUtc?String(report.firstCandleOpenTimeUtc).slice(0,10):'—');
+  setText('learningFirstDateReason',report.firstCandleOpenTimeUtc?'Primeiro candle armazenado (UTC). Fonte: '+(l.report_source||'learning/reports/latest.json'):(report.available?'— · primeira data não consta no relatório validado.':report.reason));
+  setText('experimentCount',Number.isInteger(l.experiment_count)&&l.experiment_count>=0?fmtInt(l.experiment_count):'—');
+  setText('experimentCountReason',Number.isInteger(l.experiment_count)&&l.experiment_count>=0?'Fonte: learning/experiments/registry.json':'— · registro de experimentos ausente ou inválido.');
+  setText('learningNewCandles',report.newCandles===null?'—':fmtInt(report.newCandles));
+  setText('learningGapCounts',[report.gapsFound,report.gapsFilled,report.gapsRemaining].every(finite)?fmtInt(report.gapsFound)+' / '+fmtInt(report.gapsFilled)+' / '+fmtInt(report.gapsRemaining):(report.available?'— · lacunas ausentes no relatório validado.':report.reason));
+  setText('learningDuplicates',report.duplicatesRemoved===null?'—':fmtInt(report.duplicatesRemoved));
+  setText('learningAge',report.ageLastCandleSeconds===null?(report.available?'— · idade não disponível no relatório.':report.reason):fmtAge(report.ageLastCandleSeconds/60));
+  setText('learningBackfill',report.pendingBackfillCandles===null?(report.available?'— · backfill não disponível no relatório.':report.reason):fmtInt(report.pendingBackfillCandles)+' candles');
+  setText('learningRunTime',report.latestRunAtUtc?fmtPair(report.latestRunAtUtc):(report.available?'— · horário ausente no relatório.':report.reason));
+  setText('learningQualityReason',report.available?(l.message||'Relatório de qualidade validado; valores de origem versionada.'):report.reason);
+  setText('learningReportSource','Fonte: '+(l.report_source||'learning/reports/latest.json')+' · branch de estado: '+(l.state_branch||'learning-state')+' · EXPLORATÓRIO — NÃO É PROVA.');
+  $('learningReportBtn').disabled=!report.available;
+  drawDailyGaps(report.dailyGaps);
+  setText('dailyGapsSummary',report.available?(report.dailyGaps.length?'Dias com lacunas reportados: '+fmtInt(report.dailyGaps.length)+' (até 30 dias exibidos).':'— · nenhuma lacuna diária reportada.'):'— · '+report.reason);
+  setText('dailyGapsSource','Fonte: '+(l.report_source||'learning/reports/latest.json')+' · EXPLORATÓRIO — NÃO É PROVA.');
+  const bt=l.backtest&&typeof l.backtest==='object'?l.backtest:null;
+  function renderBacktestBlock(prefix,block){
+   block=block&&typeof block==='object'?block:{};
+   setText(prefix+'Return',finite(block.net_return)?fmtPct(block.net_return):'— · retorno ausente');
+   setText(prefix+'BH',finite(block.buy_hold_net_return)?fmtPct(block.buy_hold_net_return):'— · buy-and-hold ausente');
+   setText(prefix+'Trades',finite(block.completed_trades)?fmtInt(block.completed_trades):'— · operações ausentes');
+   setText(prefix+'Exposure',finite(block.exposure_bars)?fmtInt(block.exposure_bars)+' barras':'— · exposição ausente');
+  }
+  if(bt){renderBacktestBlock('backtestTrain',bt.train);renderBacktestBlock('backtestVal',bt.validation);const notes=Array.isArray(bt.warnings)?bt.warnings.filter(x=>typeof x==='string'):[];setText('backtestWarnings','EXPLORATÓRIO — NÃO É PROVA. SMA-20 didático, não conclusivo. Custo declarado: 30 bps por operação completa; divisão cronológica treino 70% / validação 30%. '+(notes.length?notes.join(' '):'Avisos detalhados não disponíveis.'));}
+  else {['backtestTrainReturn','backtestTrainBH','backtestTrainTrades','backtestTrainExposure','backtestValReturn','backtestValBH','backtestValTrades','backtestValExposure'].forEach(id=>setText(id,'—'));setText('backtestWarnings','— · learning/experiments/latest_backtest.json ausente. EXPLORATÓRIO — NÃO É PROVA.');}
+  setText('hypothesisCount',Number.isInteger(l.hypothesis_count)&&l.hypothesis_count>=0?fmtInt(l.hypothesis_count):'— · registro não disponível');
+  if(report.available){$('learningReportBtn').disabled=false;$('learningReportBtn').onclick=async function(){try{const response=await fetch('./learning-report.json?ts='+Date.now(),{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);const json=await response.json();const blob=new Blob([JSON.stringify(json,null,2)+'\n'],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='learning-quality-report.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}catch(e){setText('learningQualityReason','Falha ao baixar relatório JSON: '+String(e&&e.message||e));}};}
+  else {$('learningReportBtn').disabled=true;$('learningReportBtn').onclick=null;}
+}
+function renderDecisions(feed){
+ const d=feed.decision&&typeof feed.decision==='object'?feed.decision:{};
+ const status=typeof d.amendment_status==='string'&&d.amendment_status.trim()?d.amendment_status:'rascunho — sem efeito';
+ setText('amendmentStatus',status);
+ setText('amendmentSource','Campo de feed: decision.amendment_status · fonte declarada: '+(d.source||'—')+'. O painel não interpreta o texto da minuta.');
+ const timeline=feed.incident_timeline&&typeof feed.incident_timeline==='object'?feed.incident_timeline:{},records=Array.isArray(timeline.records)?timeline.records:[];
+ const container=$('incidentTimeline');container.replaceChildren();
+ if(!records.length){clearText(container,'— · linha do tempo não disponível no feed versionado.');return;}
+ records.slice().sort((a,b)=>(window.FVTCore.parseTimestamp(a&&a.at_utc)||0)-(window.FVTCore.parseTimestamp(b&&b.at_utc)||0)).forEach(function(item){
+  const article=document.createElement('article');article.className='signal';
+  const left=document.createElement('div'),title=document.createElement('div'),stamp=document.createElement('div');
+  title.className='signal-action';title.textContent=typeof item.label==='string'?item.label:'Evento sem rótulo';
+  stamp.className='signal-meta';stamp.textContent=item.at_utc?fmtPair(item.at_utc):'— · horário ausente';
+  left.appendChild(title);left.appendChild(stamp);
+  const details=document.createElement('div');details.className='signal-details';
+  const classification=document.createElement('div');classification.textContent=String(item.classification||'— · classificação ausente');details.appendChild(classification);
+  const explanation=document.createElement('div');explanation.textContent=String(item.detail||'— · detalhe ausente no feed');details.appendChild(explanation);
+  if(item.source_path){const source=document.createElement('div');source.textContent='Fonte: '+String(item.source_path);details.appendChild(source);}
+  const url=safeGitHubUrl(item.source_url);
+  if(url){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Abrir fonte versionada';details.appendChild(a);}
+  article.appendChild(left);article.appendChild(details);container.appendChild(article);
+ });
+}
+
 function fillList(id, items) {
   const list=$(id);list.replaceChildren();
   if(!Array.isArray(items)||items.length===0){const li=document.createElement('li');li.textContent='Não definido no manifesto.';list.appendChild(li);return;}
@@ -241,8 +445,13 @@ function renderAudit(feed) {
   const freshness=window.FVTCore.evaluateCollectorRun(c,Date.now(),feed.health_schedule&&feed.health_schedule.collector_cron);
   setText('collectorRunAge',freshness.ageMinutes===null?'—':fmtAge(freshness.ageMinutes));
   setText('collectorRunAgeReason',freshness.reason+(freshness.thresholdMinutes===null?'':' Limiar de aviso: '+freshness.thresholdMinutes.toLocaleString('pt-BR')+' min (1,5× cron).'));
-  $('collectorRunWarning').hidden=freshness.stale!==true;
-  if(freshness.stale===true){
+  const shadowForWarning=feed.shadow&&typeof feed.shadow==='object'?feed.shadow:{};
+  const expectedProtocolStop=shadowForWarning.status==='protocol_stopped'&&typeof shadowForWarning.scheduler_notice==='string'&&shadowForWarning.scheduler_notice.trim();
+  $('collectorRunWarning').hidden=freshness.stale!==true&&!expectedProtocolStop;
+  if(expectedProtocolStop){
+    setText('collectorRunWarningText','agendamento desabilitado após parada de protocolo (esperado)');
+    setText('collectorRunWarningDetail',' A Trilha B segue parada; o estado do workflow não autoriza retomada.');
+  }else if(freshness.stale===true){
     setText('collectorRunWarningText','coletor sem execução recente — verificar Actions');
     setText('collectorRunWarningDetail',' Última criação: '+fmtPair(c.created_at)+'. A idade excede '+freshness.thresholdMinutes.toLocaleString('pt-BR')+' min, derivado do cron; o estado da sessão é exibido separadamente.');
   }else setText('collectorRunWarningDetail','');
@@ -261,10 +470,6 @@ async function renderTimeline(feed) {
     const detail=document.createElement('div');detail.className='signal-details';[['Fechamento 4 h: ',fmtPair(r&&r.bar_close_utc)],['Preço: ',fmtPrice(r&&r.price)],['Motivo: ',r&&r.reason?String(r.reason):'—'],['Hash anterior: ',r&&r.prev_hash?String(r.prev_hash):'—'],['Hash: ',r&&r.record_hash?String(r.record_hash):'—']].forEach(function(pair){const d=document.createElement('div');if(pair[0].indexOf('Hash')===0)d.className='hash';d.textContent=pair[0]+pair[1];detail.appendChild(d);});article.appendChild(left);article.appendChild(detail);container.appendChild(article);
   });
   $('timelineError').hidden=verified.status==='verified';if(verified.status!=='verified')setText('timelineError',verified.reason);
-}
-function hasHumanIncidentRecord(event) {
-  const record=event&&event.human_decision&&typeof event.human_decision==='object'?event.human_decision:null;
-  return !!(record&&typeof record.recorded_at_utc==='string'&&record.recorded_at_utc.trim()&&typeof record.responsible==='string'&&record.responsible.trim()&&typeof record.decision==='string'&&record.decision.trim()&&((typeof record.signature==='string'&&record.signature.trim())||(typeof record.commit_sha==='string'&&record.commit_sha.trim())));
 }
 function renderIncidents(feed) {
   const shadow=feed.shadow&&typeof feed.shadow==='object'?feed.shadow:{},incident=shadow.incident&&typeof shadow.incident==='object'?shadow.incident:{},stopped=shadow.status==='protocol_stopped',events=Array.isArray(shadow.events)?shadow.events.filter(function(event){return event&&typeof event==='object'&&!Array.isArray(event);}):[];
@@ -305,14 +510,14 @@ function renderIncidents(feed) {
     const detail=document.createElement('div');detail.className='signal-details';
     [['Descrição: ',typeof event.detail==='string'&&event.detail.trim()?event.detail:'— · descrição ausente no feed.'],['Origem (campo shadow.events[].event): ',typeof event.event==='string'&&event.event?event.event:'— · campo ausente no feed.']].forEach(function(pair){const line=document.createElement('div');line.textContent=pair[0]+pair[1];detail.appendChild(line);});
     const decision=document.createElement('div');decision.className='reason';
-    if(hasHumanIncidentRecord(event)){const record=event.human_decision;decision.textContent='Registro humano: '+record.decision+' · responsável: '+record.responsible+' · registrado em '+fmtPair(record.recorded_at_utc)+' · assinatura/commit: '+(record.signature||record.commit_sha);}
-    else decision.textContent='decisão pendente do responsável';
+    decision.textContent='Registro humano/assinatura não é exibido neste painel. Status formal da emenda vem de decision.amendment_status.';
     detail.appendChild(decision);article.appendChild(left);article.appendChild(detail);container.appendChild(article);
   });
   setText('incidentRecordsNote','A decisão permanece pendente onde não existe um registro humano explícito no feed. Nenhuma decisão é criada pelo painel.');
 }
 function renderFeed(feed, mode) {
-  renderHealth(feed);renderIncidents(feed);renderSession(feed);renderHistory(feed);renderCriteria(feed);renderAudit(feed);renderTimeline(feed);updateSnapshot(feed,mode,'');
+  currentFeed=feed;lastFetchError=null;
+  renderHealth(feed);renderIncidents(feed);renderSession(feed);renderHistory(feed);renderCriteria(feed);renderAudit(feed);renderTimeline(feed);renderLearning(feed);renderDecisions(feed);renderTrackRibbon(feed);updateSnapshot(feed,mode,'');updateFreshness(feed,mode);
   const time=Date.now();setText('lastRefresh',mode==='fetch'?'Feed buscável consultado: '+fmtTime(time,'UTC')+' UTC · '+fmtTime(time,'America/Sao_Paulo')+' Brasília. Próxima consulta em até 60 s.':'Arquivo estático: sem atualização automática.');
 }
 async function fetchFeed() {
@@ -322,12 +527,10 @@ async function fetchFeed() {
   finally{clearTimeout(timer);}
 }
 async function refreshFeed() {
-  if(refreshInProgress)return;refreshInProgress=true;$('refreshBtn').disabled=true;setText('topStatus','Atualizando feed…');
+  if(refreshInProgress)return;refreshInProgress=true;$('refreshBtn').disabled=true;setText('topStatus','Atualizando feed…');setText('freshnessText','Carregando feed…');
   try{const feed=await fetchFeed();lastSuccessfulFetch=true;renderFeed(feed,'fetch');}
-  catch(error){
-    if(lastSuccessfulFetch){setDynamicUnavailable(error.message);updateSnapshot(STATIC_FEED,'stale-error',error.message);}
-    else{if(STATIC_FEED){renderHistory(STATIC_FEED);renderCriteria(STATIC_FEED);renderAudit(STATIC_FEED);}setDynamicUnavailable(error.message);updateSnapshot(STATIC_FEED,'stale-error',error.message);}
-  }finally{$('refreshBtn').disabled=false;refreshInProgress=false;}
+  catch(error){setDynamicUnavailable(error.message);updateSnapshot(null,'stale-error',error.message);}
+  finally{$('refreshBtn').disabled=false;refreshInProgress=false;}
 }
 function isFetchablePage() {
   return window.location.protocol === 'http:' || window.location.protocol === 'https:';
@@ -354,8 +557,10 @@ function boot() {
   setText('topStatus', 'Snapshot estático');
   updateSnapshot(STATIC_FEED, 'file', '');
 }
-$('refreshBtn').addEventListener('click',function(){if(window.location.protocol==='http:'||window.location.protocol==='https:')refreshFeed();else{setText('topStatus','Snapshot estático');updateSnapshot(STATIC_FEED,'file','');}});
+$('refreshBtn').addEventListener('click',function(){if(window.location.protocol==='http:'||window.location.protocol==='https:'){lastFetchError=null;setText('freshnessText','Carregando feed…');refreshFeed();}else{setText('topStatus','Snapshot estático');updateSnapshot(STATIC_FEED,'file','');}});
+$('learningReportBtn').addEventListener('click',function(){});
 boot();
+window.setInterval(tickFreshness,60000);
 </script>
 </body>
 </html>

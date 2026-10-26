@@ -34,3 +34,10 @@ reports/*
 **/*.log
 !data/raw/BTCUSDT_1m.csv
 /.gitignore.backup-*
+
+# Trilha A stores only public market candles and generated quality reports.
+# Re-include these paths after the broad **/reports/ ignore above.
+!learning/data/
+!learning/data/**
+!learning/reports/
+!learning/reports/**
