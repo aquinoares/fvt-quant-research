@@ -333,7 +333,7 @@
             var key = eventKey(event);
             if (context.seenEventKeys.has(key)) return;
             context.seenEventKeys.add(key);
-            if (event.timestamp > context.initialCurrentStart) {
+            if (event.timestamp >= context.initialCurrentStart) {
               context.liveEvents.push({
                 lane: event.lane,
                 timestamp: event.timestamp,
