@@ -2,11 +2,11 @@
 
 **EXPLORATÓRIO — NÃO É PROVA.**
 
-- Gerado em UTC: 2026-10-26T20:38:30Z
+- Gerado em UTC: 2026-10-26T21:37:44Z
 - Método: Baseline long-only SMA-20 não otimizado; sinal usa candles anteriores e custos por lado.
 - Custo ida e volta: 30 bps.
-- Treino (primeiros 70%): {"buy_hold_net_return": 0.18451037861797182, "candles": 87, "completed_trades": 3, "exposure_bars": 59, "max_drawdown": -0.06272293928849693, "net_return": 0.14638730307996384, "status": "ok"}
-- Validação (últimos 30%): {"buy_hold_net_return": -0.045073624694228265, "candles": 38, "completed_trades": 1, "exposure_bars": 4, "max_drawdown": -0.05337427875940681, "net_return": -0.02819098491995564, "status": "ok"}
+- Treino (primeiros 70%): {"buy_hold_net_return": 0.1757099956675523, "candles": 116, "completed_trades": 3, "exposure_bars": 83, "max_drawdown": -0.06272293928849693, "net_return": 0.1401498822106655, "status": "ok"}
+- Validação (últimos 30%): {"buy_hold_net_return": 0.07654117110881953, "candles": 50, "completed_trades": 1, "exposure_bars": 13, "max_drawdown": -0.009436916904449033, "net_return": 0.06163442747655079, "status": "ok"}
 
 ## Avisos obrigatórios
 
