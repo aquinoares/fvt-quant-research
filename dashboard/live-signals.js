@@ -595,7 +595,7 @@
       }
       if (candle.closed) persistClosed(candle);
       context.currentCandle = candle;
-      if (finite(context.price)) candle.c = context.price;
+      if (!candle.closed && finite(context.price)) candle.c = context.price;
       calculate();
     }
 
