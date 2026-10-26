@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#080e15">
-<title>FVT Quant Research · Painel de observação v0.3</title>
+<title>FVT | Painel ao vivo A/B</title>
 <style>
 :root{color-scheme:dark;--bg:#080e15;--panel:#111b25;--line:#293947;--text:#eff5fb;--muted:#a4b3c1;--cyan:#77e4dc;--green:#6fe0a5;--yellow:#f2cf79;--red:#ff858d}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 80% -12%,#173242 0,transparent 36%),var(--bg);color:var(--text);font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}a{color:var(--cyan);text-underline-offset:3px}a:focus-visible,button:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}button{font:inherit}.app{max-width:1440px;margin:0 auto;padding:24px clamp(14px,2.5vw,32px) 38px}.topbar,.hero,.section-heading,.footer{display:flex;justify-content:space-between;gap:16px}.topbar{align-items:center;margin-bottom:24px}.brand{display:flex;align-items:center;gap:12px;min-width:0}.mark{height:44px;width:44px;flex:0 0 auto;border-radius:13px;background:linear-gradient(145deg,#83eee2,#7ba7ff);display:grid;place-items:center;color:#07111a;font-weight:900;font-size:21px}.eyebrow,.small-label{font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--cyan);font-weight:800}.small-label{letter-spacing:.12em;color:var(--muted)}h1{font-size:clamp(16px,2vw,21px);letter-spacing:-.03em;margin:2px 0 0}.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.pill,.tag{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:30px;padding:6px 10px;color:var(--muted);font-size:11px}.dot{width:9px;height:9px;border-radius:50%;background:var(--yellow);display:inline-block;flex:0 0 auto}.dot.green{background:var(--green)}.dot.yellow{background:var(--yellow)}.dot.red{background:var(--red)}.btn{border:1px solid #3a4c5c;background:#182532;color:var(--text);border-radius:10px;padding:9px 13px;font-weight:700;cursor:pointer}.btn:hover{border-color:var(--cyan)}.btn:disabled{opacity:.6;cursor:wait}.hero{align-items:flex-end;margin:10px 0 18px}.hero h2{font-size:clamp(30px,4.2vw,44px);line-height:1.04;letter-spacing:-.055em;margin:8px 0 12px}.hero p{max-width:800px;margin:0;color:var(--muted)}.hero-meta{text-align:right;min-width:210px;color:var(--muted);font-size:11px}.hero-meta strong{display:block;font-size:14px;color:var(--text);margin-bottom:3px}.snapshot{padding:10px 13px;border:1px solid var(--line);background:#0b141d;border-radius:11px;color:var(--muted);font-size:12px;margin-bottom:13px;overflow-wrap:anywhere}.snapshot strong{color:var(--text)}.snapshot.warn{border-color:#725a2a;color:#f0dda8}
@@ -37,6 +37,7 @@ body{background:radial-gradient(ellipse at 80% -12%,#dcecf4 0,transparent 36%),v
 
 .track-ribbon{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 13px;margin:-8px 0 16px;border:1px solid #35505c;border-radius:11px;background:#08131cf2;backdrop-filter:blur(12px);font-size:11px}.track-ribbon span{padding:4px 8px;border-radius:7px;background:#111f29}.track-ribbon strong{color:var(--cyan);font-variant-numeric:tabular-nums}.track-ribbon.error{border-color:#8a3840}.track-ribbon.stale{border-color:#735c2c}.daily-bar{fill:var(--cyan)}.daily-axis{stroke:#415361;stroke-width:1}.daily-label{fill:var(--muted);font-size:10px}@media(max-width:650px){.track-ribbon{position:static}.track-ribbon span,.track-ribbon strong{width:100%}}
 .live-market-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 14px}
+.technical-details{margin:22px 0 0;border:1px solid var(--line);border-radius:15px;background:linear-gradient(155deg,#101a23,#0b131b);overflow:hidden}.technical-details>summary{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px;list-style:none;cursor:pointer;font-weight:800}.technical-details>summary::-webkit-details-marker{display:none}.technical-details>summary:focus-visible{outline:3px solid var(--cyan);outline-offset:-3px}.technical-kicker{font-size:10px;letter-spacing:.14em;color:var(--cyan);font-weight:900}.technical-heading{flex:1;font-size:14px}.technical-summary-note{flex-basis:100%;padding-left:0;font-size:11px;color:var(--muted);font-weight:500}.technical-chevron{display:grid;place-items:center;width:28px;height:28px;border:1px solid var(--line);border-radius:8px;font-size:20px;color:var(--cyan)}.technical-details[open]>summary{border-bottom:1px solid var(--line);background:#0b141d}.technical-details[open] .technical-content{padding:16px}.technical-details[open] .track-ribbon{position:static;margin-top:0}.live-status-hint{margin:2px 0 14px;border-color:#35505c;background:#0b1821;color:#d8e6ed}.live-disclaimer{margin:12px 0 0;color:var(--muted);font-size:11px;line-height:1.5}
 .live-market-card,.live-lane,.live-chart-panel,.live-table-panel{min-width:0;border:1px solid var(--line);border-radius:12px;background:#0b141d;padding:14px}
 .live-market-card span,.live-market-card small{display:block;color:var(--muted);font-size:11px}
 .live-market-card strong{display:block;font-size:clamp(22px,3vw,30px);line-height:1.2;margin:8px 0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
@@ -89,9 +90,60 @@ body{background:radial-gradient(ellipse at 80% -12%,#dcecf4 0,transparent 36%),v
 <body>
 <div class="app">
 <header class="topbar">
-<div class="brand"><div class="mark" aria-hidden="true">F</div><div><div class="eyebrow">FVT · QUANT RESEARCH</div><h1>Painel de observação <span class="muted">v0.3</span></h1></div></div>
+<div class="brand"><div class="mark" aria-hidden="true">F</div><div><div class="eyebrow">FVT · LIVE SIGNALS</div><h1>Painel ao vivo <span class="muted">A / B</span></h1></div></div>
 <div class="actions"><span class="pill"><span id="topDot" class="dot red" aria-hidden="true"></span><span id="topStatus" role="status" aria-live="polite">Carregando snapshot…</span></span><button class="btn" id="refreshBtn" type="button">↻ Atualizar feed</button></div>
 </header>
+<section id="liveSignals" class="section live-signals" aria-labelledby="liveSignalsHeading">
+ <article class="panel">
+  <div class="section-heading">
+   <div><div class="eyebrow">MERCADO BTCUSDT · FLUXO EM TEMPO REAL</div><h3 id="liveSignalsHeading">Painel de sinais · motores A / B</h3><p>Preço ao vivo, gráfico e placar separado por estratégia. Sinais calculados pelo FVT; nenhuma ordem é enviada.</p></div>
+   <span id="liveConnection" class="tag live-connection live-connecting" role="status" aria-live="polite">Preparando conexão…</span>
+  </div>
+  <div class="live-market-grid">
+   <div class="live-market-card"><span>BTCUSDT · último preço</span><strong id="livePrice">—</strong><small id="liveTickTime">Aguardando primeira cotação</small></div>
+   <div class="live-market-card"><span>Candles históricos analisados · 4h</span><strong id="liveCandleCount">—</strong><small>Histórico público usado nos cálculos simulados</small></div>
+   <div class="live-market-card"><span>Lacunas no histórico · 4h</span><strong id="liveGapCount">—</strong><small>Último candle: <span id="liveLastBar">—</span></small></div>
+  </div>
+  <p id="liveStatusHint" class="notice live-status-hint">A cotação muda em tempo real; os motores avaliam regras em candles de 4h. O contador pode ficar em zero até surgir um novo BUY/EXIT. A conexão com o robô WIL ainda não está ativa.</p>
+   <div class="live-lanes">
+   <section class="live-lane live-lane-a" aria-labelledby="liveAHeading">
+    <div class="live-lane-heading"><div><span class="live-lane-code">A</span><h4 id="liveAHeading">SMA-20 · 4h</h4></div><span id="liveAState" class="tag">Aguardando candles</span></div>
+    <p class="muted">Regra A · SMA-20 de 4h · simulação com dados públicos.</p>
+    <div class="live-metrics">
+     <div><span>Sinais históricos</span><strong id="liveASignals">—</strong></div>
+     <div><span>WINs históricos</span><strong id="liveAWins">—</strong></div>
+     <div><span>LOSSes históricos</span><strong id="liveALosses">—</strong></div>
+     <div><span>Retorno da posição simulada</span><strong id="liveAOpenPnl">—</strong></div>
+    </div>
+    <div class="live-captured">EVENTOS NOVOS · SESSÃO LOCAL <strong id="liveALiveCount">0 sinais</strong><span>WINs: <b id="liveALiveWins">0</b> · LOSSes: <b id="liveALiveLosses">0</b></span></div>
+   </section>
+   <section class="live-lane live-lane-b" aria-labelledby="liveBHeading">
+    <div class="live-lane-heading"><div><span class="live-lane-code">B</span><h4 id="liveBHeading">P6-MOM · 4h / ROC96</h4></div><span id="liveBState" class="tag">Aguardando candles</span></div>
+    <p class="muted">Regra B · ROC de 96 candles acima de 0,5% · simulação com dados públicos.</p>
+    <div class="live-metrics">
+     <div><span>Sinais históricos</span><strong id="liveBSignals">—</strong></div>
+     <div><span>WINs históricos</span><strong id="liveBWins">—</strong></div>
+     <div><span>LOSSes históricos</span><strong id="liveBLosses">—</strong></div>
+     <div><span>Retorno da posição simulada</span><strong id="liveBOpenPnl">—</strong></div>
+    </div>
+    <div class="live-captured">EVENTOS NOVOS · SESSÃO LOCAL <strong id="liveBLiveCount">0 sinais</strong><span>WINs: <b id="liveBLiveWins">0</b> · LOSSes: <b id="liveBLiveLosses">0</b></span></div>
+   </section>
+  </div>
+  <div class="live-chart-panel">
+   <div class="section-heading"><div><h4>Gráfico BTCUSDT · marcações A / B</h4><p>Preço público em tempo real; círculos = BUY e quadrados = EXIT das simulações.</p></div><span class="tag">Custos simulados: 15 bps por lado</span></div>
+   <div class="live-legend"><span><i class="legend-line"></i>Preço ao vivo</span><span><i class="legend-marker legend-a"></i>A · SMA-20</span><span><i class="legend-marker legend-b"></i>B · P6-MOM</span></div>
+   <svg id="liveSignalChart" viewBox="0 0 900 300" role="img" aria-label="Gráfico BTCUSDT com sinais de compra e saída das estratégias A e B" class="live-signal-chart"></svg>
+  </div>
+  <div class="live-table-panel">
+   <div class="section-heading"><div><h4>Fita de sinais · histórico e eventos recentes</h4><p>Entradas BUY, saídas EXIT e resultado estimado, identificados por motor.</p></div><span class="tag">BUY / EXIT · WIN / LOSS</span></div>
+   <div class="table-wrap"><table class="live-signal-table"><thead><tr><th>Horário (Brasília)</th><th>Motor</th><th>Ação</th><th>Preço</th><th>Origem</th><th>Resultado</th><th>Retorno líquido estimado</th></tr></thead><tbody id="liveSignalRows"><tr><td colspan="7">Carregando histórico e sinais…</td></tr></tbody></table></div>
+  </div>
+  <p class="live-disclaimer">Feed público de preços da Binance. Os motores A/B ainda não recebem sinais reais do WIL; WIN/LOSS e posições são simulados, não são operações executadas. Os eventos da sessão ficam neste navegador e ainda não sincronizam entre dispositivos.</p>
+ </article>
+</section>
+<details id="technicalDetails" class="technical-details">
+<summary><span class="technical-kicker">ÁREA TÉCNICA</span><span class="technical-heading">Auditoria, coleta em nuvem e pesquisa histórica</span><span class="technical-chevron" aria-hidden="true">+</span><span class="technical-summary-note">Diagnóstico do protocolo, integridade dos dados, histórico e decisões do projeto</span></summary>
+<div class="technical-content">
 <div id="trackRibbon" class="track-ribbon" role="status" aria-live="polite">
  <span id="trackBStatus">Trilha B: parada — decisão pendente do responsável</span>
  <span id="trackAStatus">Trilha A: aguardando coleta · EXPLORATÓRIO — NÃO É PROVA</span>
@@ -102,54 +154,7 @@ body{background:radial-gradient(ellipse at 80% -12%,#dcecf4 0,transparent 36%),v
 <div class="hero-meta"><strong id="sessionWindow">Janela prospectiva</strong><span id="windowStart">— UTC</span><br><span id="windowEnd">— UTC</span></div>
 </section>
 
-<section id="liveSignals" class="section live-signals" aria-labelledby="liveSignalsHeading">
- <article class="panel">
-  <div class="section-heading">
-   <div><div class="eyebrow">ROBO SIGNAL TAPE · MARKET STREAM</div><h3 id="liveSignalsHeading">Sinais ao vivo · A / B</h3><p>BTCUSDT Spot · preço em WebSocket · BUY/EXIT plotados · placar WIN/LOSS por regras do projeto.</p></div>
-   <span id="liveConnection" class="tag live-connection live-connecting" role="status" aria-live="polite">Preparando conexão…</span>
-  </div>
-  <div class="live-market-grid">
-   <div class="live-market-card"><span>BTCUSDT · último preço</span><strong id="livePrice">—</strong><small id="liveTickTime">Aguardando primeira cotação</small></div>
-   <div class="live-market-card"><span>Candles 4h carregados</span><strong id="liveCandleCount">—</strong><small>Histórico público + cache local deste navegador</small></div>
-   <div class="live-market-card"><span>Lacunas de 4h no histórico</span><strong id="liveGapCount">—</strong><small>Último candle: <span id="liveLastBar">—</span></small></div>
-  </div>
-  <div class="live-lanes">
-   <section class="live-lane live-lane-a" aria-labelledby="liveAHeading">
-    <div class="live-lane-heading"><div><span class="live-lane-code">A</span><h4 id="liveAHeading">SMA-20 · 4h</h4></div><span id="liveAState" class="tag">Aguardando candles</span></div>
-    <p class="muted">Baseline pedagógico já existente no projeto.</p>
-    <div class="live-metrics">
-     <div><span>Sinais (BUY + EXIT)</span><strong id="liveASignals">—</strong></div>
-     <div><span>WINs fechados</span><strong id="liveAWins">—</strong></div>
-     <div><span>LOSSes fechados</span><strong id="liveALosses">—</strong></div>
-     <div><span>PnL da posição aberta</span><strong id="liveAOpenPnl">—</strong></div>
-    </div>
-    <div class="live-captured">AO VIVO NESTE NAVEGADOR <strong id="liveALiveCount">0 sinais</strong><span>WINs: <b id="liveALiveWins">0</b> · LOSSes: <b id="liveALiveLosses">0</b></span></div>
-   </section>
-   <section class="live-lane live-lane-b" aria-labelledby="liveBHeading">
-    <div class="live-lane-heading"><div><span class="live-lane-code">B</span><h4 id="liveBHeading">P6-MOM · 4h / ROC96</h4></div><span id="liveBState" class="tag">Aguardando candles</span></div>
-    <p class="muted">ROC de 96 candles acima de 0,5%; long-only, reproduzido para observação em tempo real.</p>
-    <div class="live-metrics">
-     <div><span>Sinais (BUY + EXIT)</span><strong id="liveBSignals">—</strong></div>
-     <div><span>WINs fechados</span><strong id="liveBWins">—</strong></div>
-     <div><span>LOSSes fechados</span><strong id="liveBLosses">—</strong></div>
-     <div><span>PnL da posição aberta</span><strong id="liveBOpenPnl">—</strong></div>
-    </div>
-    <div class="live-captured">AO VIVO NESTE NAVEGADOR <strong id="liveBLiveCount">0 sinais</strong><span>WINs: <b id="liveBLiveWins">0</b> · LOSSes: <b id="liveBLiveLosses">0</b></span></div>
-   </section>
-  </div>
-  <div class="live-chart-panel">
-   <div class="section-heading"><div><h4>Gráfico BTCUSDT · sinais no preço</h4><p>Últimos 120 candles de 4h; círculos = BUY e quadrados = EXIT.</p></div><span class="tag">Custo estimado: 15 bps por lado</span></div>
-   <div class="live-legend"><span><i class="legend-line"></i>Preço ao vivo</span><span><i class="legend-marker legend-a"></i>A · SMA-20</span><span><i class="legend-marker legend-b"></i>B · P6-MOM</span></div>
-   <svg id="liveSignalChart" viewBox="0 0 900 300" role="img" aria-label="Gráfico BTCUSDT com sinais de compra e saída das estratégias A e B" class="live-signal-chart"></svg>
-  </div>
-  <div class="live-table-panel">
-   <div class="section-heading"><div><h4>Fita de sinais · formato operacional de robô</h4><p>Mais recentes primeiro; AO VIVO marca eventos observados após a conexão do navegador.</p></div><span class="tag">BUY / EXIT · W / L</span></div>
-   <div class="table-wrap"><table class="live-signal-table"><thead><tr><th>Horário (Brasília)</th><th>Motor</th><th>Ação</th><th>Preço</th><th>Origem</th><th>Resultado</th><th>Retorno líquido estimado</th></tr></thead><tbody id="liveSignalRows"><tr><td colspan="7">Carregando histórico e sinais…</td></tr></tbody></table></div>
-  </div>
-  <p id="liveStatusHint" class="notice">Carregando feed público.</p>
-  <p class="live-disclaimer">Dados públicos da Binance. Sinais e WIN/LOSS são simulação calculada pelas regras A/B do repositório; não vêm de uma sessão autenticada do robô WIL e não são ordens executadas. O contador “ao vivo neste navegador” usa armazenamento local e não sincroniza entre dispositivos.</p>
- </article>
-</section>
+
 
 <section id="incidentBanner" class="incident-banner" role="alert" aria-labelledby="incidentTitle" hidden>
 <div class="incident-head"><h2 id="incidentTitle" class="incident-title">Protocolo interrompido</h2><span class="tag">protocol_stopped</span></div>
@@ -267,7 +272,10 @@ body{background:radial-gradient(ellipse at 80% -12%,#dcecf4 0,transparent 36%),v
   <div id="incidentTimeline" class="timeline" style="margin-top:14px"><div class="empty">Carregando cronologia versionada…</div></div>
  </article>
 </section>
-<footer class="footer"><div><div>FVT Quant Research · Painel de observação v0.3 · somente leitura</div><div class="footer-hash" id="footerSnapshot">Snapshot: ainda não carregado.</div><div class="footer-hash" id="footerCommit">Commit do painel/feed: —</div><div class="footer-hash" id="footerManifest">Manifesto SHA-256 informado pelo feed: —</div><div id="lastRefresh">Atualização: —</div></div><div class="footer-links"><a href="https://github.com/aquinoares/fvt-quant-research" target="_blank" rel="noopener noreferrer">Repositório GitHub</a><a href="https://github.com/aquinoares/fvt-quant-research/actions" target="_blank" rel="noopener noreferrer">Execuções GitHub Actions</a><a href="https://github.com/aquinoares/fvt-quant-research/actions/workflows/p6-mom-cloud-live.yml" target="_blank" rel="noopener noreferrer">Workflow do coletor</a><a href="https://github.com/aquinoares/fvt-quant-research/actions/workflows/fvt-dashboard.yml" target="_blank" rel="noopener noreferrer">Workflow do painel</a></div></footer>
+
+</div>
+</details>
+<footer class="footer"><div><div>FVT Quant Research · painel de sinais A/B · simulação, somente leitura</div><div class="footer-hash" id="footerSnapshot">Snapshot: ainda não carregado.</div><div class="footer-hash" id="footerCommit">Commit do painel/feed: —</div><div class="footer-hash" id="footerManifest">Manifesto SHA-256 informado pelo feed: —</div><div id="lastRefresh">Atualização: —</div></div><div class="footer-links"><a href="https://github.com/aquinoares/fvt-quant-research" target="_blank" rel="noopener noreferrer">Repositório GitHub</a><a href="https://github.com/aquinoares/fvt-quant-research/actions" target="_blank" rel="noopener noreferrer">Execuções GitHub Actions</a><a href="https://github.com/aquinoares/fvt-quant-research/actions/workflows/p6-mom-cloud-live.yml" target="_blank" rel="noopener noreferrer">Workflow do coletor</a><a href="https://github.com/aquinoares/fvt-quant-research/actions/workflows/fvt-dashboard.yml" target="_blank" rel="noopener noreferrer">Workflow do painel</a></div></footer>
 </div>
 <!-- FVT_RUNTIME_DATA -->
 <!-- FVT_CORE_LOGIC -->

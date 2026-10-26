@@ -524,7 +524,7 @@
       setText('liveLastBar', bars.length ? fmtTime(bars[bars.length - 1].t) : '—');
       setText('liveStatusHint', context.restError
         ? 'REST indisponível: ' + context.restError + '. Tentando manter o fluxo WebSocket e o histórico local.'
-        : 'Sinais calculados em candles BTCUSDT de 4h; execução simulada, custos estimados de 15 bps por lado.');
+        : 'Cotação atualizada em tempo real; os motores avaliam condições em candles de 4h. O contador da sessão só muda quando a regra gera BUY/EXIT. Ainda não há captura do WIL nem ordens executadas.');
 
       renderLane('A');
       renderLane('B');
@@ -654,7 +654,7 @@
     }
 
     async function start() {
-      setText('liveStatusHint', 'Carregando até 500 candles públicos de 4h e preparando as estratégias A/B…');
+      setText('liveStatusHint', 'Conectando ao preço público e carregando o histórico para calcular os motores A/B…');
       try {
         var fetched = await fetchHistory();
         context.closedCandles = mergeCandles(context.closedCandles, fetched, MAX_CANDLES);
