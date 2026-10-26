@@ -590,15 +590,15 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-      - name: Upload GitHub Pages artifact only with explicit public opt-in
-        if: ${{ github.event_name != 'pull_request' && vars.ENABLE_PUBLIC_PAGES == 'true' }}
+      - name: Upload GitHub Pages artifact for public dashboard
+        if: ${{ github.event_name != 'pull_request' }}
         uses: actions/upload-pages-artifact@v4
         with:
           path: site
 
   deploy:
-    name: Publish dashboard (opt-in; may expose the page publicly)
-    if: ${{ github.event_name != 'pull_request' && vars.ENABLE_PUBLIC_PAGES == 'true' }}
+    name: Publish live-signal dashboard to GitHub Pages
+    if: ${{ github.event_name != 'pull_request' }}
     needs: build
     runs-on: ubuntu-latest
     permissions:
