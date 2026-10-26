@@ -35,7 +35,56 @@ body{background:radial-gradient(ellipse at 80% -12%,#dcecf4 0,transparent 36%),v
 .health-icon{background:#edf3f6}
 }
 
-.track-ribbon{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 13px;margin:-8px 0 16px;border:1px solid #35505c;border-radius:11px;background:#08131cf2;backdrop-filter:blur(12px);font-size:11px}.track-ribbon span{padding:4px 8px;border-radius:7px;background:#111f29}.track-ribbon strong{color:var(--cyan);font-variant-numeric:tabular-nums}.track-ribbon.error{border-color:#8a3840}.track-ribbon.stale{border-color:#735c2c}.daily-bar{fill:var(--cyan)}.daily-axis{stroke:#415361;stroke-width:1}.daily-label{fill:var(--muted);font-size:10px}@media(max-width:650px){.track-ribbon{position:static}.track-ribbon span,.track-ribbon strong{width:100%}}</style>
+.track-ribbon{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 13px;margin:-8px 0 16px;border:1px solid #35505c;border-radius:11px;background:#08131cf2;backdrop-filter:blur(12px);font-size:11px}.track-ribbon span{padding:4px 8px;border-radius:7px;background:#111f29}.track-ribbon strong{color:var(--cyan);font-variant-numeric:tabular-nums}.track-ribbon.error{border-color:#8a3840}.track-ribbon.stale{border-color:#735c2c}.daily-bar{fill:var(--cyan)}.daily-axis{stroke:#415361;stroke-width:1}.daily-label{fill:var(--muted);font-size:10px}@media(max-width:650px){.track-ribbon{position:static}.track-ribbon span,.track-ribbon strong{width:100%}}
+.live-market-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 14px}
+.live-market-card,.live-lane,.live-chart-panel,.live-table-panel{min-width:0;border:1px solid var(--line);border-radius:12px;background:#0b141d;padding:14px}
+.live-market-card span,.live-market-card small{display:block;color:var(--muted);font-size:11px}
+.live-market-card strong{display:block;font-size:clamp(22px,3vw,30px);line-height:1.2;margin:8px 0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.live-lanes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:14px}
+.live-lane-a{border-top:3px solid var(--cyan)}.live-lane-b{border-top:3px solid var(--yellow)}
+.live-lane-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.live-lane-heading>div{display:flex;align-items:center;gap:10px}
+.live-lane-heading h4{font-size:17px;margin:0}
+.live-lane-code{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#ffffff0c;border:1px solid var(--line);font-weight:900;font-size:18px}
+.live-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:13px 0}
+.live-metrics>div{padding:10px;border-radius:9px;border:1px solid #263642;background:#111b24;min-width:0}
+.live-metrics span{display:block;color:var(--muted);font-size:10px}
+.live-metrics strong{display:block;margin-top:4px;font-size:20px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.live-captured{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:10px;border-radius:9px;background:#ffffff05;border:1px dashed var(--line);font-size:10px;color:var(--muted)}
+.live-captured strong{font-size:12px;color:var(--cyan);text-align:right}
+.live-captured>span{grid-column:1/-1}
+.live-connection{font-weight:800}
+.live-connected{color:var(--green)!important;border-color:var(--green)!important}
+.live-connecting{color:var(--yellow)!important;border-color:var(--yellow)!important}
+.live-disconnected{color:var(--red)!important;border-color:var(--red)!important}
+.live-chart-panel,.live-table-panel{margin-top:14px}
+.live-signal-chart{display:block;width:100%;height:auto;min-height:180px;overflow:visible}
+.live-grid-line{stroke:var(--line);stroke-width:1;stroke-dasharray:4 5}
+.live-axis-label{fill:var(--muted);font-size:10px}
+.live-chart-empty{fill:var(--muted);font-size:14px}
+.live-price-line{fill:none;stroke:var(--cyan);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.live-marker{stroke:#07111a;stroke-width:1.3}
+.live-marker-a{fill:var(--cyan)}.live-marker-b{fill:var(--yellow)}
+.live-marker-exit{stroke-width:1.6}
+.live-legend{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0;color:var(--muted);font-size:11px}
+.live-legend span{display:inline-flex;gap:7px;align-items:center}
+.legend-line{display:inline-block;width:20px;border-top:3px solid var(--cyan)}
+.legend-marker{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--cyan)}
+.legend-b{background:var(--yellow)}
+.live-signal-table{min-width:780px}
+.live-signal-table th,.live-signal-table td{font-size:11px}
+.live-row-buy td:nth-child(3){color:var(--green);font-weight:800}
+.live-row-exit td:nth-child(3){color:var(--yellow);font-weight:800}
+.live-disclaimer{font-size:11px;color:var(--muted);margin:12px 0 0}
+@media(prefers-color-scheme:light){
+.live-market-card,.live-lane,.live-chart-panel,.live-table-panel{background:#f8fafb;border-color:#d2dfe7}
+.live-metrics>div{background:#fff;border-color:#d4e0e7}
+.live-captured{background:#f1f6f8;border-color:#c6d5de}
+.live-marker{stroke:#fff}
+}
+@media(max-width:800px){.live-market-grid{grid-template-columns:1fr}.live-lanes{grid-template-columns:1fr}.live-signal-chart{min-height:150px}.live-market-card strong{font-size:25px}}
+
+</style>
 </head>
 <body>
 <div class="app">
@@ -52,6 +101,56 @@ body{background:radial-gradient(ellipse at 80% -12%,#dcecf4 0,transparent 36%),v
 <div><div class="eyebrow">OBSERVAÇÃO · INTEGRIDADE · RISCO</div><h2 id="pageTitle">Acompanhar sem<br>inventar evidências.</h2><p>P6-MOM · MOM_TF240_LB96 · BTCUSDT spot long-only · sinal em candles de 4 horas. Modo somente sombra, leitura e auditoria; sem ordens reais e sem edição de parâmetros.</p></div>
 <div class="hero-meta"><strong id="sessionWindow">Janela prospectiva</strong><span id="windowStart">— UTC</span><br><span id="windowEnd">— UTC</span></div>
 </section>
+
+<section id="liveSignals" class="section live-signals" aria-labelledby="liveSignalsHeading">
+ <article class="panel">
+  <div class="section-heading">
+   <div><div class="eyebrow">ROBO SIGNAL TAPE · MARKET STREAM</div><h3 id="liveSignalsHeading">Sinais ao vivo · A / B</h3><p>BTCUSDT Spot · preço em WebSocket · BUY/EXIT plotados · placar WIN/LOSS por regras do projeto.</p></div>
+   <span id="liveConnection" class="tag live-connection live-connecting" role="status" aria-live="polite">Preparando conexão…</span>
+  </div>
+  <div class="live-market-grid">
+   <div class="live-market-card"><span>BTCUSDT · último preço</span><strong id="livePrice">—</strong><small id="liveTickTime">Aguardando primeira cotação</small></div>
+   <div class="live-market-card"><span>Candles 4h carregados</span><strong id="liveCandleCount">—</strong><small>Histórico público + cache local deste navegador</small></div>
+   <div class="live-market-card"><span>Lacunas de 4h no histórico</span><strong id="liveGapCount">—</strong><small>Último candle: <span id="liveLastBar">—</span></small></div>
+  </div>
+  <div class="live-lanes">
+   <section class="live-lane live-lane-a" aria-labelledby="liveAHeading">
+    <div class="live-lane-heading"><div><span class="live-lane-code">A</span><h4 id="liveAHeading">SMA-20 · 4h</h4></div><span id="liveAState" class="tag">Aguardando candles</span></div>
+    <p class="muted">Baseline pedagógico já existente no projeto.</p>
+    <div class="live-metrics">
+     <div><span>Sinais (BUY + EXIT)</span><strong id="liveASignals">—</strong></div>
+     <div><span>WINs fechados</span><strong id="liveAWins">—</strong></div>
+     <div><span>LOSSes fechados</span><strong id="liveALosses">—</strong></div>
+     <div><span>PnL da posição aberta</span><strong id="liveAOpenPnl">—</strong></div>
+    </div>
+    <div class="live-captured">AO VIVO NESTE NAVEGADOR <strong id="liveALiveCount">0 sinais</strong><span>WINs: <b id="liveALiveWins">0</b> · LOSSes: <b id="liveALiveLosses">0</b></span></div>
+   </section>
+   <section class="live-lane live-lane-b" aria-labelledby="liveBHeading">
+    <div class="live-lane-heading"><div><span class="live-lane-code">B</span><h4 id="liveBHeading">P6-MOM · 4h / ROC96</h4></div><span id="liveBState" class="tag">Aguardando candles</span></div>
+    <p class="muted">ROC de 96 candles acima de 0,5%; long-only, reproduzido para observação em tempo real.</p>
+    <div class="live-metrics">
+     <div><span>Sinais (BUY + EXIT)</span><strong id="liveBSignals">—</strong></div>
+     <div><span>WINs fechados</span><strong id="liveBWins">—</strong></div>
+     <div><span>LOSSes fechados</span><strong id="liveBLosses">—</strong></div>
+     <div><span>PnL da posição aberta</span><strong id="liveBOpenPnl">—</strong></div>
+    </div>
+    <div class="live-captured">AO VIVO NESTE NAVEGADOR <strong id="liveBLiveCount">0 sinais</strong><span>WINs: <b id="liveBLiveWins">0</b> · LOSSes: <b id="liveBLiveLosses">0</b></span></div>
+   </section>
+  </div>
+  <div class="live-chart-panel">
+   <div class="section-heading"><div><h4>Gráfico BTCUSDT · sinais no preço</h4><p>Últimos 120 candles de 4h; círculos = BUY e quadrados = EXIT.</p></div><span class="tag">Custo estimado: 15 bps por lado</span></div>
+   <div class="live-legend"><span><i class="legend-line"></i>Preço ao vivo</span><span><i class="legend-marker legend-a"></i>A · SMA-20</span><span><i class="legend-marker legend-b"></i>B · P6-MOM</span></div>
+   <svg id="liveSignalChart" viewBox="0 0 900 300" role="img" aria-label="Gráfico BTCUSDT com sinais de compra e saída das estratégias A e B" class="live-signal-chart"></svg>
+  </div>
+  <div class="live-table-panel">
+   <div class="section-heading"><div><h4>Fita de sinais · formato operacional de robô</h4><p>Mais recentes primeiro; AO VIVO marca eventos observados após a conexão do navegador.</p></div><span class="tag">BUY / EXIT · W / L</span></div>
+   <div class="table-wrap"><table class="live-signal-table"><thead><tr><th>Horário (Brasília)</th><th>Motor</th><th>Ação</th><th>Preço</th><th>Origem</th><th>Resultado</th><th>Retorno líquido estimado</th></tr></thead><tbody id="liveSignalRows"><tr><td colspan="7">Carregando histórico e sinais…</td></tr></tbody></table></div>
+  </div>
+  <p id="liveStatusHint" class="notice">Carregando feed público.</p>
+  <p class="live-disclaimer">Dados públicos da Binance. Sinais e WIN/LOSS são simulação calculada pelas regras A/B do repositório; não vêm de uma sessão autenticada do robô WIL e não são ordens executadas. O contador “ao vivo neste navegador” usa armazenamento local e não sincroniza entre dispositivos.</p>
+ </article>
+</section>
+
 <section id="incidentBanner" class="incident-banner" role="alert" aria-labelledby="incidentTitle" hidden>
 <div class="incident-head"><h2 id="incidentTitle" class="incident-title">Protocolo interrompido</h2><span class="tag">protocol_stopped</span></div>
 <p id="incidentDetail">Motivo não disponível no feed.</p>
@@ -562,5 +661,6 @@ $('learningReportBtn').addEventListener('click',function(){});
 boot();
 window.setInterval(tickFreshness,60000);
 </script>
+<script src="./live-signals.js"></script>
 </body>
 </html>
