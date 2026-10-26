@@ -1,0 +1,171 @@
+{
+  "now_utc": "2026-10-25T00:00:00.000Z",
+  "health_schedule": {
+    "collector_cron": "15,45 * * * *",
+    "dashboard_cron": "20,50 * * * *"
+  },
+  "cases": [
+    {
+      "name": "verde",
+      "expected": "green",
+      "updated_at_utc": "2026-10-24T23:58:00.000Z",
+      "collection_health": {
+        "last_open_time": "2026-10-24T23:30:00.000Z",
+        "candles_48h": 1800,
+        "gaps_48h": 0,
+        "server_time_ms": 1792886400000
+      },
+      "shadow": {
+        "status": "running"
+      }
+    },
+    {
+      "name": "amarelo por idade do candle",
+      "expected": "yellow",
+      "updated_at_utc": "2026-10-24T23:58:00.000Z",
+      "collection_health": {
+        "last_open_time": "2026-10-24T23:00:00.000Z",
+        "candles_48h": 1770,
+        "gaps_48h": 0,
+        "server_time_ms": 1792886400000
+      },
+      "shadow": {
+        "status": "running"
+      }
+    },
+    {
+      "name": "vermelho por candle antigo",
+      "expected": "red",
+      "updated_at_utc": "2026-10-24T23:58:00.000Z",
+      "collection_health": {
+        "last_open_time": "2026-10-24T22:20:00.000Z",
+        "candles_48h": 1700,
+        "gaps_48h": 0,
+        "server_time_ms": 1792886400000
+      },
+      "shadow": {
+        "status": "running"
+      }
+    },
+    {
+      "name": "feed velho apesar do candle recente",
+      "expected": "red",
+      "updated_at_utc": "2026-10-24T22:20:00.000Z",
+      "collection_health": {
+        "last_open_time": "2026-10-24T23:58:00.000Z",
+        "candles_48h": 2000,
+        "gaps_48h": 0,
+        "server_time_ms": 1792886400000
+      },
+      "shadow": {
+        "status": "running"
+      }
+    },
+    {
+      "name": "candle ausente",
+      "expected": "red",
+      "updated_at_utc": "2026-10-24T23:58:00.000Z",
+      "collection_health": {
+        "last_open_time": null,
+        "candles_48h": null,
+        "gaps_48h": null,
+        "server_time_ms": 1792886400000
+      },
+      "shadow": {
+        "status": "awaiting",
+        "last_timestamp": null
+      }
+    },
+    {
+      "name": "lacunas nas últimas 48 horas",
+      "expected": "yellow",
+      "updated_at_utc": "2026-10-24T23:58:00.000Z",
+      "collection_health": {
+        "last_open_time": "2026-10-24T23:50:00.000Z",
+        "candles_48h": 2000,
+        "gaps_48h": 2,
+        "server_time_ms": 1792886400000
+      },
+      "shadow": {
+        "status": "running"
+      }
+    },
+    {
+      "name": "timestamp futuro em relação ao servidor",
+      "expected": "red",
+      "updated_at_utc": "2026-10-24T23:58:00.000Z",
+      "collection_health": {
+        "last_open_time": "2026-10-25T00:01:00.000Z",
+        "candles_48h": 2000,
+        "gaps_48h": 0,
+        "server_time_ms": 1792886400000
+      },
+      "shadow": {
+        "status": "running"
+      }
+    },
+    {
+      "name": "campos de agenda ausentes",
+      "expected": "red",
+      "updated_at_utc": "2026-10-24T23:58:00.000Z",
+      "collection_health": {
+        "last_open_time": "2026-10-24T23:50:00.000Z",
+        "candles_48h": 2000,
+        "gaps_48h": 0,
+        "server_time_ms": 1792886400000
+      },
+      "health_schedule": {},
+      "shadow": {
+        "status": "running"
+      }
+    },
+    {
+      "name": "campo de feed timestamp ausente",
+      "expected": "red",
+      "collection_health": {
+        "last_open_time": "2026-10-24T23:50:00.000Z",
+        "candles_48h": 2000,
+        "gaps_48h": 0,
+        "server_time_ms": 1792886400000
+      },
+      "shadow": {
+        "status": "running"
+      }
+    },
+    {
+      "name": "protocol_stopped mantém vermelho mesmo com workflow verde",
+      "expected": "red",
+      "updated_at_utc": "2026-10-24T23:58:00.000Z",
+      "collection_health": {
+        "last_open_time": "2026-10-24T23:30:00.000Z",
+        "candles_48h": 1800,
+        "gaps_48h": 0,
+        "server_time_ms": 1792886400000
+      },
+      "shadow": {
+        "status": "protocol_stopped",
+        "status_label": "INTERROMPIDA",
+        "status_detail": "First cloud collection would begin 2893 seconds after window start; no retrospective backfill was attempted.",
+        "events": [
+          {
+            "event": "PROTOCOL_STOP_INITIAL_SCHEDULER_GAP",
+            "at_utc": "2026-10-25T00:48:13.150235+00:00",
+            "detail": "First cloud collection would begin 2893 seconds after window start; no retrospective backfill was attempted."
+          }
+        ]
+      },
+      "audit": {
+        "panel_run": {
+          "run_id": 40148137316,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        "collector_last_run": {
+          "run_id": 40148089650,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      }
+    }
+  ]
+}

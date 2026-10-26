@@ -1,0 +1,22 @@
+{
+  "cases": [
+    {
+      "name": "drawdown -6% sem violação",
+      "drawdown": -0.06,
+      "breached": false,
+      "expected": "normal"
+    },
+    {
+      "name": "drawdown -7% atinge aviso",
+      "drawdown": -0.07,
+      "breached": false,
+      "expected": "warning"
+    },
+    {
+      "name": "drawdown -10% atinge limite crítico",
+      "drawdown": -0.1,
+      "breached": false,
+      "expected": "critical"
+    }
+  ]
+}
