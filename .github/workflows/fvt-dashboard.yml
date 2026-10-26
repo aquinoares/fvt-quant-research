@@ -43,7 +43,7 @@ jobs:
           node-version: "22"
 
       - name: Run dashboard health, risk, and hash-chain tests
-        run: node --test tests/dashboard/core.test.cjs
+        run: node --test tests/dashboard/core.test.cjs tests/dashboard/live-signals.test.cjs
 
       - name: Restore latest private shadow snapshot
         shell: bash
@@ -81,6 +81,7 @@ jobs:
           set -Eeuo pipefail
           mkdir -p site
           cp dashboard/index.html site/index.html
+          cp dashboard/live-signals.js site/live-signals.js
           python - <<'PY'
           import csv
           import hashlib
