@@ -1,5 +1,5 @@
 {
-  "created_at_utc": "2026-10-27T01:46:09Z",
+  "created_at_utc": "2026-10-27T07:44:31Z",
   "interpretation": "Não valida a Trilha B, não altera parâmetros congelados e não prova rentabilidade.",
   "label": "EXPLORATÓRIO — NÃO É PROVA",
   "method": "Baseline long-only SMA-20 não otimizado; sinal usa candles anteriores e custos por lado.",
@@ -7,22 +7,22 @@
   "signal_interval": "4h",
   "symbol": "BTCUSDT",
   "train": {
-    "buy_hold_net_return": 0.3299392170044666,
-    "candles": 224,
+    "buy_hold_net_return": 0.3215418118117215,
+    "candles": 247,
     "completed_trades": 12,
-    "exposure_bars": 138,
+    "exposure_bars": 156,
     "max_drawdown": -0.08398714422495102,
-    "net_return": 0.21134649119717985,
+    "net_return": 0.1950010075350741,
     "status": "ok"
   },
   "train_fraction": 0.7,
   "validation": {
-    "buy_hold_net_return": -0.01090345629506484,
-    "candles": 97,
-    "completed_trades": 4,
-    "exposure_bars": 30,
-    "max_drawdown": -0.0863883817348775,
-    "net_return": -0.06974399132981424,
+    "buy_hold_net_return": -0.15862244437528406,
+    "candles": 107,
+    "completed_trades": 3,
+    "exposure_bars": 16,
+    "max_drawdown": -0.07579815371594445,
+    "net_return": -0.06663424465462553,
     "status": "ok"
   },
   "warnings": [
