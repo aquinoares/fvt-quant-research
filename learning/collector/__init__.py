@@ -388,9 +388,11 @@ def collect(root: Path, now_ms: int | None = None,
         seed_utc = os.environ.get("LEARNING_START_UTC", DEFAULT_SEED_UTC)
     seed_ms = parse_utc_ms(seed_utc)
     tail_start = timestamps[-1] + MINUTE_MS if timestamps else seed_ms
-    queue: list[tuple[int, int, str]] = [(a, b, "gap") for a, b in before_gaps]
+    # Fila prioriza a cauda (dados mais recentes primeiro); lacunas históricas vêm depois.
+    queue: list[tuple[int, int, str]] = []
     if tail_start <= last_closed:
         queue.append((tail_start, last_closed, "tail"))
+    queue.extend((a, b, "gap") for a, b in before_gaps)
     original_gaps = list(before_gaps)
     new_records: list[dict[str, str]] = []
     duplicate_api_rows = requests_used = empty_pages = api_rows_received = 0

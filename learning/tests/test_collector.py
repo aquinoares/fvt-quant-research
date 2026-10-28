@@ -106,6 +106,34 @@ def test_open_candle_is_discarded():
     assert collector.normalize_kline(raw_kline(current_open, current_open + MIN - 1), NOW) is None
 
 
+def test_tail_is_prioritized_over_historical_gap_when_budget_is_one(tmp_path):
+    t0 = NOW - 10 * MIN
+    write_partition(tmp_path, [t0, t0 + 2 * MIN])
+    source = [raw_kline(t0 + i * MIN) for i in range(10)]
+    calls = []
+
+    def fetch(start, end, limit):
+        calls.append((start, end, limit))
+        return [r for r in source if start <= r[0] <= end][:limit]
+
+    report = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fetch, max_requests=1,
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    assert len(calls) == 1
+    assert calls[0][0] == t0 + 3 * MIN
+    assert report["new_candles"] == 7
+    assert report["gaps_remaining"] == 1
+    folder = tmp_path / "data" / "BTCUSDT_1m"
+    persisted = {
+        int(r["open_time_ms"])
+        for path in folder.glob("*.csv")
+        for r in csv.DictReader(path.open(encoding="utf-8", newline=""))
+    }
+    assert t0 + MIN not in persisted
+    assert t0 + 9 * MIN in persisted
+
+
 def test_empty_api_is_recorded_without_inventing_data(tmp_path):
     report = collector.collect(tmp_path, now_ms=NOW, fetcher=fake_fetcher([]))
     assert report["status"] == "empty_api"
