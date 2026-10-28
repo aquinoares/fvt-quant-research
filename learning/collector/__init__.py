@@ -346,6 +346,7 @@ def report_markdown(report: dict[str, Any]) -> str:
         f"- Último candle fechado UTC: {report.get('last_candle_open_time_utc') or 'não disponível'}.",
         f"- Idade do último candle (s desde abertura): {report.get('age_last_candle_seconds') if report.get('age_last_candle_seconds') is not None else 'não disponível'}.",
         f"- Backfill estimado pendente: {report.get('pending_backfill_candles')} candles.",
+        f"- Faixas ainda na fila de backfill: {report.get('queued_ranges_remaining')}.",
         f"- Páginas vazias: {report.get('empty_pages')}; registros recebidos da API: {report.get('api_rows_received')}.",
         f"- HTTP: {report.get('api_http_status') if report.get('api_http_status') is not None else 'sem erro HTTP registrado'}.",
         "", "## Observações", "", report.get("message", "Sem mensagem."),

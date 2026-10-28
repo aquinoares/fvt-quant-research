@@ -99,6 +99,28 @@ def test_request_budget_leaves_large_backfill_pending(tmp_path):
     assert len(calls) <= 2
     assert report["pending_backfill_candles"] > 0
     assert report["status"] == "backfill_pending"
+    assert report["empty_pages"] == 1
+    assert report["queued_ranges_remaining"] == 0
+
+
+def test_budget_exhaustion_records_remaining_queue_and_pending(tmp_path):
+    seed = collector.parse_utc_ms(collector.DEFAULT_SEED_UTC)
+
+    def fetch(start, end, limit):
+        count = min(limit, (end - start) // MIN + 1)
+        return [raw_kline(start + i * MIN) for i in range(count)]
+
+    report = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fetch, max_requests=2,
+        seed_utc=collector.DEFAULT_SEED_UTC,
+    )
+    assert report["requests_used"] == 2
+    assert report["new_candles"] == 2 * collector.API_LIMIT
+    assert report["queued_ranges_remaining"] == 1
+    assert report["pending_backfill_candles"] > 0
+    assert report["status"] == "backfill_pending"
+    markdown = (tmp_path / "reports" / "latest.md").read_text(encoding="utf-8")
+    assert "Faixas ainda na fila de backfill: 1." in markdown
 
 
 def test_open_candle_is_discarded():
