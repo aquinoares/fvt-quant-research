@@ -182,4 +182,45 @@ def test_coverage_without_candles_is_unknown_not_zero():
     assert result["coverage_percent"] is None
     assert result["coverage_minutes_present"] is None
     assert result["coverage_minutes_expected"] is None
+    assert result["coverage_target_percent"] is None
+    assert result["coverage_target_minutes_present"] is None
+    assert result["coverage_target_minutes_expected"] is None
     assert result["first_candle_open_time_utc"] is None
+
+
+def test_in_range_coverage_is_100_but_target_coverage_exposes_missing_tail(tmp_path):
+    t0 = NOW - 1_000 * MIN
+    write_partition(tmp_path, [t0 + i * MIN for i in range(5)])
+    report = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fake_fetcher([]),
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    assert report["coverage_percent"] == 100.0
+    assert report["coverage_minutes_present"] == 5
+    assert report["coverage_minutes_expected"] == 5
+    last_closed = (NOW // MIN) * MIN - MIN
+    assert report["coverage_target_minutes_expected"] == (last_closed - t0) // MIN + 1
+    assert report["coverage_target_minutes_present"] == 5
+    assert report["coverage_target_percent"] < 1.0
+    assert report["coverage_target_utc"] == collector.ms_to_iso(last_closed)
+
+
+def test_summarize_coverage_without_target_leaves_target_metrics_unknown():
+    t0 = collector.parse_utc_ms("2024-01-01T23:58:00Z")
+    result = collector.summarize_coverage([t0, t0 + MIN, t0 + 3 * MIN])
+    assert result["coverage_percent"] == 75.0
+    assert result["coverage_target_percent"] is None
+    assert result["coverage_target_minutes_present"] is None
+    assert result["coverage_target_minutes_expected"] is None
+
+
+def test_markdown_report_separates_in_range_and_target_coverage(tmp_path):
+    t0 = NOW - 100 * MIN
+    write_partition(tmp_path, [t0 + i * MIN for i in range(4)])
+    collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fake_fetcher([]),
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    markdown = (tmp_path / "reports" / "latest.md").read_text(encoding="utf-8")
+    assert "Cobertura dentro do intervalo observado" in markdown
+    assert "Cobertura total até o instante-alvo" in markdown
