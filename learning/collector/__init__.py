@@ -270,8 +270,12 @@ def aggregate_4h(data_dir: Path, now_ms: int) -> int:
 
 
 
-def summarize_coverage(timestamps: list[int]) -> dict[str, Any]:
-    """Calculate coverage over observed endpoints; no data means unknown, not zero."""
+def summarize_coverage(timestamps: list[int], target_ms: int | None = None) -> dict[str, Any]:
+    """In-range coverage (first..last on disk) plus total coverage up to target_ms.
+
+    coverage_percent mede apenas o intervalo já existente em disco. coverage_target_*
+    mede a cobertura total até o instante-alvo, para não mascarar cauda não coletada.
+    """
     unique = sorted(set(ts for ts in timestamps if isinstance(ts, int)))
     if not unique:
         return {
@@ -279,11 +283,22 @@ def summarize_coverage(timestamps: list[int]) -> dict[str, Any]:
             "coverage_percent": None,
             "coverage_minutes_present": None,
             "coverage_minutes_expected": None,
+            "coverage_target_percent": None,
+            "coverage_target_minutes_present": None,
+            "coverage_target_minutes_expected": None,
+            "coverage_target_utc": None,
             "daily_gaps": [],
         }
     first, last = unique[0], unique[-1]
     expected = max(1, (last - first) // MINUTE_MS + 1)
     present = len(unique)
+    target_percent = target_present = target_expected = None
+    target_utc = None
+    if target_ms is not None and target_ms >= first:
+        target_expected = (target_ms - first) // MINUTE_MS + 1
+        target_present = bisect.bisect_right(unique, target_ms)
+        target_percent = round(target_present / max(1, target_expected) * 100, 6)
+        target_utc = ms_to_iso(target_ms)
     gaps_by_day: dict[str, int] = defaultdict(int)
     for gap_start, gap_end in find_gaps(unique):
         cursor = gap_start
@@ -300,6 +315,10 @@ def summarize_coverage(timestamps: list[int]) -> dict[str, Any]:
         "coverage_percent": round(present / expected * 100, 6),
         "coverage_minutes_present": present,
         "coverage_minutes_expected": expected,
+        "coverage_target_percent": target_percent,
+        "coverage_target_minutes_present": target_present,
+        "coverage_target_minutes_expected": target_expected,
+        "coverage_target_utc": target_utc,
         "daily_gaps": [
             {"date_utc": day, "missing_minutes": count}
             for day, count in sorted(gaps_by_day.items())
@@ -317,7 +336,8 @@ def report_markdown(report: dict[str, Any]) -> str:
         f"- Candles novos nesta execução: {report.get('new_candles')}.",
         f"- Candles únicos persistidos: {report.get('candle_count')}.",
         f"- Primeira data UTC: {report.get('first_candle_open_time_utc') or '—'}.",
-        f"- Cobertura desde o primeiro candle: {report.get('coverage_percent') if report.get('coverage_percent') is not None else '—'}% ({report.get('coverage_minutes_present')} / {report.get('coverage_minutes_expected')} minutos).",
+        f"- Cobertura dentro do intervalo observado (primeiro→último candle em disco): {report.get('coverage_percent') if report.get('coverage_percent') is not None else '—'}% ({report.get('coverage_minutes_present')} / {report.get('coverage_minutes_expected')} minutos).",
+        f"- Cobertura total até o instante-alvo ({report.get('coverage_target_utc') or '—'}): {report.get('coverage_target_percent') if report.get('coverage_target_percent') is not None else '—'}% ({report.get('coverage_target_minutes_present')} / {report.get('coverage_target_minutes_expected')} minutos).",
         f"- Dias com lacunas UTC registrados: {len(report.get('daily_gaps', []))}.",
         f"- Lacunas encontradas antes: {report.get('gaps_found')} intervalos / {report.get('missing_minutes_before')} minutos ausentes.",
         f"- Lacunas totalmente preenchidas: {report.get('gaps_filled')}; candles recuperados dentro delas: {report.get('gap_candles_filled')}.",
@@ -326,6 +346,7 @@ def report_markdown(report: dict[str, Any]) -> str:
         f"- Último candle fechado UTC: {report.get('last_candle_open_time_utc') or 'não disponível'}.",
         f"- Idade do último candle (s desde abertura): {report.get('age_last_candle_seconds') if report.get('age_last_candle_seconds') is not None else 'não disponível'}.",
         f"- Backfill estimado pendente: {report.get('pending_backfill_candles')} candles.",
+        f"- Faixas ainda na fila de backfill: {report.get('queued_ranges_remaining')}.",
         f"- Páginas vazias: {report.get('empty_pages')}; registros recebidos da API: {report.get('api_rows_received')}.",
         f"- HTTP: {report.get('api_http_status') if report.get('api_http_status') is not None else 'sem erro HTTP registrado'}.",
         "", "## Observações", "", report.get("message", "Sem mensagem."),
@@ -368,9 +389,11 @@ def collect(root: Path, now_ms: int | None = None,
         seed_utc = os.environ.get("LEARNING_START_UTC", DEFAULT_SEED_UTC)
     seed_ms = parse_utc_ms(seed_utc)
     tail_start = timestamps[-1] + MINUTE_MS if timestamps else seed_ms
-    queue: list[tuple[int, int, str]] = [(a, b, "gap") for a, b in before_gaps]
+    # Fila prioriza a cauda (dados mais recentes primeiro); lacunas históricas vêm depois.
+    queue: list[tuple[int, int, str]] = []
     if tail_start <= last_closed:
         queue.append((tail_start, last_closed, "tail"))
+    queue.extend((a, b, "gap") for a, b in before_gaps)
     original_gaps = list(before_gaps)
     new_records: list[dict[str, str]] = []
     duplicate_api_rows = requests_used = empty_pages = api_rows_received = 0
@@ -417,7 +440,7 @@ def collect(root: Path, now_ms: int | None = None,
 
     save_new_records(data_dir, new_records, INTERVAL)
     timestamps = sorted(seen)
-    coverage = summarize_coverage(timestamps)
+    coverage = summarize_coverage(timestamps, target_ms=last_closed)
     four_hour_count = aggregate_4h(data_dir, now_ms)
     after_gaps = find_gaps(timestamps)
     missing_after = sum((end - start) // MINUTE_MS + 1 for start, end in after_gaps)
@@ -453,6 +476,10 @@ def collect(root: Path, now_ms: int | None = None,
         "coverage_percent": coverage["coverage_percent"],
         "coverage_minutes_present": coverage["coverage_minutes_present"],
         "coverage_minutes_expected": coverage["coverage_minutes_expected"],
+        "coverage_target_percent": coverage["coverage_target_percent"],
+        "coverage_target_minutes_present": coverage["coverage_target_minutes_present"],
+        "coverage_target_minutes_expected": coverage["coverage_target_minutes_expected"],
+        "coverage_target_utc": coverage["coverage_target_utc"],
         "daily_gaps": coverage["daily_gaps"],
         "gaps_found": len(before_gaps), "missing_minutes_before": before_missing,
         "gaps_filled": gaps_filled, "gap_candles_filled": gap_candles_filled,

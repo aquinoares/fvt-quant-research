@@ -99,11 +99,61 @@ def test_request_budget_leaves_large_backfill_pending(tmp_path):
     assert len(calls) <= 2
     assert report["pending_backfill_candles"] > 0
     assert report["status"] == "backfill_pending"
+    assert report["empty_pages"] == 1
+    assert report["queued_ranges_remaining"] == 0
+
+
+def test_budget_exhaustion_records_remaining_queue_and_pending(tmp_path):
+    seed = collector.parse_utc_ms(collector.DEFAULT_SEED_UTC)
+
+    def fetch(start, end, limit):
+        count = min(limit, (end - start) // MIN + 1)
+        return [raw_kline(start + i * MIN) for i in range(count)]
+
+    report = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fetch, max_requests=2,
+        seed_utc=collector.DEFAULT_SEED_UTC,
+    )
+    assert report["requests_used"] == 2
+    assert report["new_candles"] == 2 * collector.API_LIMIT
+    assert report["queued_ranges_remaining"] == 1
+    assert report["pending_backfill_candles"] > 0
+    assert report["status"] == "backfill_pending"
+    markdown = (tmp_path / "reports" / "latest.md").read_text(encoding="utf-8")
+    assert "Faixas ainda na fila de backfill: 1." in markdown
 
 
 def test_open_candle_is_discarded():
     current_open = (NOW // MIN) * MIN
     assert collector.normalize_kline(raw_kline(current_open, current_open + MIN - 1), NOW) is None
+
+
+def test_tail_is_prioritized_over_historical_gap_when_budget_is_one(tmp_path):
+    t0 = NOW - 10 * MIN
+    write_partition(tmp_path, [t0, t0 + 2 * MIN])
+    source = [raw_kline(t0 + i * MIN) for i in range(10)]
+    calls = []
+
+    def fetch(start, end, limit):
+        calls.append((start, end, limit))
+        return [r for r in source if start <= r[0] <= end][:limit]
+
+    report = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fetch, max_requests=1,
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    assert len(calls) == 1
+    assert calls[0][0] == t0 + 3 * MIN
+    assert report["new_candles"] == 7
+    assert report["gaps_remaining"] == 1
+    folder = tmp_path / "data" / "BTCUSDT_1m"
+    persisted = {
+        int(r["open_time_ms"])
+        for path in folder.glob("*.csv")
+        for r in csv.DictReader(path.open(encoding="utf-8", newline=""))
+    }
+    assert t0 + MIN not in persisted
+    assert t0 + 9 * MIN in persisted
 
 
 def test_empty_api_is_recorded_without_inventing_data(tmp_path):
@@ -182,4 +232,170 @@ def test_coverage_without_candles_is_unknown_not_zero():
     assert result["coverage_percent"] is None
     assert result["coverage_minutes_present"] is None
     assert result["coverage_minutes_expected"] is None
+    assert result["coverage_target_percent"] is None
+    assert result["coverage_target_minutes_present"] is None
+    assert result["coverage_target_minutes_expected"] is None
     assert result["first_candle_open_time_utc"] is None
+
+
+def test_in_range_coverage_is_100_but_target_coverage_exposes_missing_tail(tmp_path):
+    t0 = NOW - 1_000 * MIN
+    write_partition(tmp_path, [t0 + i * MIN for i in range(5)])
+    report = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fake_fetcher([]),
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    assert report["coverage_percent"] == 100.0
+    assert report["coverage_minutes_present"] == 5
+    assert report["coverage_minutes_expected"] == 5
+    last_closed = (NOW // MIN) * MIN - MIN
+    assert report["coverage_target_minutes_expected"] == (last_closed - t0) // MIN + 1
+    assert report["coverage_target_minutes_present"] == 5
+    assert report["coverage_target_percent"] < 1.0
+    assert report["coverage_target_utc"] == collector.ms_to_iso(last_closed)
+
+
+def test_summarize_coverage_without_target_leaves_target_metrics_unknown():
+    t0 = collector.parse_utc_ms("2024-01-01T23:58:00Z")
+    result = collector.summarize_coverage([t0, t0 + MIN, t0 + 3 * MIN])
+    assert result["coverage_percent"] == 75.0
+    assert result["coverage_target_percent"] is None
+    assert result["coverage_target_minutes_present"] is None
+    assert result["coverage_target_minutes_expected"] is None
+
+
+def test_markdown_report_separates_in_range_and_target_coverage(tmp_path):
+    t0 = NOW - 100 * MIN
+    write_partition(tmp_path, [t0 + i * MIN for i in range(4)])
+    collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fake_fetcher([]),
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    markdown = (tmp_path / "reports" / "latest.md").read_text(encoding="utf-8")
+    assert "Cobertura dentro do intervalo observado" in markdown
+    assert "Cobertura total até o instante-alvo" in markdown
+
+
+def full_generator_fetcher():
+    def fetch(start, end, limit):
+        count = min(limit, (end - start) // MIN + 1)
+        return [raw_kline(start + i * MIN) for i in range(count)]
+    return fetch
+
+
+def persisted_opens(root: Path) -> list[int]:
+    folder = root / "data" / "BTCUSDT_1m"
+    return sorted(
+        int(r["open_time_ms"])
+        for path in folder.glob("*.csv")
+        for r in csv.DictReader(path.open(encoding="utf-8", newline=""))
+    )
+
+
+def test_resume_mid_tail_continues_from_last_persisted_candle(tmp_path):
+    t0 = NOW - 2_500 * MIN
+    fetch = full_generator_fetcher()
+    first = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fetch, max_requests=1,
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    assert first["requests_used"] == 1
+    assert first["new_candles"] == collector.API_LIMIT
+    assert first["queued_ranges_remaining"] == 1
+    assert persisted_opens(tmp_path) == [t0 + i * MIN for i in range(collector.API_LIMIT)]
+
+    calls = []
+    def recording_fetch(start, end, limit):
+        calls.append(start)
+        return fetch(start, end, limit)
+
+    second = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=recording_fetch, max_requests=1,
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    assert calls == [t0 + collector.API_LIMIT * MIN]
+    assert second["new_candles"] == collector.API_LIMIT
+    assert second["candle_count"] == 2 * collector.API_LIMIT
+    opens = persisted_opens(tmp_path)
+    assert opens == [t0 + i * MIN for i in range(2 * collector.API_LIMIT)]
+    assert len(opens) == len(set(opens))
+
+    third = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=recording_fetch, max_requests=1,
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    assert third["new_candles"] == 500
+    assert third["candle_count"] == 2_500
+    assert third["status"] == "ok"
+    assert third["coverage_percent"] == 100.0
+    assert third["coverage_target_percent"] == 100.0
+
+
+def test_second_run_is_idempotent_and_byte_stable(tmp_path):
+    t0 = NOW - 30 * MIN
+    fetch = full_generator_fetcher()
+    collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fetch, max_requests=10,
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    files = sorted((tmp_path / "data" / "BTCUSDT_1m").glob("*.csv"))
+    before = {path.name: path.read_bytes() for path in files}
+    report = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fetch, max_requests=10,
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    assert report["requests_used"] == 0
+    assert report["new_candles"] == 0
+    assert report["duplicates_removed"] == 0
+    assert report["status"] == "ok"
+    after = {path.name: path.read_bytes() for path in files}
+    assert before == after
+
+
+def test_dedup_key_across_disk_and_api_counts_single_candle(tmp_path):
+    t0 = NOW - 4 * MIN
+    write_partition(tmp_path, [t0, t0 + 3 * MIN])
+    source = [raw_kline(t0 + MIN), raw_kline(t0 + MIN), raw_kline(t0 + 2 * MIN)]
+    report = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fake_fetcher(source),
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    assert report["new_candles"] == 2
+    assert report["duplicates_removed"] == 1
+    assert report["candle_count"] == 4
+    opens = persisted_opens(tmp_path)
+    assert opens == [t0, t0 + MIN, t0 + 2 * MIN, t0 + 3 * MIN]
+
+
+def test_empty_page_within_range_is_counted_and_gap_stays_recorded(tmp_path):
+    t0 = NOW - 5 * MIN
+    write_partition(tmp_path, [t0, t0 + 2 * MIN, t0 + 3 * MIN, t0 + 4 * MIN])
+    report = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=fake_fetcher([]),
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    assert report["requests_used"] == 1
+    assert report["empty_pages"] == 1
+    assert report["new_candles"] == 0
+    assert report["gaps_found"] == 1
+    assert report["gaps_remaining"] == 1
+    assert report["status"] == "backfill_pending"
+    markdown = (tmp_path / "reports" / "latest.md").read_text(encoding="utf-8")
+    assert "Páginas vazias: 1" in markdown
+
+
+def test_partial_run_persists_only_fetched_state(tmp_path):
+    t0 = NOW - 5_000 * MIN
+    report = collector.collect(
+        tmp_path, now_ms=NOW, fetcher=full_generator_fetcher(), max_requests=1,
+        seed_utc=collector.ms_to_iso(t0),
+    )
+    assert report["new_candles"] == collector.API_LIMIT
+    assert report["candle_count"] == collector.API_LIMIT
+    opens = persisted_opens(tmp_path)
+    assert opens == [t0 + i * MIN for i in range(collector.API_LIMIT)]
+    state = (tmp_path / "reports" / "latest.json").read_text(encoding="utf-8")
+    for fragment in ('"requests_used": 1', '"queued_ranges_remaining": 1', '"max_requests": 1'):
+        assert fragment in state
+    archived = list((tmp_path / "reports").glob("quality-*.json"))
+    assert len(archived) == 1
