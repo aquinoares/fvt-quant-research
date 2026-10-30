@@ -2,22 +2,22 @@
 
 **EXPLORATÓRIO — NÃO É PROVA.**
 
-- Execução UTC: 2026-10-30T15:51:45Z
+- Execução UTC: 2026-10-30T20:43:12Z
 - Estado: backfill_pending
 - Fonte pública: Binance Spot; símbolo BTCUSDT; intervalo 1m.
 - Requisições: 10/10.
 - Candles novos nesta execução: 6000.
-- Candles únicos persistidos: 182308.
+- Candles únicos persistidos: 188308.
 - Primeira data UTC: 2020-01-01T00:00:00Z.
-- Cobertura desde o primeiro candle: 99.621858% (182308 / 183000 minutos).
+- Cobertura desde o primeiro candle: 99.633862% (188308 / 189000 minutos).
 - Dias com lacunas UTC registrados: 4.
 - Lacunas encontradas antes: 4 intervalos / 692 minutos ausentes.
 - Lacunas totalmente preenchidas: 0; candles recuperados dentro delas: 0.
 - Lacunas remanescentes: 4 intervalos / 692 minutos ausentes.
 - Duplicatas removidas/ignoradas: 0.
-- Último candle fechado UTC: 2020-05-07T01:59:00Z.
-- Idade do último candle (s desde abertura): 204558765.
-- Backfill estimado pendente: 3409311 candles.
+- Último candle fechado UTC: 2020-05-11T05:59:00Z.
+- Idade do último candle (s desde abertura): 204216252.
+- Backfill estimado pendente: 3403603 candles.
 - Páginas vazias: 4; registros recebidos da API: 6000.
 - HTTP: sem erro HTTP registrado.
 
