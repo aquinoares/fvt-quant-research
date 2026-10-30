@@ -1,0 +1,55 @@
+{
+  "age_last_candle_seconds": 205228573,
+  "api_http_status": null,
+  "api_rows_received": 6850,
+  "candle_count": 170308,
+  "coverage_minutes_expected": 171000,
+  "coverage_minutes_present": 170308,
+  "coverage_percent": 99.595322,
+  "daily_gaps": [
+    {
+      "date_utc": "2020-02-09",
+      "missing_minutes": 60
+    },
+    {
+      "date_utc": "2020-02-19",
+      "missing_minutes": 354
+    },
+    {
+      "date_utc": "2020-03-04",
+      "missing_minutes": 128
+    },
+    {
+      "date_utc": "2020-04-25",
+      "missing_minutes": 150
+    }
+  ],
+  "duplicates_removed": 0,
+  "empty_pages": 3,
+  "endpoint": "https://data-api.binance.vision/api/v3/klines",
+  "first_candle_open_time_utc": "2020-01-01T00:00:00Z",
+  "four_hour_candles_aggregated": 705,
+  "gap_candles_filled": 0,
+  "gaps_filled": 0,
+  "gaps_found": 3,
+  "gaps_remaining": 4,
+  "interval": "1m",
+  "invalid_rows_removed": 0,
+  "label": "EXPLORATÓRIO — NÃO É PROVA",
+  "last_candle_open_time_utc": "2020-04-28T17:59:00Z",
+  "max_requests": 10,
+  "message": "Backfill continua em próximas execuções; lacunas e atraso são registrados sem impedir nova coleta.",
+  "missing_minutes_after": 692,
+  "missing_minutes_before": 542,
+  "new_candles": 6850,
+  "pending_backfill_candles": 3420475,
+  "queued_ranges_remaining": 1,
+  "requests_used": 10,
+  "run_at_epoch_ms": 1793325313343,
+  "run_at_utc": "2026-10-30T01:55:13Z",
+  "run_id": "40988634358",
+  "schema_version": 1,
+  "status": "backfill_pending",
+  "symbol": "BTCUSDT",
+  "uses_public_endpoint_only": true
+}
